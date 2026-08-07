@@ -215,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (answer) {
 
-                window.location.href = "login.html";
+                window.location.href = "/login";
 
             }
 

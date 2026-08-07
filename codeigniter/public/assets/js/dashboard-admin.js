@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const label = link.textContent.trim();
 
         if (label === "Reports") {
-            link.setAttribute("href", "../report%20A%20.html");
+            link.setAttribute("href", "/admin/reports");
         }
 
         if (!parentItem || parentItem.classList.contains("logout")) {
@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (confirmLogout) {
                 alert("Logged out successfully!");
-                window.location.href = "login.html";
+                window.location.href = "/login";
             }
         });
     }
@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (announceBtn) {
         announceBtn.addEventListener("click", function (e) {
             e.preventDefault();
-            window.location.href = "../announcements.html?open=add";
+            window.location.href = "/admin/announcements?open=add";
         });
     }
 

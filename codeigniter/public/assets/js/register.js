@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
         formMessage.className = "form-message success";
 
         window.setTimeout(function () {
-            window.location.href = "login.html";
+            window.location.href = "/login";
         }, 900);
     });
 });

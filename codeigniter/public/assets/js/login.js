@@ -70,9 +70,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const isAdminLogin = username === "admin" || username === "barangay";
 
         if (isAdminLogin) {
-            window.location.href = "dashboard-admin.html";
+            window.location.href = "/admin/dashboard";
         } else {
-            window.location.href = "dashboard-resident.html";
+            window.location.href = "/resident/dashboard";
         }
     });
 });
