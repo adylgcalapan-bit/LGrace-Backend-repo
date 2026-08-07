@@ -1,0 +1,8 @@
+# Local database configuration
+codeigniter/.env
+
+# CodeIgniter generated files
+codeigniter/writable/cache/*
+codeigniter/writable/logs/*
+codeigniter/writable/session/*
+codeigniter/writable/debugbar/*
