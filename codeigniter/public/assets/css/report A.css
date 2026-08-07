@@ -1,0 +1,536 @@
+/* ==========================================
+   REPORTS PAGE CSS
+   File: css/report.css
+   Part 1
+========================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    background:#f5f7fa;
+    color:#333;
+    overflow-x:hidden;
+}
+
+.wrapper{
+    display:flex;
+    min-height:100vh;
+    width:100%;
+}
+
+.sidebar{
+    width:260px;
+    flex-shrink:0;
+    background:#1f6f43;
+    color:#fff;
+    padding:24px 0;
+    min-height:100vh;
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+    z-index:10;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:0 24px 20px;
+}
+
+.logo i{
+    font-size:26px;
+}
+
+.logo h4{
+    margin:0;
+    font-weight:700;
+}
+
+.menu{
+    list-style:none;
+    padding:20px 0;
+}
+
+.menu li{
+    margin:5px 15px;
+}
+
+.menu li a{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    text-decoration:none;
+    color:#fff;
+    padding:14px 18px;
+    border-radius:10px;
+    transition:.3s;
+    font-size:15px;
+}
+
+.menu li a:hover{
+    background:rgba(255,255,255,.15);
+}
+
+.menu li.active a{
+    background:#fff;
+    color:#1f6f43;
+    font-weight:600;
+}
+
+.menu li.logout{
+    margin-top:40px;
+}
+
+/* =========================
+   MAIN CONTENT
+========================= */
+
+.main-content{
+    flex:1;
+    min-width:0;
+    padding:30px;
+    min-height:100vh;
+    width:auto;
+}
+
+/* =========================
+   PAGE HEADER
+========================= */
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+.welcome h2{
+    font-size:30px;
+    font-weight:700;
+    color:#222;
+}
+
+.welcome p{
+    color:#777;
+    margin-top:5px;
+}
+
+/* =========================
+   FILTER CARD
+========================= */
+
+.card{
+    border:none;
+    border-radius:15px;
+    box-shadow:0 8px 20px rgba(0,0,0,.05);
+    width:100%;
+}
+
+.card input,
+.card select{
+    height:48px;
+    border-radius:10px;
+}
+
+.form-control:focus,
+.form-select:focus{
+    border-color:#198754;
+    box-shadow:0 0 0 .15rem rgba(25,135,84,.2);
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.btn-success{
+    background:#198754;
+    border:none;
+    border-radius:10px;
+    font-weight:500;
+}
+
+.btn-success:hover{
+    background:#157347;
+}
+
+.btn-primary{
+    border-radius:8px;
+}
+
+.btn-danger{
+    border-radius:8px;
+}
+
+.btn-secondary{
+    border-radius:8px;
+}
+
+/* =========================
+   TABLE CARD
+========================= */
+
+.table-responsive{
+    overflow-x:auto;
+    width:100%;
+}
+
+.table{
+    margin-bottom:0;
+}
+
+.table thead{
+    background:#198754;
+    color:#fff;
+}
+
+.table thead th{
+    font-size:14px;
+    font-weight:600;
+    padding:16px;
+    vertical-align:middle;
+}
+
+.table th:last-child,
+.table td:last-child{
+    min-width:190px;
+}
+
+.table tbody td{
+    padding:16px;
+    vertical-align:middle;
+    font-size:14px;
+}
+
+.priority-select{
+    min-width:110px;
+    border-radius:8px;
+}
+
+.action-buttons{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+}
+
+.action-buttons .btn{
+    min-width:80px;
+}
+
+.table-hover tbody tr:hover{
+    background:#f8f9fa;
+}
+
+/* =========================
+   REPORT STATUS
+========================= */
+
+.badge{
+    padding:8px 14px;
+    font-size:12px;
+    border-radius:20px;
+    font-weight:500;
+}
+
+.bg-warning{
+    color:#000 !important;
+}
+
+/* =========================
+   ACTION BUTTONS
+========================= */
+
+td .btn{
+    margin-right:4px;
+}
+
+td .btn:last-child{
+    margin-right:0;
+}
+
+.btn-sm{
+    width:36px;
+    height:36px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+}
+
+/* =========================
+   CARD HEADER
+========================= */
+
+.card-header{
+    border-bottom:1px solid #eee;
+    padding:20px;
+    background:#fff;
+}
+
+.card-header h4{
+    margin:0;
+    font-size:22px;
+    font-weight:600;
+}
+
+/* =========================
+   CARD FOOTER
+========================= */
+
+.card-footer{
+    background:#fff;
+    border-top:1px solid #eee;
+    padding:15px 20px;
+}
+
+/* ==========================================
+   REPORTS PAGE CSS
+   File: css/report.css
+   Part 2
+========================================== */
+
+/* =========================
+   PAGINATION
+========================= */
+
+.pagination .page-link{
+    color:#198754;
+    border-radius:8px;
+    margin:0 3px;
+    border:1px solid #dee2e6;
+    transition:.3s;
+}
+
+.pagination .page-link:hover{
+    background:#198754;
+    color:#fff;
+    border-color:#198754;
+}
+
+.pagination .page-item.active .page-link{
+    background:#198754;
+    border-color:#198754;
+    color:#fff;
+}
+
+.pagination .page-item.disabled .page-link{
+    color:#999;
+}
+
+/* =========================
+   MODALS
+========================= */
+
+.modal-content{
+    border:none;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 15px 40px rgba(0,0,0,.15);
+}
+
+.modal-header{
+    background:#198754;
+    color:#fff;
+    border-bottom:none;
+}
+
+.modal-title{
+    font-weight:600;
+}
+
+.modal-body{
+    padding:25px;
+}
+
+.modal-body p{
+    margin-bottom:10px;
+    color:#555;
+}
+
+.modal-body strong{
+    color:#222;
+}
+
+.modal-footer{
+    border-top:1px solid #eee;
+}
+
+.modal .btn{
+    border-radius:10px;
+}
+
+/* =========================
+   SEARCH & FILTERS
+========================= */
+
+.form-control,
+.form-select{
+    transition:.3s;
+}
+
+.form-control:hover,
+.form-select:hover{
+    border-color:#198754;
+}
+
+/* =========================
+   TABLE ANIMATION
+========================= */
+
+.table tbody tr{
+    transition:.25s ease;
+}
+
+.table tbody tr:hover{
+    transform:scale(1.01);
+}
+
+/* =========================
+   CUSTOM SCROLLBAR
+========================= */
+
+::-webkit-scrollbar{
+    width:8px;
+    height:8px;
+}
+
+::-webkit-scrollbar-track{
+    background:#f1f1f1;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#198754;
+    border-radius:20px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background:#157347;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width:992px){
+
+    .main-content{
+        margin-left:220px;
+        padding:20px;
+    }
+
+    .topbar{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .card-header h4{
+        font-size:20px;
+    }
+
+}
+
+@media (max-width:768px){
+
+    .wrapper{
+        flex-direction:column;
+    }
+
+    .sidebar{
+        width:100%;
+        height:auto;
+        position:static;
+        max-height:none;
+    }
+
+    .main-content{
+        padding:15px;
+    }
+
+    .topbar{
+        gap:15px;
+    }
+
+    .welcome h2{
+        font-size:24px;
+    }
+
+    .welcome p{
+        font-size:14px;
+    }
+
+    .table thead th,
+    .table tbody td{
+        font-size:13px;
+        white-space:nowrap;
+    }
+
+    .btn-sm{
+        width:32px;
+        height:32px;
+    }
+
+    .modal-dialog{
+        margin:15px;
+    }
+
+}
+
+@media (max-width:576px){
+
+    .welcome h2{
+        font-size:22px;
+    }
+
+    .card-header,
+    .card-footer{
+        padding:15px;
+    }
+
+    .modal-body{
+        padding:20px;
+    }
+
+    .pagination{
+        justify-content:center;
+        flex-wrap:wrap;
+        gap:5px;
+    }
+
+    .table{
+        font-size:12px;
+    }
+
+}
+
+/* =========================
+   FADE-IN ANIMATION
+========================= */
+
+.card,
+.table,
+.modal-content{
+    animation:fadeIn .4s ease;
+}
+
+@keyframes fadeIn{
+
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+
+}

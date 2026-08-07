@@ -1,0 +1,493 @@
+/* ==========================================
+   GOOGLE FONT
+========================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* ==========================================
+   GLOBAL
+========================================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    background:#f5f7f9;
+    color:#333;
+}
+
+/* ==========================================
+   LAYOUT
+========================================== */
+
+.wrapper{
+    display:flex;
+    min-height:100vh;
+}
+
+/* ==========================================
+   SIDEBAR
+========================================== */
+
+.sidebar{
+    width:270px;
+    background:#2E7D32;
+    color:#fff;
+    position:fixed;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 5px 15px rgba(0,0,0,.15);
+}
+
+.logo{
+    text-align:center;
+    padding:30px 20px;
+    border-bottom:1px solid rgba(255,255,255,.15);
+}
+
+.logo i{
+    font-size:45px;
+    margin-bottom:10px;
+}
+
+.logo h4{
+    font-size:18px;
+    font-weight:600;
+    line-height:1.5;
+}
+
+/* ==========================================
+   MENU
+========================================== */
+
+.menu{
+    list-style:none;
+    margin-top:25px;
+    padding-left:0;
+}
+
+.menu li{
+    margin:8px 15px;
+}
+
+.menu li a{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    color:#fff;
+    text-decoration:none;
+    padding:14px 18px;
+    border-radius:10px;
+    transition:.3s;
+}
+
+.menu li a i{
+    font-size:20px;
+}
+
+.menu li:hover a{
+    background:#43A047;
+}
+
+.menu li.active a{
+    background:#66BB6A;
+    font-weight:600;
+}
+
+.logout{
+    margin-top:auto;
+    margin-bottom:25px;
+}
+
+/* ==========================================
+   MAIN CONTENT
+========================================== */
+
+.main-content{
+    margin-left:270px;
+    width:calc(100% - 270px);
+    padding:35px;
+}
+
+/* ==========================================
+   TOPBAR
+========================================== */
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    margin-bottom:30px;
+}
+
+.topbar h2{
+    color:#2E7D32;
+    font-weight:700;
+}
+
+.topbar p{
+    color:#777;
+    margin-top:5px;
+}
+
+.back-link{
+    border-radius:10px;
+    padding:10px 16px;
+    font-weight:600;
+}
+/* ==========================================
+   REPORT CARD
+========================================== */
+
+.report-card{
+    border:none;
+    border-radius:18px;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+    overflow:hidden;
+}
+
+.report-card .card-header{
+    background:#2E7D32;
+    color:#fff;
+    padding:18px 25px;
+}
+
+.report-card .card-header h4{
+    margin:0;
+    font-weight:600;
+}
+
+.report-card .card-body{
+    background:#fff;
+    padding:35px;
+}
+
+/* ==========================================
+   FORM
+========================================== */
+
+.form-label{
+    font-weight:600;
+    color:#2E7D32;
+    margin-bottom:8px;
+}
+
+.form-control,
+.form-select{
+    border-radius:10px;
+    padding:12px;
+    border:1px solid #ced4da;
+    transition:.3s;
+}
+
+.form-control:focus,
+.form-select:focus{
+    border-color:#43A047;
+    box-shadow:0 0 0 .2rem rgba(67,160,71,.25);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid,
+textarea.is-invalid{
+    border-color:#dc3545;
+    box-shadow:0 0 0 .2rem rgba(220,53,69,.15);
+}
+
+.form-control.is-valid,
+.form-select.is-valid,
+textarea.is-valid{
+    border-color:#2E7D32;
+    box-shadow:0 0 0 .2rem rgba(46,125,50,.15);
+}
+
+.invalid-feedback{
+    display:none;
+    color:#dc3545;
+    font-size:13px;
+    margin-top:6px;
+}
+
+.invalid-feedback.show{
+    display:block;
+}
+
+.form-feedback{
+    display:none;
+    margin-bottom:12px;
+    padding:10px 12px;
+    border-radius:10px;
+    font-size:14px;
+}
+
+.form-feedback.show{
+    display:block;
+}
+
+.success-feedback{
+    background:#E8F5E9;
+    color:#2E7D32;
+    border:1px solid #A5D6A7;
+}
+
+textarea.form-control{
+    resize:none;
+}
+
+small.text-muted{
+    display:block;
+    margin-top:6px;
+    font-size:13px;
+}
+
+/* ==========================================
+   FILE INPUT
+========================================== */
+
+input[type="file"]{
+    padding:10px;
+    cursor:pointer;
+}
+
+/* ==========================================
+   CHECKBOX
+========================================== */
+
+.form-check{
+    padding-top:10px;
+}
+
+.form-check-input:checked{
+    background-color:#2E7D32;
+    border-color:#2E7D32;
+}
+
+/* ==========================================
+   MAP
+========================================== */
+
+#map{
+    width:100%;
+    height:420px;
+    border-radius:12px;
+    border:2px solid #dcdcdc;
+    margin-top:10px;
+    overflow:hidden;
+}
+
+#map.map-invalid{
+    border-color:#dc3545;
+}
+
+#map.map-valid{
+    border-color:#2E7D32;
+}
+
+#locationStatus{
+    font-size:13px;
+    color:#666;
+}
+
+#useLocationBtn{
+    border-radius:10px;
+    font-weight:600;
+}
+
+/* ==========================================
+   BUTTONS
+========================================== */
+
+.btn-success{
+    background:#2E7D32;
+    border:none;
+    padding:10px 22px;
+    border-radius:10px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.btn-success:hover{
+    background:#256428;
+    transform:translateY(-2px);
+}
+
+.btn-secondary{
+    border-radius:10px;
+    padding:10px 22px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.btn-secondary:hover{
+    transform:translateY(-2px);
+}
+/* ==========================================
+   FOOTER
+========================================== */
+
+.footer{
+    margin-top:30px;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 768px) {
+    .wrapper {
+        flex-direction:column;
+    }
+
+    .sidebar {
+        width:100%;
+        height:auto;
+        position:relative;
+    }
+
+    .main-content {
+        margin-left:0;
+        width:100%;
+        padding:20px;
+    }
+
+    .topbar {
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .report-card .card-body {
+        padding:20px;
+    }
+}
+
+
+.footer{
+    margin-top:50px;
+    color:#777;
+    font-size:14px;
+}
+
+.footer hr{
+    margin-bottom:20px;
+}
+
+/* ==========================================
+   CARD ANIMATION
+========================================== */
+
+.report-card{
+    transition:.3s;
+}
+
+.report-card:hover{
+    box-shadow:0 12px 25px rgba(0,0,0,.12);
+}
+
+/* ==========================================
+   SCROLLBAR
+========================================== */
+
+::-webkit-scrollbar{
+    width:8px;
+}
+
+::-webkit-scrollbar-track{
+    background:#f1f1f1;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#81C784;
+    border-radius:20px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background:#4CAF50;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width:991px){
+
+    .sidebar{
+        width:100%;
+        height:auto;
+        position:relative;
+    }
+
+    .main-content{
+        margin-left:0;
+        width:100%;
+        padding:20px;
+    }
+
+    .report-card .card-body{
+        padding:25px;
+    }
+
+    #map{
+        height:350px;
+    }
+
+}
+
+@media (max-width:768px){
+
+    .topbar h2{
+        font-size:26px;
+    }
+
+    .topbar p{
+        font-size:14px;
+    }
+
+    .report-card .card-body{
+        padding:20px;
+    }
+
+    .btn{
+        width:100%;
+        margin-bottom:10px;
+    }
+
+    .text-end{
+        text-align:center !important;
+    }
+
+}
+
+@media (max-width:576px){
+
+    .logo h4{
+        font-size:16px;
+    }
+
+    .logo i{
+        font-size:38px;
+    }
+
+    .form-control,
+    .form-select{
+        font-size:14px;
+    }
+
+    .form-label{
+        font-size:14px;
+    }
+
+    #map{
+        height:280px;
+    }
+
+    .footer{
+        text-align:center;
+        font-size:13px;
+    }
+
+}

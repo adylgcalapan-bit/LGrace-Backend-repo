@@ -1,0 +1,397 @@
+/* ==========================================
+   GOOGLE FONT
+========================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* ==========================================
+   GLOBAL
+========================================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    background:#f5f7f9;
+    color:#333;
+}
+
+/* ==========================================
+   LAYOUT
+========================================== */
+
+.wrapper{
+    display:flex;
+    min-height:100vh;
+}
+
+/* ==========================================
+   SIDEBAR
+========================================== */
+
+.sidebar{
+    width:270px;
+    background:#2E7D32;
+    color:#fff;
+    position:fixed;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 5px 15px rgba(0,0,0,.15);
+}
+
+.logo{
+    text-align:center;
+    padding:30px 20px;
+    border-bottom:1px solid rgba(255,255,255,.15);
+}
+
+.logo i{
+    font-size:45px;
+    margin-bottom:10px;
+}
+
+.logo h4{
+    font-size:18px;
+    font-weight:600;
+    line-height:1.5;
+}
+
+/* ==========================================
+   MENU
+========================================== */
+
+.menu{
+    list-style:none;
+    margin-top:25px;
+    padding-left:0;
+}
+
+.menu li{
+    margin:8px 15px;
+}
+
+.menu li a{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    color:#fff;
+    text-decoration:none;
+    padding:14px 18px;
+    border-radius:10px;
+    transition:.3s;
+}
+
+.menu li a i{
+    font-size:20px;
+}
+
+.menu li:hover a{
+    background:#43A047;
+}
+
+.menu li.active a{
+    background:#66BB6A;
+    font-weight:600;
+}
+
+.logout{
+    margin-top:auto;
+    margin-bottom:25px;
+}
+
+/* ==========================================
+   MAIN CONTENT
+========================================== */
+
+.main-content{
+    margin-left:270px;
+    width:calc(100% - 270px);
+    padding:35px;
+}
+
+/* ==========================================
+   TOPBAR
+========================================== */
+
+.topbar{
+    margin-bottom:30px;
+}
+
+.topbar h2{
+    color:#2E7D32;
+    font-weight:700;
+}
+
+.topbar p{
+    color:#777;
+    margin-top:5px;
+}
+/* ==========================================
+   NOTIFICATION CARD
+========================================== */
+
+.notification-card{
+    border:none;
+    border-radius:18px;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+    overflow:hidden;
+}
+
+.notification-card .card-header{
+    background:#2E7D32;
+    color:#fff;
+    padding:18px 25px;
+}
+
+.notification-card .card-header h4{
+    margin:0;
+    font-weight:600;
+}
+
+.notification-card .card-body{
+    background:#fff;
+    padding:25px;
+}
+
+/* ==========================================
+   NOTIFICATION ITEM
+========================================== */
+
+.notification-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    padding:15px 0;
+}
+
+.notification-item.unread{
+    background:#F1F8E9;
+    border-radius:12px;
+    padding:15px;
+}
+
+.notification-content{
+    flex:1;
+}
+
+.notification-content h5{
+    font-size:17px;
+    font-weight:600;
+    color:#2E7D32;
+    margin-bottom:8px;
+}
+
+.notification-content p{
+    margin-bottom:8px;
+    color:#555;
+    line-height:1.6;
+}
+
+.notification-content small{
+    color:#888;
+}
+
+/* ==========================================
+   NOTIFICATION ICON
+========================================== */
+
+.notification-icon{
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:24px;
+    flex-shrink:0;
+}
+
+.bg-success{
+    background:#4CAF50 !important;
+}
+
+.bg-primary{
+    background:#2196F3 !important;
+}
+
+.bg-danger{
+    background:#E53935 !important;
+}
+
+.bg-warning{
+    background:#FFC107 !important;
+    color:#333 !important;
+}
+
+/* ==========================================
+   BUTTONS
+========================================== */
+
+.btn-outline-success{
+    border:1px solid #2E7D32;
+    color:#2E7D32;
+    border-radius:10px;
+    transition:.3s;
+}
+
+.btn-outline-success:hover{
+    background:#2E7D32;
+    color:#fff;
+}
+
+/* ==========================================
+   SUMMARY CARDS
+========================================== */
+
+.card{
+    border:none;
+    border-radius:18px;
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 10px 20px rgba(0,0,0,.12);
+}
+
+.card h2{
+    color:#2E7D32;
+    font-size:36px;
+    font-weight:700;
+}
+
+.card h5{
+    margin-top:10px;
+    font-weight:600;
+}
+/* ==========================================
+   FOOTER
+========================================== */
+
+.footer{
+    margin-top:50px;
+    color:#777;
+    font-size:14px;
+}
+
+.footer hr{
+    margin-bottom:20px;
+}
+
+/* ==========================================
+   SCROLLBAR
+========================================== */
+
+::-webkit-scrollbar{
+    width:8px;
+}
+
+::-webkit-scrollbar-track{
+    background:#f1f1f1;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#81C784;
+    border-radius:20px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background:#4CAF50;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width:991px){
+
+    .sidebar{
+        width:100%;
+        height:auto;
+        position:relative;
+    }
+
+    .main-content{
+        margin-left:0;
+        width:100%;
+        padding:20px;
+    }
+
+    .notification-item{
+        flex-wrap:wrap;
+        align-items:flex-start;
+    }
+
+    .notification-card .card-body{
+        padding:20px;
+    }
+
+}
+
+@media (max-width:768px){
+
+    .topbar h2{
+        font-size:26px;
+    }
+
+    .topbar p{
+        font-size:14px;
+    }
+
+    .notification-item{
+        flex-direction:column;
+        text-align:center;
+    }
+
+    .notification-content{
+        text-align:center;
+    }
+
+    .btn-outline-success{
+        width:100%;
+        margin-top:15px;
+    }
+
+    .card h2{
+        font-size:30px;
+    }
+
+}
+
+@media (max-width:576px){
+
+    .logo h4{
+        font-size:16px;
+    }
+
+    .logo i{
+        font-size:38px;
+    }
+
+    .notification-icon{
+        width:50px;
+        height:50px;
+        font-size:20px;
+    }
+
+    .notification-content h5{
+        font-size:15px;
+    }
+
+    .notification-content p{
+        font-size:14px;
+    }
+
+    .footer{
+        text-align:center;
+        font-size:13px;
+    }
+
+}

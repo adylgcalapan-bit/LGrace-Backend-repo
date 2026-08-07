@@ -1,0 +1,36 @@
+@import url('dashboard-admin.css');
+
+.card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.05);
+}
+
+.security-settings-card {
+    background: linear-gradient(135deg, #f8fff9 0%, #ffffff 100%);
+    border: 1px solid #e8f4eb;
+}
+
+.security-option {
+    background: #fff;
+    border: 1px solid #e6efe9;
+    border-radius: 14px;
+    padding: 14px;
+    height: 100%;
+}
+
+.security-option .form-label {
+    font-weight: 600;
+    color: #2e5d3a;
+}
+
+.security-option small {
+    display: block;
+    margin-top: 8px;
+    line-height: 1.4;
+}
+
+.form-check-input:checked {
+    background-color: #1f6f43;
+    border-color: #1f6f43;
+}

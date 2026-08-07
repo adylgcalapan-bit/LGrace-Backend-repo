@@ -1,0 +1,29 @@
+@import url('dashboard-admin.css');
+
+.card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.05);
+}
+
+.summary-pill {
+    background: linear-gradient(135deg, #f4fbf6 0%, #ffffff 100%);
+    border: 1px solid #e7f2ea;
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+
+.summary-pill h4 {
+    margin: 4px 0 0;
+    color: #1f6f43;
+    font-weight: 700;
+}
+
+.btn-sm {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 4px;
+}

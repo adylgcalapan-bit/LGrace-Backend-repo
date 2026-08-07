@@ -1,0 +1,541 @@
+/* ===========================
+   GOOGLE FONT
+=========================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* ===========================
+   GLOBAL
+=========================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    background:#f5f7f9;
+    color:#333;
+    overflow-x:hidden;
+}
+
+/* ===========================
+   LAYOUT
+=========================== */
+
+.wrapper{
+    display:flex;
+    min-height:100vh;
+}
+
+/* ===========================
+   SIDEBAR
+=========================== */
+
+.sidebar{
+    width:270px;
+    background:#2E7D32;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    position:fixed;
+    height:100%;
+    box-shadow:0 5px 15px rgba(0,0,0,.15);
+}
+
+.logo{
+    text-align:center;
+    padding:30px 20px;
+    border-bottom:1px solid rgba(255,255,255,.15);
+}
+
+.logo i{
+    font-size:45px;
+    margin-bottom:10px;
+}
+
+.logo h4{
+    font-size:18px;
+    font-weight:600;
+    line-height:1.5;
+}
+
+/* ===========================
+   MENU
+=========================== */
+
+.menu{
+    list-style:none;
+    margin-top:25px;
+    padding-left:0;
+}
+
+.menu li{
+    margin:8px 15px;
+}
+
+.menu li a{
+    color:#fff;
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:14px 18px;
+    border-radius:10px;
+    transition:.3s;
+    font-size:15px;
+}
+
+.menu li a i{
+    font-size:20px;
+}
+
+.menu li:hover a{
+    background:#43A047;
+}
+
+.menu li.active a{
+    background:#66BB6A;
+    font-weight:600;
+}
+
+.logout{
+    margin-top:auto;
+    margin-bottom:25px;
+}
+
+/* ===========================
+   MAIN CONTENT
+=========================== */
+
+.main-content{
+    margin-left:270px;
+    width:calc(100% - 270px);
+    padding:35px;
+}
+
+/* ===========================
+   TOPBAR
+=========================== */
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.topbar h2{
+    font-weight:700;
+    color:#333;
+}
+
+.topbar p{
+    color:#777;
+    margin-top:5px;
+}
+
+.resident-info{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:#fff;
+    padding:10px 18px;
+    border-radius:12px;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+}
+
+.resident-info i{
+    font-size:38px;
+    color:#2E7D32;
+}
+/* ===========================
+   WELCOME BANNER
+=========================== */
+
+.welcome-banner{
+    background:linear-gradient(135deg,#66BB6A,#43A047);
+    color:#fff;
+    border-radius:18px;
+    padding:40px;
+    margin-bottom:35px;
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+}
+
+.banner-text h3{
+    font-size:30px;
+    font-weight:700;
+    margin-bottom:15px;
+}
+
+.banner-text p{
+    font-size:16px;
+    line-height:1.8;
+    margin-bottom:25px;
+    max-width:700px;
+}
+
+.banner-text .btn{
+    padding:12px 24px;
+    border-radius:10px;
+    font-weight:600;
+    background:#fff;
+    color:#2E7D32;
+    border:none;
+    transition:.3s;
+}
+
+.banner-text .btn:hover{
+    background:#E8F5E9;
+    transform:translateY(-2px);
+}
+
+/* ===========================
+   SUMMARY CARDS
+=========================== */
+
+.summary-card{
+    border:none;
+    border-radius:18px;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+    transition:.3s;
+    overflow:hidden;
+}
+
+.summary-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 12px 25px rgba(0,0,0,.15);
+}
+
+.summary-card .card-body{
+    text-align:center;
+    padding:30px 20px;
+}
+
+.card-icon{
+    font-size:45px;
+    margin-bottom:15px;
+}
+
+.summary-card h5{
+    font-weight:600;
+    margin-bottom:10px;
+}
+
+.summary-card h2{
+    font-size:40px;
+    font-weight:700;
+    margin-bottom:8px;
+}
+
+.summary-card p{
+    color:#666;
+    margin:0;
+    font-size:14px;
+}
+
+/* Card Colors */
+
+.pending{
+    border-left:6px solid #FFC107;
+}
+
+.pending .card-icon{
+    color:#FFC107;
+}
+
+.progress-card{
+    border-left:6px solid #2196F3;
+}
+
+.progress-card .card-icon{
+    color:#2196F3;
+}
+
+.resolved{
+    border-left:6px solid #4CAF50;
+}
+
+.resolved .card-icon{
+    color:#4CAF50;
+}
+
+.total{
+    border-left:6px solid #2E7D32;
+}
+
+.total .card-icon{
+    color:#2E7D32;
+}
+/* ===========================
+   RECENT REPORTS
+=========================== */
+
+.recent-reports .card{
+    border:none;
+    border-radius:18px;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+}
+
+.recent-reports .card-header{
+    background:#fff;
+    border-bottom:1px solid #eee;
+    padding:18px 25px;
+}
+
+.recent-reports .card-header h4{
+    font-weight:600;
+    color:#333;
+}
+
+.recent-reports .card-body{
+    padding:25px;
+}
+
+.table{
+    margin-bottom:0;
+}
+
+.table thead{
+    background:#E8F5E9;
+}
+
+.table thead th{
+    color:#2E7D32;
+    font-weight:600;
+    border:none;
+    padding:16px;
+}
+
+.table tbody td{
+    padding:16px;
+    vertical-align:middle;
+}
+
+.table tbody tr:hover{
+    background:#F9FFF9;
+}
+
+/* ===========================
+   BADGES
+=========================== */
+
+.badge{
+    padding:8px 14px;
+    border-radius:30px;
+    font-size:13px;
+    font-weight:600;
+}
+
+/* ===========================
+   BUTTONS
+=========================== */
+
+.btn-success{
+    background:#2E7D32;
+    border:none;
+}
+
+.btn-success:hover{
+    background:#256428;
+}
+
+.btn-outline-success{
+    border:1px solid #2E7D32;
+    color:#2E7D32;
+}
+
+.btn-outline-success:hover{
+    background:#2E7D32;
+    color:#fff;
+}
+
+/* ===========================
+   QUICK REMINDERS
+=========================== */
+
+.card{
+    border:none;
+    border-radius:18px;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+}
+
+.card-header{
+    background:#fff;
+    border-bottom:1px solid #eee;
+    font-weight:600;
+}
+
+.card-body ul{
+    padding-left:20px;
+}
+
+.card-body li{
+    margin-bottom:12px;
+    line-height:1.8;
+}
+
+/* ===========================
+   FOOTER
+=========================== */
+
+.footer{
+    margin-top:50px;
+    color:#777;
+    font-size:14px;
+}
+
+.footer hr{
+    margin-bottom:20px;
+}
+
+/* ===========================
+   SCROLLBAR
+=========================== */
+
+::-webkit-scrollbar{
+    width:8px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#81C784;
+    border-radius:20px;
+}
+
+::-webkit-scrollbar-track{
+    background:#f5f5f5;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media(max-width:991px){
+
+    .wrapper{
+        flex-direction:column;
+    }
+
+    .sidebar{
+        width:100%;
+        height:auto;
+        position:sticky;
+        top:0;
+        z-index:1000;
+    }
+
+    .menu{
+        display:flex;
+        flex-wrap:wrap;
+        gap:8px;
+        margin:10px 12px 15px;
+    }
+
+    .menu li{
+        margin:0;
+        flex:1 1 calc(50% - 8px);
+        min-width:180px;
+    }
+
+    .menu li a{
+        justify-content:center;
+        padding:12px 14px;
+    }
+
+    .main-content{
+        margin-left:0;
+        width:100%;
+        padding:20px;
+    }
+
+    .topbar{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:20px;
+    }
+
+    .welcome-banner{
+        padding:25px;
+    }
+
+    .banner-text h3{
+        font-size:24px;
+    }
+
+}
+
+@media(max-width:768px){
+
+    .main-content{
+        padding:16px;
+    }
+
+    .topbar h2{
+        font-size:24px;
+    }
+
+    .welcome-banner{
+        padding:20px;
+        border-radius:14px;
+    }
+
+    .banner-text .btn{
+        width:100%;
+        text-align:center;
+    }
+
+    .recent-reports .card-header,
+    .recent-reports .card-body{
+        padding:18px;
+    }
+
+}
+
+@media(max-width:576px){
+
+    .logo{
+        padding:20px 16px;
+    }
+
+    .menu li{
+        flex:1 1 100%;
+        min-width:100%;
+    }
+
+    .menu li a{
+        justify-content:flex-start;
+    }
+
+    .summary-card .card-body{
+        padding:20px 16px;
+    }
+
+    .summary-card h2{
+        font-size:28px;
+    }
+
+    .banner-text p{
+        font-size:14px;
+    }
+
+    .table{
+        font-size:14px;
+    }
+
+    .table thead th,
+    .table tbody td{
+        padding:12px 10px;
+    }
+
+    .resident-info{
+        width:100%;
+        justify-content:center;
+    }
+
+    .footer{
+        margin-top:30px;
+    }
+
+}

@@ -5,6 +5,9 @@ use CodeIgniter\Router\RouteCollection;
 /** @var RouteCollection $routes */
 $routes->get('/', 'Home::index');
 
+$routes->get('/login', 'AuthController::login');
+$routes->get('/register', 'AuthController::register');
+
 
 // CRUD routes para sa locations
 $routes->get('api/locations', 'Locations::index');
