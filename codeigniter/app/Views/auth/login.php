@@ -58,12 +58,13 @@
                     Sign in to continue.
                 </p>
 
-                <form id="loginForm">
+               <form id="loginForm" action="<?= site_url('login') ?>" method="POST">
+    <?= csrf_field() ?>
 
                     <div class="mb-3">
 
                         <label class="form-label">
-                            Username
+                            Email
                         </label>
 
                         <div class="input-wrapper">
@@ -77,17 +78,16 @@
                                 </span>
 
                                 <input
-                                    type="text"
-                                    id="username"
-                                    name="username"
-                                    class="form-control"
-                                    placeholder="Enter username"
-                                    autocomplete="username"
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                     class="form-control"
+                                    placeholder="Enter email"
+                                    autocomplete="email"
                                     required>
-
                             </div>
 
-                            <div class="error-text" id="usernameError"></div>
+                            <div class="error-text" id="emailError"></div>
 
                         </div>
 

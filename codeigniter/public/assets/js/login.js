@@ -3,9 +3,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!loginForm) return;
 
-    const usernameInput = document.getElementById("username");
+    const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
-    const usernameError = document.getElementById("usernameError");
+    const emailError = document.getElementById("emailError");
     const passwordError = document.getElementById("passwordError");
 
     function setFieldState(input, errorElement, message) {
@@ -24,14 +24,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function validateLoginForm() {
         let isValid = true;
-        const username = usernameInput.value.trim();
+        const email = emailInput.value.trim();
         const password = passwordInput.value.trim();
 
-        if (!username) {
-            setFieldState(usernameInput, usernameError, "Please enter your username.");
+        if (!email) {
+            setFieldState(emailInput, emailError, "Please enter your email.");
             isValid = false;
         } else {
-            setFieldState(usernameInput, usernameError, "");
+            setFieldState(emailInput, emailError, "");
         }
 
         if (!password) {
@@ -47,10 +47,10 @@ document.addEventListener("DOMContentLoaded", function () {
         return isValid;
     }
 
-    [usernameInput, passwordInput].forEach(function (input) {
+    [emailInput, passwordInput].forEach(function (input) {
         input.addEventListener("input", function () {
-            if (input === usernameInput) {
-                setFieldState(usernameInput, usernameError, "");
+            if (input === emailInput) {
+                setFieldState(emailInput, emailError, "");
             } else {
                 setFieldState(passwordInput, passwordError, "");
             }
@@ -59,20 +59,20 @@ document.addEventListener("DOMContentLoaded", function () {
         input.addEventListener("blur", validateLoginForm);
     });
 
-    loginForm.addEventListener("submit", function (event) {
-        event.preventDefault();
+   // loginForm.addEventListener("submit", function (event) {
+   //     event.preventDefault();
 
-        if (!validateLoginForm()) {
-            return;
-        }
+   //     if (!validateLoginForm()) {
+    //        return;
+    //    }
 
-        const username = usernameInput.value.trim().toLowerCase();
-        const isAdminLogin = username === "admin" || username === "barangay";
+     //   const username = usernameInput.value.trim().toLowerCase();
+    //    const isAdminLogin = username === "admin" || username === "barangay";
 
-        if (isAdminLogin) {
-            window.location.href = "/admin/dashboard";
-        } else {
-            window.location.href = "/resident/dashboard";
-        }
-    });
+      //  if (isAdminLogin) {
+     //       window.location.href = "/admin/dashboard";
+      //  } else {
+      //      window.location.href = "/resident/dashboard";
+      //  }
+   // });
 });

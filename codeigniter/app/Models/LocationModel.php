@@ -6,20 +6,22 @@ use CodeIgniter\Model;
 
 class LocationModel extends Model
 {
-    protected $table = 'locations';
-    protected $primaryKey = 'id';
+    protected $table = 'reports';
+    protected $primaryKey = 'report_id';
     protected $returnType = 'array';
 
     protected $allowedFields = [
-        'name',
-        'description',
-        'latitude',
-        'longitude',
-        'category',
-        'status'
-    ];
+    'user_id',
+    'title',
+    'description',
+    'category_id',
+    'latitude',
+    'longtitude',
+    'address',
+    'status'
+];
 
     protected $useTimestamps = true;
-    protected $createdField = 'created_at';
-    protected $updatedField = 'updated_at';
+protected $createdField = 'date_reported';
+protected $updatedField = 'updated_reported';
 }

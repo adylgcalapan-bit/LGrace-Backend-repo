@@ -350,11 +350,13 @@
 
                         <!-- Hidden Coordinates -->
 
-                        <input type="hidden"
-                               id="latitude">
+ <input type="hidden"
+       id="latitude"
+       name="latitude">
 
-                        <input type="hidden"
-                               id="longitude">
+<input type="hidden"
+       id="longitude"
+       name="longitude">
 
                         <div class="col-12 text-end">
 

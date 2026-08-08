@@ -61,8 +61,8 @@
                     Fill in the information below.
                 </p>
 
-                <form id="registerForm">
-
+               <form id="registerForm" action="<?= site_url('register') ?>" method="POST">
+    <?= csrf_field() ?>
                     <!-- Profile -->
 
                     <div class="text-center mb-4">

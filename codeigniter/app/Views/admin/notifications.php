@@ -37,7 +37,7 @@
             <div class="top-actions">
                 <button class="btn btn-outline-success" id="markAllBtn">Mark All as Read</button>
                 <div class="profile">
-                    <img src="assets/images/admin picture.jpg" alt="Admin">
+                    <img src="<?= base_url('assets/images/admin picture.jpg') ?>" alt="Admin">
                     <div><strong>Admin</strong><br><small>Administrator</small></div>
                 </div>
             </div>

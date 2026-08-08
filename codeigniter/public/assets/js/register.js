@@ -134,20 +134,13 @@ document.addEventListener("DOMContentLoaded", function () {
         field.input.addEventListener("blur", validateRegisterForm);
     });
 
-    registerForm.addEventListener("submit", function (event) {
+   registerForm.addEventListener("submit", function (event) {
+    if (!validateRegisterForm()) {
         event.preventDefault();
 
-        if (!validateRegisterForm()) {
-            formMessage.textContent = "Please correct the highlighted fields.";
-            formMessage.className = "form-message error";
-            return;
-        }
+        formMessage.textContent = "Please correct the highlighted fields.";
+        formMessage.className = "form-message error";
+    }
+});
 
-        formMessage.textContent = "Account created successfully! You can now log in.";
-        formMessage.className = "form-message success";
-
-        window.setTimeout(function () {
-            window.location.href = "/login";
-        }, 900);
-    });
 });
