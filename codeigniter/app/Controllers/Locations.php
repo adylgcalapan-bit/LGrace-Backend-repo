@@ -20,21 +20,21 @@ class Locations extends ResourceController
             'data' => $locations
         ]);
     }
+public function show($id = null)
+{
+    $location = $this->model->find($id);
 
-    // READ ONE: Kuhaon ang usa ka location gamit ang ID
-    public function show($id = null)
-    {
-        $location = $this->model->find($id);
-
-        if (!$location) {
-            return $this->failNotFound('Location not found.');
-        }
-
-        return $this->respond([
-            'success' => true,
-            'data' => $location
-        ]);
+    if (!$location) {
+        return $this->failNotFound('Location not found.');
     }
+
+    return $this->respond([
+        'success' => true,
+        'data' => $location
+    ]);
+}
+
+    
 
     // CREATE: Mag-add og bag-ong location
     public function create()
