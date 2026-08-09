@@ -93,7 +93,7 @@ async function loadReports() {
                 <td>${report.latitude}</td>
                 <td>${report.longitude}</td>
                 
-<td>
+14<td>
     <a href="edit_report.php?id=${report.id}">
         Edit
     </a>
