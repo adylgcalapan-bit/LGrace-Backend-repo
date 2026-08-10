@@ -20,9 +20,23 @@ class DashboardController extends BaseController
     }
 
     public function myReports()
-    {
-        return view('resident/myreports');
-    }
+{
+    $db = \Config\Database::connect();
+
+    $userId = session()->get('user_id');
+
+    $reports = $db->table('reports')
+        ->select('reports.*, category.category_name')
+        ->join('category', 'category.category_id = reports.category_id', 'left')
+        ->where('reports.user_id', $userId)
+        ->orderBy('reports.report_id', 'DESC')
+        ->get()
+        ->getResultArray();
+
+    return view('resident/myreports', [
+        'reports' => $reports
+    ]);
+}
 
     public function notifications()
     {

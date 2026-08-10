@@ -210,139 +210,67 @@
 
                         <tbody>
 
-                                                        <tr>
+<?php if (!empty($reports)): ?>
 
-                                <td>Road Damage</td>
+    <?php foreach ($reports as $report): ?>
 
-                                <td>Infrastructure</td>
+        <?php
+            $status = $report['status'];
 
-                                <td>July 28, 2026</td>
+            $badgeClass = match ($status) {
+                'Pending'     => 'bg-warning text-dark',
+                'In Progress' => 'bg-primary',
+                'Resolved'    => 'bg-success',
+                'Rejected'    => 'bg-danger',
+                default       => 'bg-secondary',
+            };
+        ?>
 
-                                <td>
+        <tr>
 
-                                    <span class="badge bg-warning text-dark">
+            <td>
+                <?= esc($report['title']) ?>
+            </td>
 
-                                        Pending
+            <td>
+                <?= esc($report['category_name'] ?? 'No Category') ?>
+            </td>
 
-                                    </span>
+            <td>
+                <?= date('F d, Y', strtotime($report['date_reported'])) ?>
+            </td>
 
-                                </td>
+            <td>
+                <span class="badge <?= $badgeClass ?>">
+                    <?= esc($status) ?>
+                </span>
+            </td>
 
-                                <td>
+            <td>
+                <a href="<?= base_url('resident/report-details') ?>"
+                   class="btn btn-outline-success btn-sm">
 
-                                    <a href="<?= base_url('resident/report-details') ?>"
-                                       class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-eye-fill"></i>
+                    View
 
-                                        <i class="bi bi-eye-fill"></i>
+                </a>
+            </td>
 
-                                        View
+        </tr>
 
-                                    </a>
+    <?php endforeach; ?>
 
-                                </td>
+<?php else: ?>
 
-                            </tr>
+    <tr>
+        <td colspan="5" class="text-center text-muted">
+            No reports submitted yet.
+        </td>
+    </tr>
 
-                            <tr>
+<?php endif; ?>
 
-                                <td>Garbage Collection</td>
-
-                                <td>Waste Management</td>
-
-                                <td>July 25, 2026</td>
-
-                                <td>
-
-                                    <span class="badge bg-primary">
-
-                                        In Progress
-
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <a href="<?= base_url('resident/report-details') ?>"
-                                       class="btn btn-outline-success btn-sm">
-
-                                        <i class="bi bi-eye-fill"></i>
-
-                                        View
-
-                                    </a>
-
-                                </td>
-
-                            </tr>
-
-                            <tr>
-
-                                <td>Broken Streetlight</td>
-
-                                <td>Utilities</td>
-
-                                <td>July 20, 2026</td>
-
-                                <td>
-
-                                    <span class="badge bg-success">
-
-                                        Resolved
-
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <a href="<?= base_url('resident/report-details') ?>"
-                                       class="btn btn-outline-success btn-sm">
-
-                                        <i class="bi bi-eye-fill"></i>
-
-                                        View
-
-                                    </a>
-
-                                </td>
-
-                            </tr>
-
-                            <tr>
-
-                                <td>Illegal Dumping</td>
-
-                                <td>Environment</td>
-
-                                <td>July 15, 2026</td>
-
-                                <td>
-
-                                    <span class="badge bg-danger">
-
-                                        Rejected
-
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <a href="<?= base_url('resident/report-details') ?>"
-                                       class="btn btn-outline-success btn-sm">
-
-                                        <i class="bi bi-eye-fill"></i>
-
-                                        View
-
-                                    </a>
-
-                                </td>
-
-                            </tr>
-
-                        </tbody>
+</tbody>
 
                     </table>
 
