@@ -28,10 +28,12 @@ $routes->get('admin/map', 'DashboardController::map', ['filter' => 'admin']);
 // RESIDENT - protected
 $routes->get('resident/dashboard', 'DashboardController::resident', ['filter' => 'resident']);
 $routes->get('resident/report', 'DashboardController::report', ['filter' => 'resident']);
+$routes->post('resident/report', 'ReportController::create', ['filter' => 'resident']);
 $routes->get('resident/my-reports', 'DashboardController::myReports', ['filter' => 'resident']);
 $routes->get('resident/notifications', 'DashboardController::notifications', ['filter' => 'resident']);
 $routes->get('resident/profile', 'DashboardController::profile', ['filter' => 'resident']);
 $routes->get('resident/report-details', 'DashboardController::reportDetails', ['filter' => 'resident']);
+
 
 // CRUD locations/reports
 $routes->get('api/locations', 'Locations::index');

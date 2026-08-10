@@ -168,7 +168,10 @@
 
             <div class="card-body">
 
-                <form id="reportForm">
+                <form id="reportForm"
+      action="<?= site_url('resident/report') ?>"
+      method="POST">
+    <?= csrf_field() ?>
 
                     <div class="row">
 
@@ -183,6 +186,7 @@
                             <input type="text"
                                    class="form-control"
                                    id="title"
+                                   name="title"
                                    placeholder="Enter report title">
                             <div class="invalid-feedback" id="titleError"></div>
 
@@ -197,35 +201,24 @@
                             </label>
 
                             <select class="form-select"
-                                    id="category">
+        id="category"
+        name="category_id">
 
-                                <option selected disabled>
+    <option value="" selected disabled>
+        Select Category
+    </option>
 
-                                    Select Category
-
-                                </option>
-
-                                <option>Waste Management Problems</option>
-
-                                <option>Infrastructure and Public Works Issues</option>
-
-                                <option>Environmental and Natural Issues</option>
-
-                                <option>Public Safety and Security Issues</option>
-
-                                <option>Utilities and Public Services</option>
-
-                                <option>Health and Sanitation Issues</option>
-
-                                <option>Social and Community Conflicts</option>
-
-                                <option>Transportation and Road Safety Issues</option>
-
-                                <option>Public Facility Issues</option>
-
-                                <option>Animal Control Issues</option>
-
-                            </select>
+    <option value="1">Waste Management Problems</option>
+    <option value="2">Infrastructure and Public Works Issues</option>
+    <option value="3">Environmental and Natural Issues</option>
+    <option value="4">Public Safety and Security Issues</option>
+    <option value="5">Utilities and Public Services</option>
+    <option value="6">Health and Sanitation Issues</option>
+    <option value="7">Social and Community Conflicts</option>
+    <option value="8">Transportation and Road Safety Issues</option>
+    <option value="9">Public Facility Issues</option>
+    <option value="10">Animal Control Issues</option>
+</select>
                             <div class="invalid-feedback" id="categoryError"></div>
 
                         </div>
@@ -237,10 +230,11 @@
 
                             </label>
 
-                            <textarea class="form-control"
-                                      id="description"
-                                      rows="5"
-                                      placeholder="Describe the community problem in detail..."></textarea>
+                           <textarea class="form-control"
+          id="description"
+          name="description"
+          rows="5"
+          placeholder="Describe the community problem in detail..."></textarea>
                             <div class="invalid-feedback" id="descriptionError"></div>
 
                         </div>
@@ -356,7 +350,7 @@
 
 <input type="hidden"
        id="longitude"
-       name="longitude">
+       name="longitude">  
 
                         <div class="col-12 text-end">
 
