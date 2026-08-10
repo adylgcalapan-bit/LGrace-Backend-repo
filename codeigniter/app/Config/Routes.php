@@ -12,3 +12,6 @@ $routes->get('api/locations/(:num)', 'Locations::show/$1');
 $routes->post('api/locations', 'Locations::create');
 $routes->put('api/locations/(:num)', 'Locations::update/$1');
 $routes->delete('api/locations/(:num)', 'Locations::delete/$1');
+
+// Mapping page
+$routes->get('map', 'DashboardController::map');
