@@ -86,18 +86,7 @@
 
             </li>
 
-            <li>
-
-                <a href="<?= base_url('resident/notifications') ?>">
-
-                    <i class="bi bi-bell-fill"></i>
-
-                    Notifications
-
-                </a>
-
-            </li>
-
+         <?= view('resident/notification_menu') ?>
             <li>
 
                 <a href="<?= base_url('resident/profile') ?>">
@@ -169,9 +158,9 @@
             <div class="card-body">
 
                 <form id="reportForm"
-      action="<?= site_url('resident/report') ?>"
-      method="POST">
-    <?= csrf_field() ?>
+        action="<?= site_url('resident/report') ?>"
+      method="POST"
+      enctype="multipart/form-data">
 
                     <div class="row">
 
@@ -261,10 +250,11 @@
 
                             </label>
 
-                            <input type="file"
-                                   class="form-control"
-                                   id="photo"
-                                   accept="image/*">
+                           <input type="file"
+       class="form-control"
+       id="photo"
+       name="photo"
+       accept="image/jpeg,image/png,image/webp">
 
                             <small class="text-muted">
 
@@ -351,6 +341,20 @@
 <input type="hidden"
        id="longitude"
        name="longitude">  
+       <div class="mt-3">
+    <label for="address" class="form-label">
+        Address of Report Location
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        id="address"
+        name="address"
+        placeholder="Address will appear after selecting a location"
+        readonly
+    >
+</div>
 
                         <div class="col-12 text-end">
 

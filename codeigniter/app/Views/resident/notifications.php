@@ -81,18 +81,9 @@
 
             </li>
 
-            <li class="active">
-
-                <a href="<?= base_url('resident/notifications') ?>">
-
-                    <i class="bi bi-bell-fill"></i>
-
-                    Notifications
-
-                </a>
-
-            </li>
-
+           <?= view('resident/notification_menu', [
+    'notificationActive' => true
+]) ?>
             <li>
 
                 <a href="<?= base_url('resident/profile') ?>">
@@ -130,6 +121,7 @@
             <div>
 
                 <h2>Notifications</h2>
+              
 
                 <p>Stay updated with your report status and administrator feedback.</p>
 
@@ -137,223 +129,102 @@
 
         </div>
 
+   
+   
         <!-- Notification List -->
 
-        <div class="card notification-card">
+<div class="card notification-card">
 
-            <div class="card-header">
+    <div class="card-header">
 
-                <h4>
+        <h4 class="mb-0">
+            <i class="bi bi-bell-fill"></i>
+            Recent Notifications
+        </h4>
 
-                    <i class="bi bi-bell-fill"></i>
+    </div>
 
-                    Recent Notifications
+    <div class="card-body">
 
-                </h4>
+        <?php if (!empty($notifications)): ?>
 
-            </div>
+            <?php foreach ($notifications as $notification): ?>
 
-            <div class="card-body">
-                                <!-- Notification 1 -->
+                <?php
+                    $isUnread =
+                        ($notification['status'] ?? '') === 'Unread';
 
-                <div class="notification-item unread">
+                    $notificationDate = 'Date unavailable';
 
-                    <div class="notification-icon bg-success">
+                    if (!empty($notification['date'])) {
 
-                        <i class="bi bi-check-circle-fill"></i>
+                        $time = new \DateTime(
+                            $notification['date'],
+                            new \DateTimeZone('UTC')
+                        );
 
-                    </div>
+                        $time->setTimezone(
+                            new \DateTimeZone('Asia/Manila')
+                        );
 
-                    <div class="notification-content">
+                        $notificationDate =
+                            $time->format('F d, Y - h:i A');
+                    }
+                ?>
 
-                        <h5>Report Submitted Successfully</h5>
-
-                        <p>
-                            Your report <strong>"Road Damage"</strong> has been
-                            successfully submitted and is waiting for review.
-                        </p>
-
-                        <small class="text-muted">
-
-                            July 28, 2026 • 9:30 AM
-
-                        </small>
-
-                    </div>
-
-                    <button class="btn btn-outline-success btn-sm">
-
-                        Mark as Read
-
-                    </button>
-
-                </div>
-
-                <hr>
-
-                <!-- Notification 2 -->
-
-                <div class="notification-item">
-
+                <div
+    class="notification-item <?= $isUnread ? 'unread' : '' ?>"
+    onclick="window.location.href='<?= site_url('resident/notifications/open/' . $notification['notification_id']) ?>'"
+    style="cursor: pointer;"
+>
                     <div class="notification-icon bg-primary">
-
-                        <i class="bi bi-arrow-repeat"></i>
-
+                        <i class="bi bi-bell-fill"></i>
                     </div>
 
                     <div class="notification-content">
 
-                        <h5>Report Status Updated</h5>
+                        <h5>
+                            <?= $isUnread
+                                ? 'New Notification'
+                                : 'Notification'
+                            ?>
+                        </h5>
 
                         <p>
-
-                            Your report
-                            <strong>"Garbage Collection"</strong>
-                            is now
-                            <strong>In Progress.</strong>
-
+                            <?= esc($notification['message']) ?>
                         </p>
 
                         <small class="text-muted">
-
-                            July 27, 2026 • 2:15 PM
-
+                            <?= esc($notificationDate) ?>
                         </small>
 
                     </div>
 
-                    <button class="btn btn-outline-success btn-sm">
+                    <div class="ms-auto">
 
-                        Mark as Read
+                        <span class="badge <?= $isUnread ? 'bg-warning text-dark' : 'bg-secondary' ?>">
+                            <?= esc($notification['status']) ?>
+                        </span>
 
-                    </button>
+                    </div>
 
                 </div>
 
                 <hr>
 
-                <!-- Notification 3 -->
+            <?php endforeach; ?>
 
-                <div class="notification-item">
+        <?php else: ?>
 
-                    <div class="notification-icon bg-success">
-
-                        <i class="bi bi-check2-all"></i>
-
-                    </div>
-
-                    <div class="notification-content">
-
-                        <h5>Report Resolved</h5>
-
-                        <p>
-
-                            Your report
-                            <strong>"Broken Streetlight"</strong>
-                            has been marked as
-                            <strong>Resolved.</strong>
-
-                        </p>
-
-                        <small class="text-muted">
-
-                            July 25, 2026 • 4:40 PM
-
-                        </small>
-
-                    </div>
-
-                    <button class="btn btn-outline-success btn-sm">
-
-                        Mark as Read
-
-                    </button>
-
-                </div>
-
-                <hr>
-
-                <!-- Notification 4 -->
-
-                <div class="notification-item">
-
-                    <div class="notification-icon bg-danger">
-
-                        <i class="bi bi-x-circle-fill"></i>
-
-                    </div>
-
-                    <div class="notification-content">
-
-                        <h5>Report Rejected</h5>
-
-                        <p>
-
-                            Your report
-                            <strong>"Illegal Dumping"</strong>
-                            was rejected due to
-                            insufficient information.
-
-                        </p>
-
-                        <small class="text-muted">
-
-                            July 22, 2026 • 10:20 AM
-
-                        </small>
-
-                    </div>
-
-                    <button class="btn btn-outline-success btn-sm">
-
-                        Mark as Read
-
-                    </button>
-
-                </div>
-
-                <hr>
-
-                <!-- Notification 5 -->
-
-                <div class="notification-item">
-
-                    <div class="notification-icon bg-warning">
-
-                        <i class="bi bi-chat-left-text-fill"></i>
-
-                    </div>
-
-                    <div class="notification-content">
-
-                        <h5>Administrator Feedback</h5>
-
-                        <p>
-
-                            The Barangay Administrator requested additional
-                            information regarding your submitted report.
-
-                        </p>
-
-                        <small class="text-muted">
-
-                            July 21, 2026 • 8:15 AM
-
-                        </small>
-
-                    </div>
-
-                    <button class="btn btn-outline-success btn-sm">
-
-                        Mark as Read
-
-                    </button>
-
-                </div>
-
+            <div class="text-center text-muted py-4">
+                No notifications yet.
             </div>
 
-        </div>
+        <?php endif; ?>
+
+    </div>
+
+</div>
                 <!-- Notification Summary -->
 
         <section class="mt-4">
@@ -370,7 +241,7 @@
 
                             <h5 class="mt-3">Total Notifications</h5>
 
-                            <h2>12</h2>
+                            <h2><?= (int) ($totalCount ?? 0) ?></h2>
 
                         </div>
 
@@ -388,7 +259,7 @@
 
                             <h5 class="mt-3">Unread</h5>
 
-                            <h2>3</h2>
+                           <h2><?= (int) ($unreadCount ?? 0) ?></h2>
 
                         </div>
 
@@ -406,7 +277,7 @@
 
                             <h5 class="mt-3">Read</h5>
 
-                            <h2>9</h2>
+                           <h2><?= (int) ($readCount ?? 0) ?></h2>
 
                         </div>
 

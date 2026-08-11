@@ -23,280 +23,410 @@
 
 <body>
 
-<div class="wrapper">
+    <div class="wrapper">
 
-    <!-- Sidebar -->
+        <!-- Sidebar -->
 
-    <aside class="sidebar">
+        <aside class="sidebar">
 
-        <div class="logo">
+            <div class="logo">
 
-            <i class="bi bi-geo-alt-fill"></i>
+                <i class="bi bi-geo-alt-fill"></i>
 
-            <h4>Community Visibility System</h4>
-
-        </div>
-
-        <ul class="menu">
-
-            <li>
-
-                <a href="<?= base_url('resident/dashboard') ?>">
-
-                    <i class="bi bi-house-door-fill"></i>
-
-                    Dashboard
-
-                </a>
-
-            </li>
-
-            <li>
-
-                <a href="<?= base_url('resident/report') ?>">
-
-                    <i class="bi bi-pencil-square"></i>
-
-                    Report a Problem
-
-                </a>
-
-            </li>
-
-            <li class="active">
-
-                <a href="<?= base_url('resident/my-reports') ?>">
-
-                    <i class="bi bi-file-earmark-text"></i>
-
-                    My Reports
-
-                </a>
-
-            </li>
-
-            <li>
-
-                <a href="<?= base_url('resident/notifications') ?>">
-
-                    <i class="bi bi-bell-fill"></i>
-
-                    Notifications
-
-                </a>
-
-            </li>
-
-            <li>
-
-                <a href="<?= base_url('resident/profile') ?>">
-
-                    <i class="bi bi-person-circle"></i>
-
-                    My Profile
-
-                </a>
-
-            </li>
-
-            <li class="logout">
-
-                <a href="<?= base_url('login') ?>">
-
-                    <i class="bi bi-box-arrow-right"></i>
-
-                    Logout
-
-                </a>
-
-            </li>
-
-        </ul>
-
-    </aside>
-
-    <!-- Main Content -->
-
-    <main class="main-content">
-
-        <div class="topbar">
-
-            <div>
-
-                <h2>My Reports</h2>
-
-                <p>Track the status of your submitted community reports.</p>
+                <h4>Community Visibility System</h4>
 
             </div>
 
-        </div>
+            <ul class="menu">
 
-        <!-- Search -->
+                <li>
 
-        <div class="card search-card">
+                    <a href="<?= base_url('resident/dashboard') ?>">
 
-            <div class="card-body">
+                        <i class="bi bi-house-door-fill"></i>
+
+                        Dashboard
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a href="<?= base_url('resident/report') ?>">
+
+                        <i class="bi bi-pencil-square"></i>
+
+                        Report a Problem
+
+                    </a>
+
+                </li>
+
+                <li class="active">
+
+                    <a href="<?= base_url('resident/my-reports') ?>">
+
+                        <i class="bi bi-file-earmark-text"></i>
+
+                        My Reports
+
+                    </a>
+
+                </li>
+
+                <?= view('resident/notification_menu') ?>
+
+                <li>
+
+                    <a href="<?= base_url('resident/profile') ?>">
+
+                        <i class="bi bi-person-circle"></i>
+
+                        My Profile
+
+                    </a>
+
+                </li>
+
+                <li class="logout">
+
+                    <a href="<?= base_url('login') ?>">
+
+                        <i class="bi bi-box-arrow-right"></i>
+
+                        Logout
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </aside>
+
+        <!-- Main Content -->
+
+        <main class="main-content">
+
+            <div class="topbar">
+
+                <div>
+                    <h2>My Reports</h2>
+
+                    <p>
+                        Track the status of your submitted community reports.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Success Message -->
+            <?php if ($successMessage = session()->getFlashdata('success')): ?>
+
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+
+                    <i class="bi bi-check-circle-fill me-2"></i>
+
+                    <?= esc($successMessage) ?>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                    </button>
+
+                </div>
+
+            <?php endif; ?>
+
+
+            <!-- Error Message -->
+            <?php if ($errorMessage = session()->getFlashdata('error')): ?>
+
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+                    <?= esc($errorMessage) ?>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                    </button>
+
+                </div>
+
+            <?php endif; ?>
+
+
+
+
+            <!-- Search -->
+
+            <div class="card search-card">
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="col-md-8">
+
+                            <input
+                                type="text"
+                                class="form-control"
+                                placeholder="Search report title...">
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <select class="form-select">
+
+                                <option selected>All Status</option>
+                                <option>Pending</option>
+                                <option>In Progress</option>
+                                <option>Resolved</option>
+                                <option>Rejected</option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Reports Table -->
+
+            <div class="card reports-card mt-4">
+
+                <div class="card-header">
+
+                    <h4>
+
+                        <i class="bi bi-clock-history"></i>
+
+                        Report History
+
+                    </h4>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Photo</th>
+                                    <th>Action</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                <?php if (!empty($reports)): ?>
+
+                                    <?php foreach ($reports as $report): ?>
+
+                                        <?php
+                                        $status = $report['status'];
+
+                                        $badgeClass = match ($status) {
+                                            'Pending'     => 'bg-warning text-dark',
+                                            'In Progress' => 'bg-primary',
+                                            'Resolved'    => 'bg-success',
+                                            'Rejected'    => 'bg-danger',
+                                            default       => 'bg-secondary',
+                                        };
+                                        ?>
+
+                                        <tr>
+
+                                            <!-- Title -->
+                                            <td>
+                                                <?= esc($report['title']) ?>
+                                            </td>
+
+                                            <!-- Category -->
+                                            <td>
+                                                <?= esc($report['category_name'] ?? 'No Category') ?>
+                                            </td>
+
+                                            <!-- Date -->
+                                            <td>
+                                                <?= date('F d, Y', strtotime($report['date_reported'])) ?>
+                                            </td>
+
+                                            <!-- Status -->
+                                            <td>
+                                                <span class="badge <?= $badgeClass ?>">
+                                                    <?= esc($status) ?>
+                                                </span>
+                                            </td>
+
+                                            <!-- Photo -->
+                                            <td>
+                                                <?php if (!empty($report['image_path'])): ?>
+
+                                                    <img
+                                                        src="<?= base_url($report['image_path']) ?>"
+                                                        alt="Report Photo"
+                                                        style=" width: 80px; height: 60px;object-fit: cover; border-radius: 8px;">
+
+                                                <?php else: ?>
+
+                                                    <span class="text-muted">
+                                                        No photo
+                                                    </span>
+
+                                                <?php endif; ?>
+                                            </td>
+
+                                            <!-- Action -->
+                                            <td>
+                                                <a href="<?= site_url('resident/report-details/' . $report['report_id']) ?>"
+                                                    class="btn btn-outline-success btn-sm">
+                                                    <i class="bi bi-eye-fill"></i>
+                                                    View
+                                                </a>
+                                                <?php if (($report['status'] ?? '') === 'Pending'): ?>
+
+                                                    <form
+                                                        action="<?= site_url('resident/report/delete/' . $report['report_id']) ?>"
+                                                        method="post"
+                                                        class="d-inline"
+                                                        onsubmit="return confirm('Are you sure you want to delete this report? This action cannot be undone.');">
+
+                                                        <?= csrf_field() ?>
+
+                                                        <button
+                                                            type="submit"
+                                                            class="btn btn-outline-danger btn-sm">
+
+                                                            <i class="bi bi-trash-fill"></i>
+                                                            Delete
+
+                                                        </button>
+
+                                                    </form>
+
+                                                <?php endif; ?>
+                                            </td>
+
+                                        </tr>
+
+                                    <?php endforeach; ?>
+
+                                <?php else: ?>
+
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">
+                                            No reports submitted yet.
+                                        </td>
+                                    </tr>
+
+                                <?php endif; ?>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Summary Cards -->
+
+            <section class="mt-4">
 
                 <div class="row">
 
-                    <div class="col-md-8">
+                    <div class="col-lg-3 col-md-6 mb-3">
 
-                        <input
-                            type="text"
-                            class="form-control"
-                            placeholder="Search report title...">
+                        <div class="card text-center shadow-sm">
 
-                    </div>
+                            <div class="card-body">
 
-                    <div class="col-md-4">
+                                <i class="bi bi-file-earmark-text-fill text-success fs-1"></i>
 
-                        <select class="form-select">
+                                <h5 class="mt-3">Total Reports</h5>
 
-                            <option selected>All Status</option>
-                            <option>Pending</option>
-                            <option>In Progress</option>
-                            <option>Resolved</option>
-                            <option>Rejected</option>
+                                <h2>8</h2>
 
-                        </select>
+                            </div>
+
+                        </div>
 
                     </div>
 
-                </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
 
-            </div>
+                        <div class="card text-center shadow-sm">
 
-        </div>
+                            <div class="card-body">
 
-        <!-- Reports Table -->
+                                <i class="bi bi-hourglass-split text-warning fs-1"></i>
 
-        <div class="card reports-card mt-4">
+                                <h5 class="mt-3">Pending</h5>
 
-            <div class="card-header">
+                                <h2>2</h2>
 
-                <h4>
+                            </div>
 
-                    <i class="bi bi-clock-history"></i>
+                        </div>
 
-                    Report History
+                    </div>
 
-                </h4>
+                    <div class="col-lg-3 col-md-6 mb-3">
 
-            </div>
+                        <div class="card text-center shadow-sm">
 
-            <div class="card-body">
+                            <div class="card-body">
 
-                <div class="table-responsive">
+                                <i class="bi bi-arrow-repeat text-primary fs-1"></i>
 
-                    <table class="table table-hover align-middle">
+                                <h5 class="mt-3">In Progress</h5>
 
-                        <thead>
+                                <h2>1</h2>
 
-                            <tr>
+                            </div>
 
-                                <th>Title</th>
+                        </div>
 
-                                <th>Category</th>
+                    </div>
 
-                                <th>Date</th>
+                    <div class="col-lg-3 col-md-6 mb-3">
 
-                                <th>Status</th>
+                        <div class="card text-center shadow-sm">
 
-                                <th>Action</th>
+                            <div class="card-body">
 
-                            </tr>
+                                <i class="bi bi-check-circle-fill text-success fs-1"></i>
 
-                        </thead>
+                                <h5 class="mt-3">Resolved</h5>
 
-                        <tbody>
+                                <h2>5</h2>
 
-<?php if (!empty($reports)): ?>
-
-    <?php foreach ($reports as $report): ?>
-
-        <?php
-            $status = $report['status'];
-
-            $badgeClass = match ($status) {
-                'Pending'     => 'bg-warning text-dark',
-                'In Progress' => 'bg-primary',
-                'Resolved'    => 'bg-success',
-                'Rejected'    => 'bg-danger',
-                default       => 'bg-secondary',
-            };
-        ?>
-
-        <tr>
-
-            <td>
-                <?= esc($report['title']) ?>
-            </td>
-
-            <td>
-                <?= esc($report['category_name'] ?? 'No Category') ?>
-            </td>
-
-            <td>
-                <?= date('F d, Y', strtotime($report['date_reported'])) ?>
-            </td>
-
-            <td>
-                <span class="badge <?= $badgeClass ?>">
-                    <?= esc($status) ?>
-                </span>
-            </td>
-
-            <td>
-                <a href="<?= base_url('resident/report-details') ?>"
-                   class="btn btn-outline-success btn-sm">
-
-                    <i class="bi bi-eye-fill"></i>
-                    View
-
-                </a>
-            </td>
-
-        </tr>
-
-    <?php endforeach; ?>
-
-<?php else: ?>
-
-    <tr>
-        <td colspan="5" class="text-center text-muted">
-            No reports submitted yet.
-        </td>
-    </tr>
-
-<?php endif; ?>
-
-</tbody>
-
-                    </table>
-
-                </div>
-
-            </div>
-
-        </div>
-
-                <!-- Summary Cards -->
-
-        <section class="mt-4">
-
-            <div class="row">
-
-                <div class="col-lg-3 col-md-6 mb-3">
-
-                    <div class="card text-center shadow-sm">
-
-                        <div class="card-body">
-
-                            <i class="bi bi-file-earmark-text-fill text-success fs-1"></i>
-
-                            <h5 class="mt-3">Total Reports</h5>
-
-                            <h2>8</h2>
+                            </div>
 
                         </div>
 
@@ -304,93 +434,37 @@
 
                 </div>
 
-                <div class="col-lg-3 col-md-6 mb-3">
+            </section>
 
-                    <div class="card text-center shadow-sm">
+            <!-- Footer -->
 
-                        <div class="card-body">
+            <footer class="footer mt-5">
 
-                            <i class="bi bi-hourglass-split text-warning fs-1"></i>
+                <hr>
 
-                            <h5 class="mt-3">Pending</h5>
+                <p class="text-center text-muted">
 
-                            <h2>2</h2>
+                    © 2026 Community Problems Visibility System with Location Feature
 
-                        </div>
+                    <br>
 
-                    </div>
+                    Barangay Saguing
 
-                </div>
+                </p>
 
-                <div class="col-lg-3 col-md-6 mb-3">
+            </footer>
 
-                    <div class="card text-center shadow-sm">
+        </main>
 
-                        <div class="card-body">
+    </div>
 
-                            <i class="bi bi-arrow-repeat text-primary fs-1"></i>
+    <!-- Bootstrap JS -->
 
-                            <h5 class="mt-3">In Progress</h5>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-                            <h2>1</h2>
+    <!-- Custom JS -->
 
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="col-lg-3 col-md-6 mb-3">
-
-                    <div class="card text-center shadow-sm">
-
-                        <div class="card-body">
-
-                            <i class="bi bi-check-circle-fill text-success fs-1"></i>
-
-                            <h5 class="mt-3">Resolved</h5>
-
-                            <h2>5</h2>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-        <!-- Footer -->
-
-        <footer class="footer mt-5">
-
-            <hr>
-
-            <p class="text-center text-muted">
-
-                © 2026 Community Problems Visibility System with Location Feature
-
-                <br>
-
-                Barangay Saguing
-
-            </p>
-
-        </footer>
-
-    </main>
-
-</div>
-
-<!-- Bootstrap JS -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Custom JS -->
-
-<script defer src="<?= base_url('assets/js/myreport.js') ?>"></script>
+    <script defer src="<?= base_url('assets/js/myreport.js') ?>"></script>
 
 </body>
 

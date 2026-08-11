@@ -67,12 +67,7 @@
                 </a>
             </li>
 
-            <li>
-                <a href="<?= base_url('admin/notifications') ?>">
-                    <i class="bi bi-bell"></i>
-                    Notifications
-                </a>
-            </li>
+           <?= view('admin/notification_menu') ?>
 
             <li>
                 <a href="<?= base_url('admin/settings') ?>">
@@ -210,137 +205,156 @@
 
                 <table class="table table-hover align-middle mb-0">
 
-                    <thead class="table-success">
+<thead class="table-success">
+    <tr>
+        <th>ID</th>
+        <th>Resident</th>
+        <th>Category</th>
+        <th>Location</th>
+        <th>Date Reported</th>
+        <th>Status</th>
+        <th>Priority</th>
+        <th>Action</th>
+    </tr>
+</thead>
 
-                        <tr>
+<tbody>
 
-                            <th>ID</th>
+<?php if (!empty($reports)): ?>
 
-                            <th>Resident</th>
+    <?php foreach ($reports as $report): ?>
 
-                            <th>Category</th>
+        <?php
+            $status = $report['status'] ?? 'Pending';
 
-                            <th>Location</th>
+            $badgeClass = match ($status) {
+                'Pending'     => 'bg-warning text-dark',
+                'In Progress' => 'bg-primary',
+                'Resolved'    => 'bg-success',
+                'Rejected'    => 'bg-danger',
+                default       => 'bg-secondary',
+            };
 
-                            <th>Date Reported</th>
+            $location = $report['latitude'] . ', ' . $report['longtitude'];
 
-                            <th>Status</th>
+$address = !empty($report['address'])
+    ? $report['address']
+    : 'No address available';
+        ?>
 
-                            <th>Priority</th>
+       <tr
+    class="report-row"
+    data-id="#<?= esc($report['report_id']) ?>"
+    data-resident="<?= esc($report['full_name'] ?? 'Unknown Resident') ?>"
+    data-title="<?= esc($report['title'] ?? '') ?>"
+    data-category="<?= esc($report['category_name'] ?? 'No Category') ?>"
+    data-location="<?= esc($location) ?>"
+    data-address="<?= esc($address) ?>"
+    data-date="<?= date('F d, Y', strtotime($report['date_reported'])) ?>"
+    data-status="<?= esc($status) ?>"
+    data-priority="<?= esc($report['priority'] ?? '') ?>"
+    data-description="<?= esc($report['description'] ?? '') ?>"
+    data-photo="<?= !empty($report['image_path']) ? base_url($report['image_path']) : '' ?>"
+>
 
-                            <th>Action</th>
+    <!-- ID -->
+    <td>
+        #<?= esc($report['report_id']) ?>
+    </td>
 
-                        </tr>
+    <!-- Resident -->
+    <td>
+        <?= esc($report['full_name'] ?? 'Unknown Resident') ?>
+    </td>
 
-                    </thead>
+    <!-- Category -->
+    <td>
+        <?= esc($report['category_name'] ?? 'No Category') ?>
+    </td>
 
-                    <tbody>
+    <!-- Location -->
+    <td>
+        <?= esc($location) ?>
+    </td>
 
-                        <tr data-state="pending" class="report-row" data-id="#1001" data-resident="Juan Dela Cruz" data-category="Infrastructure and Public Works Issues" data-location="Purok 1" data-date="July 26, 2026" data-status="Pending" data-priority="Medium" data-description="Large potholes were reported along the main road. Vehicles and motorcycles are having difficulty passing through the area.">
-                            <td>#1001</td>
-                            <td>Juan Dela Cruz</td>
-                            <td>Infrastructure and Public Works Issues</td>
-                            <td>Purok 1</td>
-                            <td>July 26, 2026</td>
-                            <td><span class="badge bg-warning text-dark status-badge">Pending</span></td>
-                            <td>
-                                <select class="form-select form-select-sm priority-select" disabled>
-                                    <option>Low</option>
-                                    <option selected>Medium</option>
-                                    <option>High</option>
-                                </select>
-                            </td>
-                            <td class="action-cell">
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-success accept-btn">Accept</button>
-                                    <button class="btn btn-sm btn-danger decline-btn">Decline</button>
-                                </div>
-                            </td>
-                        </tr>
+    <!-- Date Reported -->
+    <td>
+        <?= date('F d, Y', strtotime($report['date_reported'])) ?>
+    </td>
 
-                        <tr data-state="in-progress" class="report-row" data-id="#1002" data-resident="Maria Santos" data-category="Waste Management Problems" data-location="Purok 2" data-date="July 26, 2026" data-status="In Progress" data-priority="Low" data-description="Garbage is piling up near the barangay route and the collection truck has not arrived on schedule.">
-                            <td>#1002</td>
-                            <td>Maria Santos</td>
-                            <td>Waste Management Problems</td>
-                            <td>Purok 2</td>
-                            <td>July 26, 2026</td>
-                            <td><span class="badge bg-primary status-badge">In Progress</span></td>
-                            <td>
-                                <select class="form-select form-select-sm priority-select">
-                                    <option selected>Low</option>
-                                    <option>Medium</option>
-                                    <option>High</option>
-                                </select>
-                            </td>
-                            <td class="action-cell">
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-success resolve-btn">Resolve</button>
-                                </div>
-                            </td>
-                        </tr>
+    <!-- Status -->
+    <td>
+        <span class="badge <?= $badgeClass ?> status-badge">
+            <?= esc($status) ?>
+        </span>
+    </td>
 
-                        <tr data-state="resolved" class="report-row" data-id="#1003" data-resident="Pedro Ramos" data-category="Environmental and Natural Issues" data-location="Purok 5" data-date="July 25, 2026" data-status="Resolved" data-priority="High" data-description="A fallen tree blocked the pathway and was removed by the local maintenance team.">
-                            <td>#1003</td>
-                            <td>Pedro Ramos</td>
-                            <td>Environmental and Natural Issues</td>
-                            <td>Purok 5</td>
-                            <td>July 25, 2026</td>
-                            <td><span class="badge bg-success status-badge">Resolved</span></td>
-                            <td>
-                                <select class="form-select form-select-sm priority-select">
-                                    <option>Low</option>
-                                    <option>Medium</option>
-                                    <option selected>High</option>
-                                </select>
-                            </td>
-                            <td class="action-cell">
-                                <span class="text-success small">Completed</span>
-                            </td>
-                        </tr>
+    <!-- Priority -->
+<td>
+    <?php if (!empty($report['priority'])): ?>
 
-                        <tr data-state="rejected" class="report-row" data-id="#1004" data-resident="Ana Lopez" data-category="Public Safety and Security Issues" data-location="Purok 3" data-date="July 24, 2026" data-status="Rejected" data-priority="Low" data-description="A report was submitted about a broken streetlight that was not within the maintenance coverage area.">
-                            <td>#1004</td>
-                            <td>Ana Lopez</td>
-                            <td>Public Safety and Security Issues</td>
-                            <td>Purok 3</td>
-                            <td>July 24, 2026</td>
-                            <td><span class="badge bg-danger status-badge">Rejected</span></td>
-                            <td>
-                                <select class="form-select form-select-sm priority-select">
-                                    <option selected>Low</option>
-                                    <option>Medium</option>
-                                    <option>High</option>
-                                </select>
-                            </td>
-                            <td class="action-cell">
-                                <span class="text-muted small">Declined</span>
-                            </td>
-                        </tr>
+        <?php
+            $priorityClass = match ($report['priority']) {
+                'High'   => 'bg-danger',
+                'Medium' => 'bg-warning text-dark',
+                'Low'    => 'bg-success',
+                default  => 'bg-secondary',
+            };
+        ?>
 
-                        <tr data-state="pending" class="report-row" data-id="#1005" data-resident="Carlos Reyes" data-category="Utilities and Public Services" data-location="Purok 4" data-date="July 23, 2026" data-status="Pending" data-priority="Medium" data-description="Residents reported weak water pressure in the area and requested follow-up inspection.">
-                            <td>#1005</td>
-                            <td>Carlos Reyes</td>
-                            <td>Utilities and Public Services</td>
-                            <td>Purok 4</td>
-                            <td>July 23, 2026</td>
-                            <td><span class="badge bg-warning text-dark status-badge">Pending</span></td>
-                            <td>
-                                <select class="form-select form-select-sm priority-select" disabled>
-                                    <option>Low</option>
-                                    <option selected>Medium</option>
-                                    <option>High</option>
-                                </select>
-                            </td>
-                            <td class="action-cell">
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-success accept-btn">Accept</button>
-                                    <button class="btn btn-sm btn-danger decline-btn">Decline</button>
-                                </div>
-                            </td>
-                        </tr>
+        <span class="badge <?= $priorityClass ?>">
+            <?= esc($report['priority']) ?>
+        </span>
 
-                    </tbody>
+    <?php else: ?>
 
+        <span class="text-muted">
+            Not set
+        </span>
+
+    <?php endif; ?>
+</td>
+  
+
+    <!-- Action -->
+   <td>
+    <div class="d-flex gap-2">
+
+        <button
+            type="button"
+            class="btn btn-sm btn-success view-btn">
+            <i class="bi bi-eye-fill"></i>
+        </button>
+
+        <button
+            type="button"
+            class="btn btn-sm btn-primary update-status-btn"
+            data-report-id="<?= esc($report['report_id']) ?>"
+            data-current-status="<?= esc($status) ?>"
+            data-current-priority="<?= esc($report['priority'] ?? '') ?>"
+            data-bs-toggle="modal"
+            data-bs-target="#statusModal">
+            <i class="bi bi-pencil-square"></i>
+        </button>
+
+    </div>
+</td>
+
+</tr>
+
+    <?php endforeach; ?>
+
+<?php else: ?>
+
+    <tr>
+        <td colspan="8" class="text-center text-muted">
+            No reports available.
+        </td>
+    </tr>
+
+<?php endif; ?>
+
+</tbody>
                 </table>
 
             </div>
@@ -378,135 +392,282 @@
             </div>
 
         </div>
-                <!-- REPORT DETAILS MODAL -->
+   <!-- ========================================= -->
+<!-- REPORT DETAILS MODAL -->
+<!-- ========================================= -->
 
-        <div class="modal fade" id="reportModal" tabindex="-1">
+<div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
 
-            <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
 
-                <div class="modal-content">
+        <div class="modal-content">
 
-                    <div class="modal-header">
+            <div class="modal-header">
 
-                        <h5 class="modal-title">
-                            Report Details
-                        </h5>
+                <h5 class="modal-title">
+                    Report Details
+                </h5>
 
-                        <button type="button"
-                                class="btn-close"
-                                data-bs-dismiss="modal"></button>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close">
+                </button>
 
-                    </div>
+            </div>
 
-                    <div class="modal-body">
+            <div class="modal-body">
 
-                        <div class="row">
+                <div class="row">
 
-                            <div class="col-md-6">
+                    <!-- LEFT SIDE -->
+                    <div class="col-md-6">
 
-                                <p><strong>Report ID:</strong> <span id="reportId">#1001</span></p>
-                                <p><strong>Resident:</strong> <span id="reportResident">zoro</span></p>
-                                <p><strong>Category:</strong> <span id="reportCategory">Road Damage</span></p>
-                                <p><strong>Status:</strong> <span id="reportStatus">Pending</span></p>
+                        <p>
+                            <strong>Report ID:</strong>
+                            <span id="reportId"></span>
+                        </p>
 
-                            </div>
+                        <p>
+                            <strong>Resident:</strong>
+                            <span id="reportResident"></span>
+                        </p>
 
-                            <div class="col-md-6">
+                        <p>
+                            <strong>Title:</strong>
+                            <span id="reportTitle"></span>
+                        </p>
 
-                                <p><strong>Location:</strong> <span id="reportLocation">Purok 1</span></p>
-                                <p><strong>Date:</strong> <span id="reportDate">July 26, 2026</span></p>
-                                <p><strong>Priority:</strong> <span id="reportPriority">High</span></p>
+                        <p>
+                            <strong>Category:</strong>
+                            <span id="reportCategory"></span>
+                        </p>
 
-                            </div>
-
-                        </div>
-
-                        <hr>
-
-                        <h6>Description</h6>
-
-                        <p id="reportDescription">
-                            Large potholes were reported along the main road.
-                            Vehicles and motorcycles are having difficulty
-                            passing through the area.
+                        <p>
+                            <strong>Status:</strong>
+                            <span id="reportStatus"></span>
                         </p>
 
                     </div>
 
-                    <div class="modal-footer">
+                    <!-- RIGHT SIDE -->
+                    <div class="col-md-6">
 
-                        <button class="btn btn-secondary"
-                                data-bs-dismiss="modal">
-                            Close
-                        </button>
+                        <p>
+                            <strong>Location:</strong>
+                            <span id="reportLocation"></span>
+                        </p>
+
+                        <p>
+                            <strong>Address:</strong>
+                            <span id="reportAddress"></span>
+                        </p>
+
+                        <p>
+                            <strong>Date Reported:</strong>
+                            <span id="reportDate"></span>
+                        </p>
+
+                        <div class="mb-3">
+
+                            <strong>Photo:</strong>
+
+                            <br>
+
+                            <img
+                                id="reportPhoto"
+                                src=""
+                                alt="Report Photo"
+                                class="img-fluid rounded mt-2"
+                                style="
+                                    width: 100%;
+                                    max-width: 300px;
+                                    height: 180px;
+                                    object-fit: cover;
+                                    display: none;
+                                ">
+
+                            <span
+                                id="reportNoPhoto"
+                                class="text-muted"
+                                style="display: none;">
+                                No photo available
+                            </span>
+
+                        </div>
 
                     </div>
 
                 </div>
 
+                <hr>
+
+                <h6>
+                    Description
+                </h6>
+
+                <p id="reportDescription"></p>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+                    Close
+                </button>
+
             </div>
 
         </div>
 
-        <!-- UPDATE STATUS MODAL -->
+    </div>
 
-        <div class="modal fade" id="statusModal" tabindex="-1">
+</div>
 
-            <div class="modal-dialog">
 
-                <div class="modal-content">
+<!-- ========================================= -->
+<!-- UPDATE REPORT STATUS MODAL -->
+<!-- ========================================= -->
 
-                    <div class="modal-header">
+<div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
 
-                        <h5 class="modal-title">
-                            Update Report Status
-                        </h5>
+    <div class="modal-dialog modal-dialog-centered">
 
-                        <button class="btn-close"
-                                data-bs-dismiss="modal"></button>
+        <div class="modal-content">
 
-                    </div>
+            <form
+                action="<?= site_url('admin/reports/update-status') ?>"
+                method="POST">
 
-                    <div class="modal-body">
+                <?= csrf_field() ?>
 
-                        <label class="form-label">
-                            Select Status
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Update Report
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- HIDDEN REPORT ID -->
+                    <input
+                        type="hidden"
+                        id="statusReportId"
+                        name="report_id">
+
+                    <!-- STATUS -->
+                    <div class="mb-3">
+
+                        <label
+                            for="statusSelect"
+                            class="form-label">
+                            Status
                         </label>
 
-                        <select class="form-select">
+                        <select
+                            class="form-select"
+                            id="statusSelect"
+                            name="status"
+                            required>
 
-                            <option>Pending</option>
-                            <option>In Progress</option>
-                            <option>Resolved</option>
-                            <option>Rejected</option>
+                            <option value="Pending">
+                                Pending
+                            </option>
+
+                            <option value="In Progress">
+                                In Progress
+                            </option>
+
+                            <option value="Resolved">
+                                Resolved
+                            </option>
+
+                            <option value="Rejected">
+                                Rejected
+                            </option>
 
                         </select>
 
                     </div>
 
-                    <div class="modal-footer">
+                    <!-- PRIORITY -->
+                    <div class="mb-3">
 
-                        <button class="btn btn-secondary"
-                                data-bs-dismiss="modal">
-                            Cancel
-                        </button>
+                        <label
+                            for="prioritySelect"
+                            class="form-label">
+                            Priority
+                        </label>
 
-                        <button class="btn btn-success">
-                            Save Changes
-                        </button>
+                        <select
+                            class="form-select"
+                            id="prioritySelect"
+                            name="priority"
+                            required>
+
+                            <option value="">
+                                Select Priority
+                            </option>
+
+                            <option value="Low">
+                                Low
+                            </option>
+
+                            <option value="Medium">
+                                Medium
+                            </option>
+
+                            <option value="High">
+                                High
+                            </option>
+
+                        </select>
 
                     </div>
 
                 </div>
 
-            </div>
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-success">
+                        Save Changes
+                    </button>
+
+                </div>
+
+            </form>
 
         </div>
 
-    </main>
+    </div>
 
 </div>
 
+        </main>
+
+    </div>
 <!-- Bootstrap JS -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

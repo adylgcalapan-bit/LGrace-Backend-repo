@@ -20,7 +20,7 @@
             <li><a href="#"><i class="bi bi-map"></i>Map View</a></li>
             <li><a href="<?= base_url('admin/residents') ?>"><i class="bi bi-people"></i>Residents</a></li>
             <li><a href="<?= base_url('admin/categories') ?>"><i class="bi bi-tags"></i>Categories</a></li>
-            <li><a href="<?= base_url('admin/notifications') ?>"><i class="bi bi-bell"></i>Notifications</a></li>
+           <?= view('admin/notification_menu') ?>
             <li class="active"><a href="<?= base_url('admin/settings') ?>"><i class="bi bi-gear"></i>Settings</a></li>
             <li><a href="<?= base_url('admin/account') ?>"><i class="bi bi-person-circle"></i>Account / Profile</a></li>
             <li class="logout"><a href="<?= base_url('login') ?>"><i class="bi bi-box-arrow-right"></i>Logout</a></li>

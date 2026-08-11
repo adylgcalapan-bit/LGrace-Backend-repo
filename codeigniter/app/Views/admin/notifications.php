@@ -21,7 +21,18 @@
             <li><a href="#"><i class="bi bi-map"></i>Map View</a></li>
             <li><a href="<?= base_url('admin/residents') ?>"><i class="bi bi-people"></i>Residents</a></li>
             <li><a href="<?= base_url('admin/categories') ?>"><i class="bi bi-tags"></i>Categories</a></li>
-            <li class="active"><a href="<?= base_url('admin/notifications') ?>"><i class="bi bi-bell"></i>Notifications</a></li>
+           <li class="active">
+    <a href="<?= base_url('admin/notifications') ?>">
+        <i class="bi bi-bell"></i>
+        Notifications
+
+        <?php if (($unreadCount ?? 0) > 0): ?>
+            <span class="badge rounded-pill bg-danger ms-2">
+                <?= (int) $unreadCount ?>
+            </span>
+        <?php endif; ?>
+    </a>
+</li>
             <li><a href="<?= base_url('admin/settings') ?>"><i class="bi bi-gear"></i>Settings</a></li>
             <li><a href="<?= base_url('admin/account') ?>"><i class="bi bi-person-circle"></i>Account / Profile</a></li>
             <li class="logout"><a href="<?= base_url('login') ?>"><i class="bi bi-box-arrow-right"></i>Logout</a></li>
@@ -58,61 +69,92 @@
                     </select>
                 </div>
                 <div class="col-lg-3">
-                    <div class="badge-count">5 Unread</div>
+                   <div class="badge-count">
+    <?= (int) ($unreadCount ?? 0) ?> Unread
+</div>
                 </div>
             </div>
         </section>
 
-        <section class="list-group" id="notificationList">
-            <div class="list-group-item notification-item unread">
+       <section class="list-group" id="notificationList">
+
+    <?php if (!empty($notifications)): ?>
+
+        <?php foreach ($notifications as $notification): ?>
+
+            <?php
+                $isUnread = ($notification['status'] ?? '') === 'Unread';
+
+                $notificationDate = 'Date unavailable';
+
+                if (!empty($notification['date'])) {
+                    $time = new \DateTime(
+                        $notification['date'],
+                        new \DateTimeZone('UTC')
+                    );
+
+                    $time->setTimezone(
+                        new \DateTimeZone('Asia/Manila')
+                    );
+
+                    $notificationDate = $time->format('F d, Y - h:i A');
+                }
+
+                $openUrl = site_url(
+                    'admin/notifications/open/' .
+                    $notification['notification_id']
+                );
+            ?>
+
+            <div
+                class="list-group-item notification-item <?= $isUnread ? 'unread' : '' ?>"
+                onclick="window.location.href='<?= esc($openUrl) ?>'"
+                style="cursor: pointer;"
+            >
+
                 <div class="d-flex justify-content-between align-items-start gap-3">
-                    <div class="d-flex gap-3">
-                        <div class="icon-box bg-success"><i class="bi bi-bell-fill"></i></div>
-                        <div>
-                            <h6 class="mb-1">New community report submitted</h6>
-                            <p class="mb-1">A new report has been submitted from Purok 3 and requires review.</p>
-                            <small class="text-muted">10 mins ago</small>
+
+                    <div class="d-flex gap-3 align-items-start">
+
+                        <div class="icon-box bg-success">
+                            <i class="bi bi-bell-fill"></i>
                         </div>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-success read-btn">Mark Read</button>
-                        <button class="btn btn-sm btn-outline-danger delete-btn">Delete</button>
-                    </div>
-                </div>
-            </div>
-            <div class="list-group-item notification-item unread">
-                <div class="d-flex justify-content-between align-items-start gap-3">
-                    <div class="d-flex gap-3">
-                        <div class="icon-box bg-primary"><i class="bi bi-arrow-repeat"></i></div>
+
                         <div>
-                            <h6 class="mb-1">Report status updated</h6>
-                            <p class="mb-1">One of your reports has moved to In Progress.</p>
-                            <small class="text-muted">1 hour ago</small>
+                            <h6 class="mb-1">
+                                <?= $isUnread ? 'New Notification' : 'Notification' ?>
+                            </h6>
+
+                            <p class="mb-1">
+                                <?= esc($notification['message']) ?>
+                            </p>
+
+                            <small class="text-muted">
+                                <?= esc($notificationDate) ?>
+                            </small>
                         </div>
+
                     </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-success read-btn">Mark Read</button>
-                        <button class="btn btn-sm btn-outline-danger delete-btn">Delete</button>
-                    </div>
+
+                    <span class="badge <?= $isUnread ? 'bg-warning text-dark' : 'bg-secondary' ?>">
+                        <?= esc($notification['status']) ?>
+                    </span>
+
                 </div>
+
             </div>
-            <div class="list-group-item notification-item">
-                <div class="d-flex justify-content-between align-items-start gap-3">
-                    <div class="d-flex gap-3">
-                        <div class="icon-box bg-warning"><i class="bi bi-person-plus"></i></div>
-                        <div>
-                            <h6 class="mb-1">New resident registered</h6>
-                            <p class="mb-1">A resident from Purok 1 has completed registration.</p>
-                            <small class="text-muted">Yesterday</small>
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-success read-btn">Mark Read</button>
-                        <button class="btn btn-sm btn-outline-danger delete-btn">Delete</button>
-                    </div>
-                </div>
-            </div>
-        </section>
+
+        <?php endforeach; ?>
+
+    <?php else: ?>
+
+        <div class="list-group-item text-center text-muted">
+            No notifications yet.
+        </div>
+
+    <?php endif; ?>
+
+</section>
     </main>
 </div>
 

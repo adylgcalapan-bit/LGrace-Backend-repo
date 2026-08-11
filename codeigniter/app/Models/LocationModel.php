@@ -18,7 +18,8 @@ class LocationModel extends Model
     'latitude',
     'longtitude',
     'address',
-    'status'
+    'status',
+    'priority',
 ];
 
     protected $useTimestamps = true;

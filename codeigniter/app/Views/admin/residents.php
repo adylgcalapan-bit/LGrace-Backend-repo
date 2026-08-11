@@ -71,12 +71,7 @@
                 </a>
             </li>
 
-            <li>
-                <a href="<?= base_url('admin/notifications') ?>">
-                    <i class="bi bi-bell"></i>
-                    Notifications
-                </a>
-            </li>
+           <?= view('admin/notification_menu') ?>
 
             <li>
                 <a href="<?= base_url('admin/settings') ?>">

@@ -81,17 +81,7 @@
 
             </li>
 
-            <li>
-
-                <a href="<?= base_url('resident/notifications') ?>">
-
-                    <i class="bi bi-bell-fill"></i>
-
-                    Notifications
-
-                </a>
-
-            </li>
+          <?= view('resident/notification_menu') ?>
 
             <li class="active">
 
