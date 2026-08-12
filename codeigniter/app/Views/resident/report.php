@@ -87,6 +87,7 @@
             </li>
 
          <?= view('resident/notification_menu') ?>
+         
             <li>
 
                 <a href="<?= base_url('resident/profile') ?>">

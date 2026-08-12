@@ -121,25 +121,7 @@
 
             </div>
 
-            <!-- Success Message -->
-            <?php if ($successMessage = session()->getFlashdata('success')): ?>
 
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-
-                    <i class="bi bi-check-circle-fill me-2"></i>
-
-                    <?= esc($successMessage) ?>
-
-                    <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert"
-                        aria-label="Close">
-                    </button>
-
-                </div>
-
-            <?php endif; ?>
 
 
             <!-- Error Message -->
@@ -163,7 +145,7 @@
             <?php endif; ?>
 
 
-
+            <!-- Search -->
 
             <!-- Search -->
 
@@ -307,6 +289,12 @@
                                                     View
                                                 </a>
                                                 <?php if (($report['status'] ?? '') === 'Pending'): ?>
+
+                                                    <a href="<?= site_url('resident/report/edit/' . $report['report_id']) ?>"
+                                                        class="btn btn-outline-primary btn-sm">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                        Edit
+                                                    </a>
 
                                                     <form
                                                         action="<?= site_url('resident/report/delete/' . $report['report_id']) ?>"
@@ -457,10 +445,73 @@
         </main>
 
     </div>
+    <?php $successMessage = session()->getFlashdata('success'); ?>
 
+    <?php if ($successMessage): ?>
+
+        <div
+            class="modal fade"
+            id="successModal"
+            tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+
+                <div class="modal-content text-center">
+
+                    <div class="modal-body p-5">
+
+                        <i
+                            class="bi bi-check-circle text-success mb-3"
+                            style="font-size: 70px;"></i>
+
+                        <h2 class="fw-bold mt-3 mb-3">
+                            Success!
+                        </h2>
+
+                        <p class="text-muted mb-4">
+                            <?= esc($successMessage) ?>
+                        </p>
+
+                        <button
+                            type="button"
+                            class="btn btn-success px-5"
+                            data-bs-dismiss="modal">
+                            OK
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    <?php endif; ?>
     <!-- Bootstrap JS -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <?php if (!empty($successMessage)): ?>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+
+                const successModalElement =
+                    document.getElementById("successModal");
+
+                if (successModalElement) {
+                    const successModal =
+                        new bootstrap.Modal(successModalElement);
+
+                    successModal.show();
+                }
+
+            });
+        </script>
+
+    <?php endif; ?>
+
 
     <!-- Custom JS -->
 

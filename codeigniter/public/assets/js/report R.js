@@ -55,6 +55,26 @@ document.addEventListener("DOMContentLoaded", function () {
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
 
+    // =====================================
+    // Show existing location when editing
+    // =====================================
+
+    const existingLatitude = parseFloat(latitudeInput?.value);
+    const existingLongitude = parseFloat(longitudeInput?.value);
+
+    if (
+      Number.isFinite(existingLatitude) &&
+      Number.isFinite(existingLongitude)
+    ) {
+      marker = L.marker([existingLatitude, existingLongitude]).addTo(map);
+
+      map.setView([existingLatitude, existingLongitude], 17);
+
+      if (locationStatus) {
+        locationStatus.textContent = `Current location: ${existingLatitude.toFixed(6)}, ${existingLongitude.toFixed(6)}`;
+      }
+    }
+
     async function getAddressFromCoordinates(lat, lng) {
       if (!addressInput) {
         return;

@@ -17,657 +17,160 @@
     <link rel="stylesheet" href="<?= base_url('assets/css/dashboard-admin.css') ?>">
 
     <!-- Residents CSS -->
-   <link rel="stylesheet" href="<?= base_url('assets/css/dashboard-admin.css') ?>">
-    
+    <link rel="stylesheet" href="<?= base_url('assets/css/dashboard-admin.css') ?>">
+
 </head>
 
 <body>
 
-<div class="wrapper">
+    <div class="wrapper">
 
-    <!-- ================= SIDEBAR ================= -->
+        <!-- ================= SIDEBAR ================= -->
 
-    <aside class="sidebar">
+        <aside class="sidebar">
 
-        <div class="logo">
-            <i class="bi bi-geo-alt-fill"></i>
-            <h4>CPVS</h4>
-        </div>
-
-        <ul class="menu">
-
-            <li>
-                <a href="<?= base_url('admin/dashboard') ?>">
-                    <i class="bi bi-speedometer2"></i>
-                    Dashboard
-                </a>
-            </li>
-
-            <li>
-                <a href="<?= base_url('admin/reports') ?>">
-                    <i class="bi bi-file-earmark-text"></i>
-                    Reports
-                </a>
-            </li>
-
-            <li>
-                <a href="<?= base_url('admin/map') ?>">
-                    <i class="bi bi-map"></i>
-                    Map View
-                </a>
-            </li>
-
-            <li class="active">
-                <a href="<?= base_url('admin/residents') ?>">
-                    <i class="bi bi-people"></i>
-                    Residents
-                </a>
-            </li>
-
-            <li>
-                <a href="<?= base_url('admin/categories') ?>">
-                    <i class="bi bi-tags"></i>
-                    Categories
-                </a>
-            </li>
-
-           <?= view('admin/notification_menu') ?>
-
-            <li>
-                <a href="<?= base_url('admin/settings') ?>">
-                    <i class="bi bi-gear"></i>
-                    Settings
-                </a>
-            </li>
-
-            <li>
-                <a href="<?= base_url('admin/account') ?>">
-                    <i class="bi bi-person-circle"></i>
-                    Account / Profile
-                </a>
-            </li>
-
-            <li class="logout">
-                <a href="#">
-                    <i class="bi bi-box-arrow-right"></i>
-                    Logout
-                </a>
-            </li>
-
-        </ul>
-
-    </aside>
-
-    <!-- ================= MAIN CONTENT ================= -->
-
-    <main class="main-content">
-
-        <!-- PAGE HEADER -->
-
-        <header class="topbar">
-
-            <div class="welcome">
-                <h2>Residents Management</h2>
-                <p>View and manage all registered residents.</p>
+            <div class="logo">
+                <i class="bi bi-geo-alt-fill"></i>
+                <h4>CPVS</h4>
             </div>
 
-            <div class="top-actions">
+            <ul class="menu">
 
-                <button class="btn btn-success">
-                    <i class="bi bi-person-plus-fill"></i>
-                    Add Resident
-                </button>
+                <li>
+                    <a href="<?= base_url('admin/dashboard') ?>">
+                        <i class="bi bi-speedometer2"></i>
+                        Dashboard
+                    </a>
+                </li>
 
-            </div>
+                <li>
+                    <a href="<?= base_url('admin/reports') ?>">
+                        <i class="bi bi-file-earmark-text"></i>
+                        Reports
+                    </a>
+                </li>
 
-        </header>
+                <li>
+                    <a href="<?= base_url('admin/map') ?>">
+                        <i class="bi bi-map"></i>
+                        Map View
+                    </a>
+                </li>
 
-        <!-- SEARCH & FILTERS -->
+                <li class="active">
+                    <a href="<?= base_url('admin/residents') ?>">
+                        <i class="bi bi-people"></i>
+                        Residents
+                    </a>
+                </li>
 
-        <div class="card border-0 shadow-sm p-4 mb-4">
+                <li>
+                    <a href="<?= base_url('admin/categories') ?>">
+                        <i class="bi bi-tags"></i>
+                        Categories
+                    </a>
+                </li>
 
-            <div class="row g-3">
+                <?= view('admin/notification_menu') ?>
 
-                <div class="col-lg-4">
+                <li>
+                    <a href="<?= base_url('admin/settings') ?>">
+                        <i class="bi bi-gear"></i>
+                        Settings
+                    </a>
+                </li>
 
-                    <input
-                        type="text"
-                        class="form-control"
-                        placeholder="Search resident...">
+                <li>
+                    <a href="<?= base_url('admin/account') ?>">
+                        <i class="bi bi-person-circle"></i>
+                        Account / Profile
+                    </a>
+                </li>
 
+                <li class="logout">
+                    <a href="#">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Logout
+                    </a>
+                </li>
+
+            </ul>
+
+        </aside>
+
+        <!-- ================= MAIN CONTENT ================= -->
+
+        <main class="main-content">
+
+            <!-- PAGE HEADER -->
+
+            <header class="topbar">
+
+                <div class="welcome">
+                    <h2>Residents Management</h2>
+                    <p>View and manage all registered residents.</p>
                 </div>
 
-                <div class="col-lg-3">
-
-                    <select class="form-select">
-
-                        <option>All Status</option>
-                        <option>Active</option>
-                        <option>Inactive</option>
-
-                    </select>
-
-                </div>
-
-                <div class="col-lg-3">
-
-                    <select class="form-select">
-
-                        <option>All Puroks</option>
-                        <option>Purok 1</option>
-                        <option>Purok 2</option>
-                        <option>Purok 3</option>
-                        <option>Purok 4</option>
-                        <option>Purok 5</option>
-
-                    </select>
-
-                </div>
-
-                <div class="col-lg-2 d-grid">
+                <div class="top-actions">
 
                     <button class="btn btn-success">
-
-                        <i class="bi bi-funnel-fill"></i>
-                        Filter
-
+                        <i class="bi bi-person-plus-fill"></i>
+                        Add Resident
                     </button>
 
                 </div>
 
-            </div>
+            </header>
 
-        </div>
+            <!-- SEARCH & FILTERS -->
 
-        <!-- RESIDENTS TABLE -->
+            <div class="card border-0 shadow-sm p-4 mb-4">
 
-        <div class="card border-0 shadow-sm">
+                <div class="row g-3">
 
-            <div class="card-header bg-white">
+                    <div class="col-lg-4">
 
-                <h4 class="mb-0">
-
-                    Registered Residents
-
-                </h4>
-
-            </div>
-
-            <div class="table-responsive">
-
-                <table class="table table-hover align-middle mb-0">
-
-                    <thead class="table-success">
-
-                        <tr>
-
-                            <th>ID</th>
-
-                            <th>Photo</th>
-
-                            <th>Full Name</th>
-
-                            <th>Email</th>
-
-                            <th>Contact</th>
-
-                            <th>Purok</th>
-
-                            <th>Status</th>
-
-                            <th>Action</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        <tr class="resident-row"
-                            data-id="R-001"
-                            data-name="Juan Dela Cruz"
-                            data-email="juan@email.com"
-                            data-contact="09123456789"
-                            data-address="Purok 1, Barangay Saguing"
-                            data-status="Active"
-                            data-image="https://i.pravatar.cc/150?img=12">
-
-                            <td>R-001</td>
-
-                            <td>
-                                <img src="https://i.pravatar.cc/45?img=12"
-                                     class="rounded-circle"
-                                     width="45"
-                                     height="45">
-                            </td>
-
-                            <td>Juan Dela Cruz</td>
-
-                            <td>juan@email.com</td>
-
-                            <td>09123456789</td>
-
-                            <td>Purok 1</td>
-
-                            <td>
-
-                                <span class="badge bg-success">
-
-                                    Active
-
-                                </span>
-
-                            </td>
-
-                            <td>
-
-                                <button class="btn btn-sm btn-primary">
-
-                                    <i class="bi bi-eye"></i>
-
-                                </button>
-
-                                <button class="btn btn-sm btn-warning text-white">
-
-                                    <i class="bi bi-pencil-square"></i>
-
-                                </button>
-
-                                <button class="btn btn-sm btn-danger">
-
-                                    <i class="bi bi-trash"></i>
-
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-                        <tr class="resident-row"
-                            data-id="R-002"
-                            data-name="Maria Santos"
-                            data-email="maria@email.com"
-                            data-contact="09987654321"
-                            data-address="Purok 3, Barangay Saguing"
-                            data-status="Active"
-                            data-image="https://i.pravatar.cc/150?img=32">
-
-                            <td>R-002</td>
-
-                            <td>
-                                <img src="https://i.pravatar.cc/45?img=32"
-                                     class="rounded-circle"
-                                     width="45"
-                                     height="45">
-                            </td>
-
-                            <td>Maria Santos</td>
-
-                            <td>maria@email.com</td>
-
-                            <td>09987654321</td>
-
-                            <td>Purok 3</td>
-
-                            <td>
-
-                                <span class="badge bg-success">
-
-                                    Active
-
-                                </span>
-
-                            </td>
-
-                            <td>
-
-                                <button class="btn btn-sm btn-primary">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-
-                                <button class="btn btn-sm btn-warning text-white">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-
-                                <button class="btn btn-sm btn-danger">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-
-                            </td>
-
-                        </tr>
-                                                <tr class="resident-row"
-                            data-id="R-003"
-                            data-name="Pedro Ramos"
-                            data-email="pedro@email.com"
-                            data-contact="09112223344"
-                            data-address="Purok 2, Barangay Saguing"
-                            data-status="Inactive"
-                            data-image="https://i.pravatar.cc/150?img=45">
-
-                            <td>R-003</td>
-
-                            <td>
-                                <img src="https://i.pravatar.cc/45?img=45"
-                                     class="rounded-circle"
-                                     width="45"
-                                     height="45">
-                            </td>
-
-                            <td>Pedro Ramos</td>
-
-                            <td>pedro@email.com</td>
-
-                            <td>09112223344</td>
-
-                            <td>Purok 2</td>
-
-                            <td>
-                                <span class="badge bg-secondary">
-                                    Inactive
-                                </span>
-                            </td>
-
-                            <td>
-
-                                <button class="btn btn-sm btn-primary">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-
-                                <button class="btn btn-sm btn-warning text-white">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-
-                                <button class="btn btn-sm btn-danger">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-                        <tr class="resident-row"
-                            data-id="R-004"
-                            data-name="Ana Lopez"
-                            data-email="ana@email.com"
-                            data-contact="09175556677"
-                            data-address="Purok 5, Barangay Saguing"
-                            data-status="Active"
-                            data-image="https://i.pravatar.cc/150?img=18">
-
-                            <td>R-004</td>
-
-                            <td>
-                                <img src="https://i.pravatar.cc/45?img=18"
-                                     class="rounded-circle"
-                                     width="45"
-                                     height="45">
-                            </td>
-
-                            <td>Ana Lopez</td>
-
-                            <td>ana@email.com</td>
-
-                            <td>09175556677</td>
-
-                            <td>Purok 5</td>
-
-                            <td>
-                                <span class="badge bg-success">
-                                    Active
-                                </span>
-                            </td>
-
-                            <td>
-
-                                <button class="btn btn-sm btn-primary">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-
-                                <button class="btn btn-sm btn-warning text-white">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-
-                                <button class="btn btn-sm btn-danger">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-                        <tr class="resident-row"
-                            data-id="R-005"
-                            data-name="Carlos Reyes"
-                            data-email="carlos@email.com"
-                            data-contact="09998887766"
-                            data-address="Purok 4, Barangay Saguing"
-                            data-status="Active"
-                            data-image="https://i.pravatar.cc/150?img=60">
-
-                            <td>R-005</td>
-
-                            <td>
-                                <img src="https://i.pravatar.cc/45?img=60"
-                                     class="rounded-circle"
-                                     width="45"
-                                     height="45">
-                            </td>
-
-                            <td>Carlos Reyes</td>
-
-                            <td>carlos@email.com</td>
-
-                            <td>09998887766</td>
-
-                            <td>Purok 4</td>
-
-                            <td>
-                                <span class="badge bg-success">
-                                    Active
-                                </span>
-                            </td>
-
-                            <td>
-
-                                <button class="btn btn-sm btn-primary">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-
-                                <button class="btn btn-sm btn-warning text-white">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-
-                                <button class="btn btn-sm btn-danger">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-            <!-- PAGINATION -->
-
-            <div class="card-footer bg-white">
-
-                <nav>
-
-                    <ul class="pagination justify-content-end mb-0">
-
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#">Previous</a>
-                        </li>
-
-                        <li class="page-item active">
-                            <a class="page-link" href="#">1</a>
-                        </li>
-
-                        <li class="page-item">
-                            <a class="page-link" href="#">2</a>
-                        </li>
-
-                        <li class="page-item">
-                            <a class="page-link" href="#">3</a>
-                        </li>
-
-                        <li class="page-item">
-                            <a class="page-link" href="#">Next</a>
-                        </li>
-
-                    </ul>
-
-                </nav>
-
-            </div>
-
-        </div>
-                <!-- ================= RESIDENT DETAILS MODAL ================= -->
-
-        <div class="modal fade" id="residentModal" tabindex="-1">
-
-            <div class="modal-dialog modal-lg">
-
-                <div class="modal-content">
-
-                    <div class="modal-header">
-
-                        <h5 class="modal-title">
-                            Resident Details
-                        </h5>
-
-                        <button type="button"
-                                class="btn-close"
-                                data-bs-dismiss="modal"></button>
+                        <input
+                            type="text"
+                            class="form-control"
+                            placeholder="Search resident...">
 
                     </div>
 
-                    <div class="modal-body">
+                    <div class="col-lg-3">
 
-                        <div class="row">
+                        <select class="form-select">
 
-                            <div class="col-md-4 text-center">
+                            <option>All Status</option>
+                            <option>Active</option>
+                            <option>Inactive</option>
 
-                                <img id="residentModalImage" src="https://i.pravatar.cc/150?img=12"
-                                     class="rounded-circle img-fluid mb-3"
-                                     alt="Resident">
-
-                            </div>
-
-                            <div class="col-md-8">
-
-                                <p><strong>Resident ID:</strong> <span id="residentModalId">R-001</span></p>
-                                <p><strong>Full Name:</strong> <span id="residentModalName">Juan Dela Cruz</span></p>
-                                <p><strong>Email:</strong> <span id="residentModalEmail">juan@email.com</span></p>
-                                <p><strong>Contact:</strong> <span id="residentModalContact">09123456789</span></p>
-                                <p><strong>Address:</strong> <span id="residentModalAddress">Purok 1, Barangay Saguing</span></p>
-                                <p><strong>Status:</strong> <span id="residentModalStatus">Active</span></p>
-
-                            </div>
-
-                        </div>
+                        </select>
 
                     </div>
 
-                    <div class="modal-footer">
+                    <div class="col-lg-3">
 
-                        <button class="btn btn-secondary"
-                                data-bs-dismiss="modal">
-                            Close
-                        </button>
+                        <select class="form-select">
 
-                    </div>
+                            <option>All Puroks</option>
+                            <option>Purok 1</option>
+                            <option>Purok 2</option>
+                            <option>Purok 3</option>
+                            <option>Purok 4</option>
+                            <option>Purok 5</option>
 
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- ================= EDIT RESIDENT MODAL ================= -->
-
-        <div class="modal fade" id="editResidentModal" tabindex="-1">
-
-            <div class="modal-dialog">
-
-                <div class="modal-content">
-
-                    <div class="modal-header">
-
-                        <h5 class="modal-title">
-                            Edit Resident
-                        </h5>
-
-                        <button type="button"
-                                class="btn-close"
-                                data-bs-dismiss="modal"></button>
+                        </select>
 
                     </div>
 
-                    <div class="modal-body">
-
-                        <div class="mb-3">
-
-                            <label class="form-label">Full Name</label>
-
-                            <input type="text"
-                                   class="form-control"
-                                   value="Juan Dela Cruz">
-
-                        </div>
-
-                        <div class="mb-3">
-
-                            <label class="form-label">Email</label>
-
-                            <input type="email"
-                                   class="form-control"
-                                   value="juan@email.com">
-
-                        </div>
-
-                        <div class="mb-3">
-
-                            <label class="form-label">Contact Number</label>
-
-                            <input type="text"
-                                   class="form-control"
-                                   value="09123456789">
-
-                        </div>
-
-                        <div class="mb-3">
-
-                            <label class="form-label">Purok</label>
-
-                            <select class="form-select">
-
-                                <option>Purok 1</option>
-                                <option>Purok 2</option>
-                                <option>Purok 3</option>
-                                <option>Purok 4</option>
-                                <option>Purok 5</option>
-
-                            </select>
-
-                        </div>
-
-                    </div>
-
-                    <div class="modal-footer">
-
-                        <button class="btn btn-secondary"
-                                data-bs-dismiss="modal">
-                            Cancel
-                        </button>
+                    <div class="col-lg-2 d-grid">
 
                         <button class="btn btn-success">
-                            Save Changes
+
+                            <i class="bi bi-funnel-fill"></i>
+                            Filter
+
                         </button>
 
                     </div>
@@ -676,53 +179,553 @@
 
             </div>
 
-        </div>
+            <!-- RESIDENTS TABLE -->
 
-        <!-- ================= DELETE CONFIRMATION MODAL ================= -->
+            <div class="card border-0 shadow-sm">
 
-        <div class="modal fade" id="deleteResidentModal" tabindex="-1">
+                <div class="card-header bg-white">
 
-            <div class="modal-dialog">
+                    <h4 class="mb-0">
 
-                <div class="modal-content">
+                        Registered Residents
 
-                    <div class="modal-header bg-danger text-white">
+                    </h4>
 
-                        <h5 class="modal-title">
-                            Delete Resident
-                        </h5>
+                </div>
 
-                        <button type="button"
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-success">
+
+                            <tr>
+
+                                <thead class="table-success">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Photo</th>
+                                        <th>Full Name</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th>Address</th>
+                                        <th>Username</th>
+                                        <th>Registered</th>
+                                    </tr>
+                                </thead>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <?php if (!empty($residents)): ?>
+
+                                <?php foreach ($residents as $resident): ?>
+
+                                    <?php
+                                    $residentImage = !empty($resident['profile_image'])
+                                        ? base_url(ltrim($resident['profile_image'], '/\\'))
+                                        : base_url('assets/images/resident picture.jpg');
+
+                                    $residentId = 'R-' . str_pad(
+                                        (string) $resident['user_id'],
+                                        3,
+                                        '0',
+                                        STR_PAD_LEFT
+                                    );
+                                    ?>
+
+                                    <tr class="resident-row"
+                                        data-user-id="<?= (int) $resident['user_id'] ?>"
+                                        data-id="<?= esc($residentId) ?>"
+                                        data-name="<?= esc($resident['full_name'] ?? '') ?>"
+                                        data-email="<?= esc($resident['email'] ?? '') ?>"
+                                        data-contact="<?= esc($resident['mobile_number'] ?? '') ?>"
+                                        data-address="<?= esc($resident['address'] ?? '') ?>"
+                                        data-status="Registered"
+                                        data-image="<?= esc($residentImage) ?>">
+
+                                        <td>
+                                            R-<?= str_pad(
+                                                    (string) $resident['user_id'],
+                                                    3,
+                                                    '0',
+                                                    STR_PAD_LEFT
+                                                ) ?>
+                                        </td>
+
+                                        <td>
+                                            <?php if (!empty($resident['profile_image'])): ?>
+
+                                                <img
+                                                    src="<?= base_url(ltrim($resident['profile_image'], '/\\')) ?>"
+                                                    alt="<?= esc($resident['full_name']) ?>"
+                                                    class="rounded-circle"
+                                                    width="45"
+                                                    height="45"
+                                                    style="object-fit: cover;">
+
+                                            <?php else: ?>
+
+                                                <div
+                                                    class="rounded-circle bg-light border d-flex align-items-center justify-content-center"
+                                                    style="width:45px;height:45px;">
+                                                    <i class="bi bi-person-fill text-secondary"></i>
+                                                </div>
+
+                                            <?php endif; ?>
+                                        </td>
+
+                                        <td>
+                                            <?= esc($resident['full_name'] ?? 'N/A') ?>
+                                        </td>
+
+                                        <td>
+                                            <?= esc($resident['email'] ?? 'N/A') ?>
+                                        </td>
+
+                                        <td>
+                                            <?= esc($resident['mobile_number'] ?? 'N/A') ?>
+                                        </td>
+
+                                        <td>
+                                            <?= esc($resident['address'] ?? 'No address provided') ?>
+                                        </td>
+
+                                        <td>
+                                            <?= esc($resident['username'] ?? 'N/A') ?>
+                                        </td>
+
+                                        <td>
+                                            <?= !empty($resident['created_at'])
+                                                ? date('F d, Y', strtotime($resident['created_at']))
+                                                : 'N/A' ?>
+                                        </td>
+
+                                    </tr>
+
+                                <?php endforeach; ?>
+
+                            <?php else: ?>
+
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        No registered residents found.
+                                    </td>
+                                </tr>
+
+                            <?php endif; ?>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- PAGINATION -->
+
+                <div class="card-footer bg-white">
+
+                    <nav>
+
+                        <ul class="pagination justify-content-end mb-0">
+
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">Previous</a>
+                            </li>
+
+                            <li class="page-item active">
+                                <a class="page-link" href="#">1</a>
+                            </li>
+
+                            <li class="page-item">
+                                <a class="page-link" href="#">2</a>
+                            </li>
+
+                            <li class="page-item">
+                                <a class="page-link" href="#">3</a>
+                            </li>
+
+                            <li class="page-item">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+
+                        </ul>
+
+                    </nav>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================= RESIDENT OVERVIEW MODAL ================= -->
+
+            <div class="modal fade" id="residentModal" tabindex="-1">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="bi bi-person-vcard me-2"></i>
+                                Resident Overview
+                            </h5>
+
+                            <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal">
+                            </button>
+                        </div>
+
+                        <div class="modal-body">
+
+                            <!-- PROFILE / ACCOUNT INFO -->
+                            <div class="row align-items-center mb-4">
+
+                                <div class="col-md-3 text-center mb-3 mb-md-0">
+
+                                    <img
+                                        id="residentModalImage"
+                                        src="<?= base_url('assets/images/resident picture.jpg') ?>"
+                                        alt="Resident"
+                                        class="rounded-circle"
+                                        style="
+                                width: 140px;
+                                height: 140px;
+                                object-fit: cover;
+                                border: 4px solid #198754;
+                            ">
+
+                                    <h5 class="mt-3 mb-1"
+                                        id="residentModalName">
+                                        Resident
+                                    </h5>
+
+                                    <span class="badge bg-success">
+                                        Resident
+                                    </span>
+
+                                </div>
+
+                                <div class="col-md-9">
+
+                                    <div class="row g-3">
+
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Resident ID</small>
+                                            <p class="fw-semibold mb-0"
+                                                id="residentModalId">
+                                                —
+                                            </p>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Username</small>
+                                            <p class="fw-semibold mb-0"
+                                                id="residentModalUsername">
+                                                —
+                                            </p>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Email Address</small>
+                                            <p class="fw-semibold mb-0"
+                                                id="residentModalEmail">
+                                                —
+                                            </p>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Contact Number</small>
+                                            <p class="fw-semibold mb-0"
+                                                id="residentModalContact">
+                                                —
+                                            </p>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Address</small>
+                                            <p class="fw-semibold mb-0"
+                                                id="residentModalAddress">
+                                                —
+                                            </p>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Date Registered</small>
+                                            <p class="fw-semibold mb-0"
+                                                id="residentModalRegistered">
+                                                —
+                                            </p>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <hr>
+
+                            <!-- REPORT STATISTICS -->
+
+                            <h5 class="mb-3">
+                                <i class="bi bi-bar-chart-fill me-2"></i>
+                                Report Summary
+                            </h5>
+
+                            <div class="row g-3 mb-4">
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <small class="text-muted">
+                                                Total Reports
+                                            </small>
+
+                                            <h2 class="mb-0 mt-2"
+                                                id="residentStatTotal">
+                                                0
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card border-warning h-100">
+                                        <div class="card-body text-center">
+                                            <small class="text-muted">
+                                                Pending
+                                            </small>
+
+                                            <h2 class="mb-0 mt-2 text-warning"
+                                                id="residentStatPending">
+                                                0
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card border-primary h-100">
+                                        <div class="card-body text-center">
+                                            <small class="text-muted">
+                                                In Progress
+                                            </small>
+
+                                            <h2 class="mb-0 mt-2 text-primary"
+                                                id="residentStatProgress">
+                                                0
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card border-success h-100">
+                                        <div class="card-body text-center">
+                                            <small class="text-muted">
+                                                Resolved
+                                            </small>
+
+                                            <h2 class="mb-0 mt-2 text-success"
+                                                id="residentStatResolved">
+                                                0
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- RECENT REPORTS -->
+
+                            <h5 class="mb-3">
+                                <i class="bi bi-clock-history me-2"></i>
+                                Recent Reports
+                            </h5>
+
+                            <div class="table-responsive">
+
+                                <table class="table table-hover align-middle">
+
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Report</th>
+                                            <th>Category</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody id="residentRecentReports">
+
+                                        <tr>
+                                            <td colspan="4"
+                                                class="text-center text-muted">
+                                                Click a resident to load reports.
+                                            </td>
+                                        </tr>
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+
+                            <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                                Close
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= EDIT RESIDENT MODAL ================= -->
+
+            <div class="modal fade" id="editResidentModal" tabindex="-1">
+
+                <div class="modal-dialog">
+
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+
+                            <h5 class="modal-title">
+                                Edit Resident
+                            </h5>
+
+                            <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"></button>
+
+                        </div>
+
+                        <div class="modal-body">
+
+                            <div class="mb-3">
+
+                                <label class="form-label">Full Name</label>
+
+                                <input type="text"
+                                    class="form-control"
+                                    value="Juan Dela Cruz">
+
+                            </div>
+
+                            <div class="mb-3">
+
+                                <label class="form-label">Email</label>
+
+                                <input type="email"
+                                    class="form-control"
+                                    value="juan@email.com">
+
+                            </div>
+
+                            <div class="mb-3">
+
+                                <label class="form-label">Contact Number</label>
+
+                                <input type="text"
+                                    class="form-control"
+                                    value="09123456789">
+
+                            </div>
+
+                            <div class="mb-3">
+
+                                <label class="form-label">Purok</label>
+
+                                <select class="form-select">
+
+                                    <option>Purok 1</option>
+                                    <option>Purok 2</option>
+                                    <option>Purok 3</option>
+                                    <option>Purok 4</option>
+                                    <option>Purok 5</option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+
+                            <button class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+
+                            <button class="btn btn-success">
+                                Save Changes
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ================= DELETE CONFIRMATION MODAL ================= -->
+
+            <div class="modal fade" id="deleteResidentModal" tabindex="-1">
+
+                <div class="modal-dialog">
+
+                    <div class="modal-content">
+
+                        <div class="modal-header bg-danger text-white">
+
+                            <h5 class="modal-title">
+                                Delete Resident
+                            </h5>
+
+                            <button type="button"
                                 class="btn-close btn-close-white"
                                 data-bs-dismiss="modal"></button>
 
-                    </div>
+                        </div>
 
-                    <div class="modal-body text-center">
+                        <div class="modal-body text-center">
 
-                        <i class="bi bi-exclamation-triangle-fill text-danger"
-                           style="font-size:60px;"></i>
+                            <i class="bi bi-exclamation-triangle-fill text-danger"
+                                style="font-size:60px;"></i>
 
-                        <h5 class="mt-3">
-                            Are you sure?
-                        </h5>
+                            <h5 class="mt-3">
+                                Are you sure?
+                            </h5>
 
-                        <p>
-                            This resident account will be permanently deleted.
-                        </p>
+                            <p>
+                                This resident account will be permanently deleted.
+                            </p>
 
-                    </div>
+                        </div>
 
-                    <div class="modal-footer">
+                        <div class="modal-footer">
 
-                        <button class="btn btn-secondary"
+                            <button class="btn btn-secondary"
                                 data-bs-dismiss="modal">
-                            Cancel
-                        </button>
+                                Cancel
+                            </button>
 
-                        <button class="btn btn-danger">
-                            Delete
-                        </button>
+                            <button class="btn btn-danger">
+                                Delete
+                            </button>
+
+                        </div>
 
                     </div>
 
@@ -730,19 +733,18 @@
 
             </div>
 
-        </div>
+        </main>
 
-    </main>
+    </div>
 
-</div>
+    <!-- Bootstrap JS -->
 
-<!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Residents JavaScript -->
 
-<!-- Residents JavaScript -->
-
-<script src="<?= base_url('assets/js/resident.js') ?>"></script>
+    <script src="<?= base_url('assets/js/resident.js') ?>"></script>
 
 </body>
+
 </html>

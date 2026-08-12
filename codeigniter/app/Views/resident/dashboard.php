@@ -57,7 +57,7 @@
                     </a>
                 </li>
 
-               <?= view('resident/notification_menu') ?>
+                <?= view('resident/notification_menu') ?>
 
                 <li>
                     <a href="<?= base_url('resident/profile') ?>">
@@ -142,7 +142,7 @@
             <section class="summary-cards">
 
                 <div class="row">
-                                        <!-- Pending -->
+                    <!-- Pending -->
                     <div class="col-lg-3 col-md-6 mb-4">
 
                         <div class="card summary-card pending">
@@ -153,7 +153,7 @@
 
                                 <h5>Pending</h5>
 
-                                <h2>2</h2>
+                                <h2><?= (int) ($pendingReports ?? 0) ?></h2>
 
                                 <p>Reports Waiting</p>
 
@@ -174,7 +174,7 @@
 
                                 <h5>In Progress</h5>
 
-                                <h2>1</h2>
+                                <h2><?= (int) ($progressReports ?? 0) ?></h2>
 
                                 <p>Being Processed</p>
 
@@ -195,7 +195,7 @@
 
                                 <h5>Resolved</h5>
 
-                                <h2>5</h2>
+                                <h2><?= (int) ($resolvedReports ?? 0) ?></h2>
 
                                 <p>Completed Reports</p>
 
@@ -216,17 +216,9 @@
 
                                 <h5>Total Reports</h5>
 
-                                <h2>8</h2>
-
-                                <p>Submitted Reports</p>
+                                <h2><?= (int) ($totalReports ?? 0) ?></h2>
 
                             </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
 
             </section>
 
@@ -280,95 +272,65 @@
 
                                 <tbody>
 
-                                    <tr>
+                                    <?php if (!empty($recentReports)): ?>
 
-                                        <td>Road Damage</td>
+                                        <?php foreach ($recentReports as $report): ?>
 
-                                        <td>Infrastructure</td>
+                                            <?php
+                                            $status = $report['status'] ?? 'Pending';
 
-                                        <td>July 28, 2026</td>
+                                            $badgeClass = match ($status) {
+                                                'Pending'     => 'bg-warning text-dark',
+                                                'In Progress' => 'bg-primary',
+                                                'Resolved'    => 'bg-success',
+                                                'Rejected'    => 'bg-danger',
+                                                default       => 'bg-secondary'
+                                            };
+                                            ?>
 
-                                        <td>
+                                            <tr>
 
-                                            <span class="badge bg-warning text-dark">
+                                                <td>
+                                                    <?= esc($report['title'] ?? 'Untitled Report') ?>
+                                                </td>
 
-                                                Pending
+                                                <td>
+                                                    <?= esc($report['category_name'] ?? 'Uncategorized') ?>
+                                                </td>
 
-                                            </span>
+                                                <td>
+                                                    <?= !empty($report['date_reported'])
+                                                        ? date('F d, Y', strtotime($report['date_reported']))
+                                                        : 'N/A' ?>
+                                                </td>
 
-                                        </td>
+                                                <td>
+                                                    <span class="badge <?= $badgeClass ?>">
+                                                        <?= esc($status) ?>
+                                                    </span>
+                                                </td>
 
-                                        <td>
+                                                <td>
+                                                    <a
+                                                        href="<?= site_url('resident/report-details/' . $report['report_id']) ?>"
+                                                        class="btn btn-outline-success btn-sm">
+                                                        View
+                                                    </a>
+                                                </td>
 
-                                            <button class="btn btn-outline-success btn-sm">
+                                            </tr>
 
-                                                View
+                                        <?php endforeach; ?>
 
-                                            </button>
+                                    <?php else: ?>
 
-                                        </td>
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">
+                                                No reports found.
+                                            </td>
+                                        </tr>
 
-                                    </tr>
-
-                                    <tr>
-
-                                        <td>Garbage Collection</td>
-
-                                        <td>Waste Management</td>
-
-                                        <td>July 25, 2026</td>
-
-                                        <td>
-
-                                            <span class="badge bg-primary">
-
-                                                In Progress
-
-                                            </span>
-
-                                        </td>
-
-                                        <td>
-
-                                            <button class="btn btn-outline-success btn-sm">
-
-                                                View
-
-                                            </button>
-
-                                        </td>
-
-                                    </tr>
-
-                                    <tr>
-
-                                        <td>Broken Streetlight</td>
-
-                                        <td>Utilities</td>
-
-                                        <td>July 20, 2026</td>
-
-                                        <td>
-
-                                            <span class="badge bg-success">
-
-                                                Resolved
-
-                                            </span>
-
-                                        </td>
-
-                                        <td>
-
-                                            <button class="btn btn-outline-success btn-sm">
-
-                                                View
-
-                                            </button>
-
-                                        </td>
-
-                                    </tr>
+                                    <?php endif; ?>
 
                                 </tbody>
 
@@ -381,7 +343,7 @@
                 </div>
 
             </section>
-                        <!-- Quick Tips -->
+            <!-- Quick Tips -->
 
             <section class="mt-4">
 
