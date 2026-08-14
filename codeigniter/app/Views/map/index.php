@@ -50,7 +50,24 @@
         <section class="card p-4 mb-4">
             <div class="row g-3 align-items-end">
                 <div class="col-lg-4"><label class="form-label">Search Location</label><input type="text" class="form-control" id="searchLocation" placeholder="Search location..."></div>
-                <div class="col-lg-4"><label class="form-label">Category</label><select class="form-select" id="categoryFilter"><option value="all">All Categories</option><option>Waste Management</option><option>Infrastructure</option><option>Public Safety</option></select></div>
+                <div class="col-lg-4">
+    <label class="form-label">Category</label>
+
+    <select class="form-select" id="categoryFilter">
+        <option value="all">All Categories</option>
+
+        <option value="1">Waste Management Problems</option>
+        <option value="2">Infrastructure and Public Works Issues</option>
+        <option value="3">Public Safety and Security Issues</option>
+        <option value="4">Environmental and Natural Issues</option>
+        <option value="5">Utilities and Public Services</option>
+        <option value="6">Health and Sanitation Issues</option>
+        <option value="7">Social and Community Conflicts</option>
+        <option value="8">Transportation and Road Safety Issues</option>
+        <option value="9">Public Facility Issues</option>
+        <option value="10">Animal Control Issues</option>
+    </select>
+</div>
                 <div class="col-lg-4"><label class="form-label">Status</label><select class="form-select" id="statusFilter"><option value="all">All Status</option><option>Pending</option><option>In Progress</option><option>Resolved</option><option>Rejected</option></select></div>
             </div>
         </section>
@@ -68,6 +85,7 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
 <script>
     window.reportData = <?= json_encode(
