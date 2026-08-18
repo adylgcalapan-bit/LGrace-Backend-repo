@@ -883,13 +883,132 @@ public function reportDetails($id = null)
         ]);
     }
     // =========================
-    // ADMIN SETTINGS
-    // =========================
-    public function settings()
-    {
-        return view('admin/settings');
+   // ADMIN SETTINGS
+  // =========================
+public function settings()
+{
+    $db = \Config\Database::connect();
+
+    $settings = $db->table('settings')
+        ->orderBy('setting_id', 'ASC')
+        ->get()
+        ->getRowArray();
+
+    return view('admin/settings', [
+        'settings' => $settings
+    ]);
+}
+
+public function saveSettings()
+{
+    $db = \Config\Database::connect();
+
+    $systemName = trim((string) $this->request->getPost('system_name'));
+    $barangayName = trim((string) $this->request->getPost('barangay_name'));
+    $contactEmail = trim((string) $this->request->getPost('contact_email'));
+    $contactNumber = trim((string) $this->request->getPost('contact_number'));
+    $systemDescription = trim((string) $this->request->getPost('system_description'));
+
+    $sessionTimeout = (int) $this->request->getPost('session_timeout');
+    $dateFormat = trim((string) $this->request->getPost('date_format'));
+    $itemsPerPage = (int) $this->request->getPost('items_per_page');
+    $themePreference = trim((string) $this->request->getPost('theme_preference'));
+
+    if ($systemName === '' || $barangayName === '') {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'System Name and Barangay Name are required.');
     }
 
+    if (
+        $contactEmail !== '' &&
+        !filter_var($contactEmail, FILTER_VALIDATE_EMAIL)
+    ) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Please enter a valid contact email.');
+    }
+
+    if ($sessionTimeout < 5 || $sessionTimeout > 240) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Session timeout must be between 5 and 240 minutes.');
+    }
+
+    if ($itemsPerPage < 5 || $itemsPerPage > 100) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Items per page must be between 5 and 100.');
+    }
+
+    $allowedDateFormats = [
+        'MM/DD/YYYY',
+        'DD/MM/YYYY'
+    ];
+
+    if (!in_array($dateFormat, $allowedDateFormats, true)) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Invalid date format selected.');
+    }
+
+    $allowedThemes = [
+        'Light',
+        'Dark'
+    ];
+
+    if (!in_array($themePreference, $allowedThemes, true)) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Invalid theme preference selected.');
+    }
+
+    $data = [
+        'system_name' => $systemName,
+        'barangay_name' => $barangayName,
+        'contact_email' => $contactEmail !== '' ? $contactEmail : null,
+        'contact_number' => $contactNumber !== '' ? $contactNumber : null,
+        'system_description' => $systemDescription !== ''
+            ? $systemDescription
+            : null,
+
+        'email_notifications' =>
+            $this->request->getPost('email_notifications') ? 1 : 0,
+
+        'report_notifications' =>
+            $this->request->getPost('report_notifications') ? 1 : 0,
+
+        'registration_notifications' =>
+            $this->request->getPost('registration_notifications') ? 1 : 0,
+
+        'announcement_notifications' =>
+            $this->request->getPost('announcement_notifications') ? 1 : 0,
+
+        'session_timeout' => $sessionTimeout,
+        'date_format' => $dateFormat,
+        'items_per_page' => $itemsPerPage,
+        'theme_preference' => $themePreference,
+        'updated_at' => date('Y-m-d H:i:s'),
+    ];
+
+    $settings = $db->table('settings')
+        ->orderBy('setting_id', 'ASC')
+        ->get()
+        ->getRowArray();
+
+    if ($settings) {
+        $db->table('settings')
+            ->where('setting_id', $settings['setting_id'])
+            ->update($data);
+    } else {
+        $data['created_at'] = date('Y-m-d H:i:s');
+
+        $db->table('settings')->insert($data);
+    }
+
+    return redirect()->to('/admin/settings')
+        ->with('success', 'Settings saved successfully.');
+}
     // =========================
     // ADMIN ACCOUNT
     // =========================

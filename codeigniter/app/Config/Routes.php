@@ -23,6 +23,7 @@ $routes->get('admin/categories', 'DashboardController::categories', ['filter' =>
 $routes->get('admin/notifications', 'DashboardController::notificationsAdmin', ['filter' => 'admin']);
 $routes->get('admin/notifications/open/(:num)', 'DashboardController::openAdminNotification/$1', ['filter' => 'admin']);
 $routes->get('admin/settings', 'DashboardController::settings', ['filter' => 'admin']);
+$routes->post('admin/settings/save', 'DashboardController::saveSettings', ['filter' => 'admin']);
 $routes->get('admin/account', 'DashboardController::account', ['filter' => 'admin']);
 $routes->get('admin/announcements', 'DashboardController::announcements', ['filter' => 'admin']);
 $routes->post('admin/announcements/create', 'DashboardController::createAnnouncement', ['filter' => 'admin']);
