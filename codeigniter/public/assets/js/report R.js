@@ -8,6 +8,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const descriptionInput = document.getElementById("description");
   const descriptionError = document.getElementById("descriptionError");
+  const photosInput = document.getElementById("photos");
+  const photosError = document.getElementById("photosError");
+  const photoCount = document.getElementById("photoCount");
 
   const latitudeInput = document.getElementById("latitude");
   const longitudeInput = document.getElementById("longitude");
@@ -283,7 +286,81 @@ document.addEventListener("DOMContentLoaded", function () {
 
     return hasLocation;
   }
+// =====================================
+// Photo Validation
+// Maximum: 5 photos, 5 MB each
+// =====================================
 
+function setPhotosState(isValid, message = "") {
+  if (!photosInput) {
+    return;
+  }
+
+  photosInput.classList.toggle("is-invalid", !isValid);
+  photosInput.classList.toggle(
+    "is-valid",
+    isValid && photosInput.files.length > 0,
+  );
+
+  if (photosError) {
+    photosError.textContent = message;
+    photosError.classList.toggle("show", !isValid);
+  }
+}
+
+function validatePhotos() {
+  if (!photosInput) {
+    return true;
+  }
+
+  const files = Array.from(photosInput.files || []);
+
+  if (photoCount) {
+    photoCount.textContent = `${files.length} of 5 photos selected`;
+  }
+
+  // Maximum 5 photos
+  if (files.length > 5) {
+    setPhotosState(
+      false,
+      "You can upload a maximum of 5 photos only.",
+    );
+
+    return false;
+  }
+
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+  ];
+
+  const maxFileSize = 5 * 1024 * 1024;
+
+  for (const file of files) {
+    if (!allowedTypes.includes(file.type)) {
+      setPhotosState(
+        false,
+        "Only JPG, PNG, and WebP images are allowed.",
+      );
+
+      return false;
+    }
+
+    if (file.size > maxFileSize) {
+      setPhotosState(
+        false,
+        "Each photo must not exceed 5 MB.",
+      );
+
+      return false;
+    }
+  }
+
+  setPhotosState(true);
+
+  return true;
+}
   // =====================================
   // Live Validation
   // =====================================
@@ -299,7 +376,9 @@ document.addEventListener("DOMContentLoaded", function () {
   if (descriptionInput) {
     descriptionInput.addEventListener("input", validateDescription);
   }
-
+   if (photosInput) {
+  photosInput.addEventListener("change", validatePhotos);
+}
   // =====================================
   // Submit Report Form
   // =====================================
@@ -313,6 +392,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const descriptionValid = validateDescription();
 
       const locationValid = validateLocation();
+
+      const photosValid = validatePhotos();
 
       if (
         !titleValid ||
@@ -356,6 +437,12 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       setLocationState(false, "Please pin the exact location on the map.");
+
+      if (photoCount) {
+  photoCount.textContent = "0 of 5 photos selected";
+}
+
+setPhotosState(true);
     });
   }
 });

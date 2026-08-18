@@ -243,24 +243,28 @@
 
                         </div>
 
-                        <div class="col-md-6 mb-3">
+                        <label class="form-label">
+    Upload Photos
+</label>
 
-                            <label class="form-label">
-
-                                Upload Photo
-
-                            </label>
-
-                           <input type="file"
+<input type="file"
        class="form-control"
-       id="photo"
-       name="photo"
-       accept="image/jpeg,image/png,image/webp">
+       id="photos"
+       name="photos[]"
+       accept="image/jpeg,image/png,image/webp"
+       multiple>
 
-                            <small class="text-muted">
+<div class="invalid-feedback"
+     id="photosError">
+</div>
 
-                                Upload a clear photo of the reported issue.
+<small class="text-muted d-block mt-1">
+    You may upload up to 5 photos. JPG, PNG, or WebP only. Maximum 5 MB per photo.
+</small>
 
+<small class="text-muted d-block"
+       id="photoCount">
+    0 of 5 photos selected
                             </small>
 
                         </div>

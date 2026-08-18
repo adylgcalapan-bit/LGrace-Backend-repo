@@ -280,36 +280,41 @@ class DashboardController extends BaseController
     // RESIDENT - MY REPORTS
     // =========================
     public function myReports()
-    {
-        $db = \Config\Database::connect();
+{
+    $db = \Config\Database::connect();
 
-        $userId = session()->get('user_id');
+    $userId = (int) session()->get('user_id');
 
-        $reports = $db->table('reports')
-            ->select('
-                reports.*,
-                category.category_name,
-                image.image_path
-            ')
-            ->join(
-                'category',
-                'category.category_id = reports.category_id',
-                'left'
-            )
-            ->join(
-                'image',
-                'image.report_id = reports.report_id',
-                'left'
-            )
-            ->where('reports.user_id', $userId)
-            ->orderBy('reports.report_id', 'DESC')
-            ->get()
-            ->getResultArray();
-
-        return view('resident/myreports', [
-            'reports' => $reports
-        ]);
+    if ($userId <= 0) {
+        return redirect()->to('/login');
     }
+
+    $reports = $db->table('reports')
+        ->select('
+            reports.*,
+            categories.category_name,
+            (
+                SELECT images.image_path
+                FROM images
+                WHERE images.report_id = reports.report_id
+                ORDER BY images.image_id ASC
+                LIMIT 1
+            ) AS image_path
+        ')
+        ->join(
+            'categories',
+            'categories.category_id = reports.category_id',
+            'left'
+        )
+        ->where('reports.user_id', $userId)
+        ->orderBy('reports.report_id', 'DESC')
+        ->get()
+        ->getResultArray();
+
+    return view('resident/myreports', [
+        'reports' => $reports
+    ]);
+}
 
     // =========================
     // RESIDENT NOTIFICATIONS
@@ -657,49 +662,58 @@ class DashboardController extends BaseController
 
 
 
-    // =========================
-    // REPORT DETAILS
-    // =========================
-    public function reportDetails($id = null)
-    {
-        if (!$id) {
-            return redirect()->to('/resident/my-reports');
-        }
-
-        $db = \Config\Database::connect();
-
-        $userId = session()->get('user_id');
-
-        $report = $db->table('reports')
-            ->select('
-            reports.*,
-            category.category_name,
-            image.image_path
-        ')
-            ->join(
-                'category',
-                'category.category_id = reports.category_id',
-                'left'
-            )
-            ->join(
-                'image',
-                'image.report_id = reports.report_id',
-                'left'
-            )
-            ->where('reports.report_id', $id)
-            ->where('reports.user_id', $userId)
-            ->get()
-            ->getRowArray();
-
-        if (!$report) {
-            return redirect()->to('/resident/my-reports')
-                ->with('error', 'Report not found.');
-        }
-
-        return view('resident/report-details', [
-            'report' => $report
-        ]);
+// =========================
+// REPORT DETAILS
+// =========================
+public function reportDetails($id = null)
+{
+    if (!$id) {
+        return redirect()->to('/resident/my-reports');
     }
+
+    $db = \Config\Database::connect();
+
+    $userId = (int) session()->get('user_id');
+    $reportId = (int) $id;
+
+    if ($userId <= 0) {
+        return redirect()->to('/login');
+    }
+
+    // Get resident's report
+    $report = $db->table('reports')
+        ->select('
+            reports.*,
+            categories.category_name
+        ')
+        ->join(
+            'categories',
+            'categories.category_id = reports.category_id',
+            'left'
+        )
+        ->where('reports.report_id', $reportId)
+        ->where('reports.user_id', $userId)
+        ->get()
+        ->getRowArray();
+
+    if (!$report) {
+        return redirect()->to('/resident/my-reports')
+            ->with('error', 'Report not found.');
+    }
+
+    // Get all photos belonging to this report
+    $images = $db->table('images')
+        ->select('image_id, image_path')
+        ->where('report_id', $reportId)
+        ->orderBy('image_id', 'ASC')
+        ->get()
+        ->getResultArray();
+
+    return view('resident/report-details', [
+        'report' => $report,
+        'images' => $images
+    ]);
+}
     // =========================
     // ADMIN - REPORTS
     // =========================
