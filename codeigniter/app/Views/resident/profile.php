@@ -115,6 +115,37 @@
 
         <main class="main-content">
 
+        <div id="profile-flash-messages">
+
+            <?php if (session()->getFlashdata('success')): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <?= esc(session()->getFlashdata('success')) ?>
+
+                    <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                    </button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('error')): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>
+                    <?= esc(session()->getFlashdata('error')) ?>
+
+                    <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                    </button>
+                </div>
+            <?php endif; ?>
+
+        </div>
+
+
             <div class="topbar">
 
                 <div>
@@ -348,6 +379,120 @@
 
                 </div>
 
+            </div>
+
+            <!-- Account Danger Zone -->
+            <div class="card border-danger mt-4">
+                <div class="card-header bg-danger-subtle border-danger">
+                    <h5 class="mb-0 text-danger">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Danger Zone
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div>
+                            <h6 class="fw-bold mb-1">Delete Account</h6>
+                            <p class="text-muted mb-0">
+                                Permanently delete your resident account and all records associated with it.
+                                This action cannot be undone.
+                            </p>
+                        </div>
+
+                        <button type="button"
+                            class="btn btn-outline-danger flex-shrink-0"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteAccountModal">
+                            <i class="bi bi-trash3-fill me-1"></i>
+                            Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Account Confirmation Modal -->
+            <div class="modal fade"
+                id="deleteAccountModal"
+                tabindex="-1"
+                aria-labelledby="deleteAccountModalLabel"
+                aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+
+                        <div class="modal-header border-danger">
+                            <h5 class="modal-title text-danger"
+                                id="deleteAccountModalLabel">
+                                <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                                Permanently Delete Account
+                            </h5>
+
+                            <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close">
+                            </button>
+                        </div>
+
+                        <form action="<?= site_url('resident/account/delete') ?>"
+                            method="POST">
+
+                            <?= csrf_field() ?>
+
+                            <div class="modal-body">
+
+                                <div class="alert alert-danger">
+                                    <strong>This action cannot be undone.</strong>
+                                    Your resident account and related system records
+                                    will be permanently removed.
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        Current Password
+                                    </label>
+
+                                    <input type="password"
+                                        class="form-control"
+                                        name="current_password"
+                                        autocomplete="current-password"
+                                        required>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label fw-semibold">
+                                        Type <strong>DELETE</strong> to confirm
+                                    </label>
+
+                                    <input type="text"
+                                        class="form-control"
+                                        name="delete_confirmation"
+                                        placeholder="DELETE"
+                                        autocomplete="off"
+                                        required>
+                                </div>
+
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+
+                                <button type="submit"
+                                    class="btn btn-danger">
+                                    <i class="bi bi-trash3-fill me-1"></i>
+                                    Permanently Delete
+                                </button>
+                            </div>
+
+                        </form>
+
+                    </div>
+                </div>
             </div>
             <!-- Footer -->
 

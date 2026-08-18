@@ -41,6 +41,7 @@ $routes->get('resident/notifications', 'DashboardController::notifications', ['f
 $routes->get('resident/notifications/open/(:num)', 'DashboardController::openResidentNotification/$1', ['filter' => 'resident']);
 $routes->get('resident/profile', 'DashboardController::profile', ['filter' => 'resident']);
 $routes->post('resident/profile/update', 'DashboardController::updateProfile', ['filter' => 'resident']);
+$routes->post('resident/account/delete', 'DashboardController::deleteResidentAccount', ['filter' => 'resident']);
 $routes->get('resident/report-details', 'DashboardController::reportDetails', ['filter' => 'resident']);
 $routes->get('resident/report-details/(:num)', 'DashboardController::reportDetails/$1', ['filter' => 'resident']);
 

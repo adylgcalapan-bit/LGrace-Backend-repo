@@ -269,7 +269,7 @@
 
                     Already have an account?
 
-                    <a href="./login.html">
+                    <a href="<?= site_url('login') ?>">
 
                         Login
 

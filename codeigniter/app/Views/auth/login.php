@@ -174,7 +174,7 @@
 
                     Don't have an account?
 
-                    <a href="./register.html">
+                    <a href="<?= site_url('register') ?>">
 
                         Create Account
 

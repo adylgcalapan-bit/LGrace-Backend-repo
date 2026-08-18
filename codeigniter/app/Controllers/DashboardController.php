@@ -738,6 +738,73 @@ class DashboardController extends BaseController
         ]);
     }
 
+
+    // =========================
+    // RESIDENT DELETE ACCOUNT
+    // =========================
+    public function deleteResidentAccount()
+    {
+        $db = \Config\Database::connect();
+
+        $userId = (int) session()->get('user_id');
+
+        if ($userId <= 0) {
+            session()->destroy();
+
+            return redirect()->to('/login')
+                ->with('error', 'Your session has expired. Please log in again.');
+        }
+
+        $resident = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->get()
+            ->getRowArray();
+
+        if (!$resident) {
+            session()->destroy();
+
+            return redirect()->to('/login')
+                ->with('error', 'Resident account not found.');
+        }
+
+        $currentPassword = (string) $this->request->getPost('current_password');
+        $confirmation = trim((string) $this->request->getPost('delete_confirmation'));
+
+        if ($currentPassword === '') {
+            return redirect()->to('/resident/profile')
+                ->with('error', 'Please enter your current password before deleting your account.');
+        }
+
+        if (!password_verify($currentPassword, $resident['password'])) {
+            return redirect()->to('/resident/profile')
+                ->with('error', 'The password you entered is incorrect.');
+        }
+
+        if ($confirmation !== 'DELETE') {
+            return redirect()->to('/resident/profile')
+                ->with('error', 'Please type DELETE exactly to confirm account deletion.');
+        }
+
+        $db->transStart();
+
+        $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->delete();
+
+        $db->transComplete();
+
+        if (!$db->transStatus()) {
+            return redirect()->to('/resident/profile')
+                ->with('error', 'We could not delete your account. Please try again.');
+        }
+
+        session()->destroy();
+
+        return redirect()->to('/login')
+            ->with('success', 'Your account has been permanently deleted.');
+    }
     // =========================
     // ADMIN - RESIDENTS
     // =========================
