@@ -31,13 +31,13 @@ class DashboardController extends BaseController
         r.report_id,
         r.address,
         r.status,
-        r.date_reported,
+        r.report_date,
         u.full_name,
         c.category_name
     ')
             ->join('users u', 'u.user_id = r.user_id', 'left')
-            ->join('category c', 'c.category_id = r.category_id', 'left')
-            ->orderBy('r.date_reported', 'DESC')
+            ->join('categories c', 'c.category_id = r.category_id', 'left')
+            ->orderBy('r.report_date', 'DESC')
             ->limit(5)
             ->get()
             ->getResultArray();
@@ -53,7 +53,7 @@ class DashboardController extends BaseController
         c.category_name
     ')
             ->join(
-                'category c',
+                'categories c',
                 'c.category_id = r.category_id',
                 'left'
             )
@@ -117,16 +117,16 @@ class DashboardController extends BaseController
             r.report_id,
             r.title,
             r.status,
-            r.date_reported,
+            r.report_date,
             c.category_name
         ')
             ->join(
-                'category c',
+                'categories c',
                 'c.category_id = r.category_id',
                 'left'
             )
             ->where('r.user_id', $userId)
-            ->orderBy('r.date_reported', 'DESC')
+            ->orderBy('r.report_date', 'DESC')
             ->limit(5)
             ->get()
             ->getResultArray();
@@ -215,16 +215,16 @@ class DashboardController extends BaseController
             r.report_id,
             r.title,
             r.status,
-            r.date_reported,
+            r.report_date,
             c.category_name
         ')
             ->join(
-                'category c',
+                'categories c',
                 'c.category_id = r.category_id',
                 'left'
             )
             ->where('r.user_id', $userId)
-            ->orderBy('r.date_reported', 'DESC')
+            ->orderBy('r.report_date', 'DESC')
             ->limit(5)
             ->get()
             ->getResultArray();
