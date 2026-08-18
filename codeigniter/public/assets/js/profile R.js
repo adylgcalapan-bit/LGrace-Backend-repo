@@ -1,59 +1,47 @@
-/*
-=========================================
-Profile
-Community Problems Visibility System
-=========================================
-*/
+document.addEventListener("DOMContentLoaded", () => {
+    const profileForm = document.getElementById("profileForm");
+    const profileImage = document.getElementById("profileImage");
 
-document.addEventListener("DOMContentLoaded", function () {
-  console.log("Profile Page Loaded");
+    if (!profileForm) {
+        return;
+    }
 
-  // =====================================
-  // Reset Form
-  // =====================================
+    profileForm.addEventListener("reset", (event) => {
+        const confirmed = window.confirm(
+            "Discard all unsaved profile changes?"
+        );
 
-  profileForm.addEventListener("reset", function () {
-    setTimeout(function () {
-      alert("Changes have been cancelled.");
-    }, 100);
-  });
+        if (!confirmed) {
+            event.preventDefault();
+        }
+    });
+
+    if (profileImage) {
+        profileImage.addEventListener("change", () => {
+            const file = profileImage.files?.[0];
+
+            if (!file) {
+                return;
+            }
+
+            const allowedTypes = [
+                "image/jpeg",
+                "image/png",
+                "image/webp",
+            ];
+
+            const maxSize = 5 * 1024 * 1024;
+
+            if (!allowedTypes.includes(file.type)) {
+                alert("Profile picture must be JPG, PNG, or WebP.");
+                profileImage.value = "";
+                return;
+            }
+
+            if (file.size > maxSize) {
+                alert("Profile picture must not exceed 5 MB.");
+                profileImage.value = "";
+            }
+        });
+    }
 });
-
-/*
-=========================================
-Future Backend Functions
-=========================================
-
-These functions will be connected
-to CodeIgniter later.
-
-Examples:
-
-loadProfile();
-
-updateProfile();
-
-changePassword();
-
-uploadProfilePicture();
-
-=========================================
-*/
-
-/*
-=========================================
-Demo Resident Data
-=========================================
-*/
-
-const resident = {
-  fullName: "Juan Dela Cruz",
-
-  email: "juan@email.com",
-
-  contactNumber: "09123456789",
-
-  barangay: "Barangay Saguing",
-};
-
-console.table(resident);

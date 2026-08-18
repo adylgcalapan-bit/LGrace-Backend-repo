@@ -431,26 +431,36 @@ class DashboardController extends BaseController
     // RESIDENT PROFILE
     // =========================
     public function profile()
-    {
-        $db = \Config\Database::connect();
+{
+    $db = \Config\Database::connect();
 
-        $userId = (int) session()->get('user_id');
+    $userId = (int) session()->get('user_id');
 
-        $resident = $db->table('users')
-            ->where('user_id', $userId)
-            ->where('role', 'resident')
-            ->get()
-            ->getRowArray();
-
-        if (!$resident) {
-            return redirect()->to('/resident/dashboard')
-                ->with('error', 'Resident account not found.');
-        }
-
-        return view('resident/profile', [
-            'resident' => $resident
-        ]);
+    if ($userId <= 0) {
+        return redirect()->to('/login');
     }
+
+    $resident = $db->table('users')
+        ->where('user_id', $userId)
+        ->where('role', 'resident')
+        ->get()
+        ->getRowArray();
+
+    if (!$resident) {
+        return redirect()->to('/resident/dashboard')
+            ->with('error', 'Resident account not found.');
+    }
+
+    $settings = $db->table('settings')
+        ->orderBy('setting_id', 'ASC')
+        ->get()
+        ->getRowArray();
+
+    return view('resident/profile', [
+        'resident' => $resident,
+        'settings' => $settings
+    ]);
+}
 
     public function updateProfile()
     {
