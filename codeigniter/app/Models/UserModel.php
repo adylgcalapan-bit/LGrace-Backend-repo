@@ -18,7 +18,9 @@ class UserModel extends Model
         'address',
         'profile_image',
         'password',
-        'role'
+        'purok_id',
+        'role',
+        'is_active'
     ];
 
     protected $useTimestamps = true;

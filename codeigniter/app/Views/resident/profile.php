@@ -23,7 +23,7 @@
     <!-- Custom CSS -->
 
     <link rel="stylesheet"
-        href="<?= base_url('assets/css/porile R.css') ?>">
+        href="<?= base_url('assets/css/profile R.css') ?>">
 
 </head>
 
@@ -97,7 +97,7 @@
 
                 <li class="logout">
 
-                    <a href="<?= base_url('login') ?>">
+                    <a href="<?= base_url('logout') ?>">
 
                         <i class="bi bi-box-arrow-right"></i>
 
@@ -254,8 +254,6 @@
                                         class="form-control"
                                         value="Barangay Saguing"
                                         readonly>
-
-
                                     <div class="col-md-6 mb-3">
 
                                         <label class="form-label">
@@ -299,7 +297,6 @@
                                         <input type="password"
                                             class="form-control"
                                             id="confirmPassword"
-                                            name="confirm_password"
                                             placeholder="Confirm new password">
 
                                     </div>
@@ -315,8 +312,7 @@
                                         <input type="file"
                                             class="form-control"
                                             id="profileImage"
-                                            name="profile_image"
-                                            accept="image/jpeg,image/png,image/webp">
+                                            accept="image/*">
 
                                     </div>
 

@@ -102,7 +102,7 @@
 
                 <li class="logout">
 
-                    <a href="<?= base_url('login') ?>">
+                    <a href="<?= base_url('logout') ?>">
 
                         <i class="bi bi-box-arrow-right"></i>
 

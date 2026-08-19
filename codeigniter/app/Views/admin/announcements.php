@@ -20,13 +20,13 @@
             <ul class="menu">
                 <li><a href="<?= base_url('admin/dashboard') ?>"><i class="bi bi-speedometer2"></i>Dashboard</a></li>
                 <li><a href="<?= base_url('admin/reports') ?>"><i class="bi bi-file-earmark-text"></i>Reports</a></li>
-                <li><a href="#"><i class="bi bi-map"></i>Map View</a></li>
+                <li><a href="<?= base_url('admin/map') ?>"><i class="bi bi-map"></i>Map View</a></li>
                 <li><a href="<?= base_url('admin/residents') ?>"><i class="bi bi-people"></i>Residents</a></li>
                 <li><a href="<?= base_url('admin/categories') ?>"><i class="bi bi-tags"></i>Categories</a></li>
                 <?= view('admin/notification_menu') ?>
                 <li><a href="<?= base_url('admin/settings') ?>"><i class="bi bi-gear"></i>Settings</a></li>
                 <li><a href="<?= base_url('admin/account') ?>"><i class="bi bi-person-circle"></i>Account / Profile</a></li>
-                <li class="logout"><a href="<?= base_url('login') ?>"><i class="bi bi-box-arrow-right"></i>Logout</a></li>
+                <li class="logout"><a href="<?= base_url('logout') ?>"><i class="bi bi-box-arrow-right"></i>Logout</a></li>
             </ul>
         </aside>
 
@@ -59,7 +59,7 @@
 
             <section class="card p-4 mb-4">
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="summary-pill">
                             <small class="text-muted">Total</small>
                             <h4 id="totalAnnouncements">
@@ -67,7 +67,7 @@
                             </h4>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="summary-pill">
                             <small class="text-muted">Published</small>
                             <h4 id="publishedAnnouncements">
@@ -75,27 +75,33 @@
                             </h4>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="summary-pill">
-                            <small class="text-muted">Draft</small>
-                            <h4 id="draftAnnouncements">
-                                <?= (int) ($draftAnnouncements ?? 0) ?>
-                            </h4>
-                        </div>
-                    </div>
+
                 </div>
             </section>
 
             <section class="card p-4 mb-4">
                 <div class="row g-3 align-items-end">
-                    <div class="col-lg-6"><label class="form-label">Search Announcements</label><input type="text" class="form-control" id="searchAnnouncement" placeholder="Search announcement..."></div>
-                    <div class="col-lg-3"><label class="form-label">Filter</label><select class="form-select" id="filterAnnouncement">
+                    <div class="col-lg-6">
+                        <label class="form-label">Search Announcements</label>
+                        <input type="text" class="form-control" id="searchAnnouncement" placeholder="Search announcement...">
+                    </div>
+                    <div class="col-lg-3">
+                        <label class="form-label">Filter</label>
+
+                        <select class="form-select" id="filterAnnouncement">
                             <option value="all">All</option>
                             <option value="published">Published</option>
-                            <option value="draft">Draft</option>
-                            <option value="archived">Archived</option>
-                        </select></div>
-                    <div class="col-lg-3"><button class="btn btn-outline-success w-100" id="filterBtn" type="button">Filter</button></div>
+                        </select>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <button class="btn btn-outline-success w-100"
+                            id="filterBtn"
+                            type="button">
+                            Filter
+                        </button>
+                    </div>
+
                 </div>
             </section>
 
@@ -108,11 +114,9 @@
                         <thead class="table-success">
                             <tr>
                                 <th>Title</th>
-                                <th>Description</th>
                                 <th>Created</th>
                                 <th>Published</th>
                                 <th>Status</th>
-                                <th>Author</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -145,9 +149,6 @@
                                             <?= esc($announcement['title']) ?>
                                         </td>
 
-                                        <td>
-                                            <?= esc($announcement['content']) ?>
-                                        </td>
 
                                         <td>
                                             <?= !empty($announcement['created_at'])
@@ -167,9 +168,7 @@
                                             </span>
                                         </td>
 
-                                        <td>
-                                            <?= esc($announcement['author_name'] ?? 'Admin') ?>
-                                        </td>
+
 
                                         <td>
                                             <button
@@ -199,7 +198,7 @@
                             <?php else: ?>
 
                                 <tr class="no-announcements-row">
-                                    <td colspan="7"
+                                    <td colspan="5"
                                         class="text-center text-muted py-4">
                                         No announcements yet.
                                     </td>
@@ -239,17 +238,22 @@
                                 <option value="Maintenance">Maintenance</option>
                                 <option value="Event">Event</option>
                             </select>
+
+
                         </div>
 
-                        
-                        <div class="mb-3"><label class="form-label">Publish Date</label><input type="date" class="form-control" name="publishDate"></div>
-                        <div class="mb-3"><label class="form-label">Status</label><select class="form-select" name="status">
-                                <option value="Published">Published</option>
-                                <option value="Draft">Draft</option>
-                                <option value="Archived">Archived</option>
-                            </select></div>
+                        <div class="mb-3">
+                            <label class="form-label">Publish Date</label>
+                            <input type="date"
+                                class="form-control"
+                                name="publishDate"
+                                required>
+                        </div>
+                    </div> <!-- closes modal-body -->
+
+                    <div class="modal-footer"><button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-success" type="submit">Publish</button>
                     </div>
-                    <div class="modal-footer"><button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-success" type="submit">Save</button></div>
                 </form>
             </div>
         </div>
@@ -261,7 +265,8 @@
                 <div class="modal-header">
                     <h5 class="modal-title">Edit Announcement</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="editAnnouncementForm">
+                <form id="editAnnouncementForm" method="POST">
+                    <?= csrf_field() ?>
                     <div class="modal-body">
                         <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" name="title" required></div>
                         <div class="mb-3"><label class="form-label">Content</label><textarea class="form-control" rows="4" name="content" required></textarea></div>
@@ -278,14 +283,17 @@
                         </div>
 
 
-                        <div class="mb-3"><label class="form-label">Publish Date</label><input type="date" class="form-control" name="publishDate"></div>
-                        <div class="mb-3"><label class="form-label">Status</label><select class="form-select" name="status">
-                                <option value="Published">Published</option>
-                                <option value="Draft">Draft</option>
-                                <option value="Archived">Archived</option>
-                            </select></div>
+                        <div class="mb-3"><label class="form-label">Publish Date</label>
+                            <input type="date" class="form-control" name="publishDate">
+                        </div>
+
+
+                    </div> <!-- closes modal-body -->
+
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-success" type="submit">Save Changes</button>
                     </div>
-                    <div class="modal-footer"><button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-success" type="submit">Save Changes</button></div>
                 </form>
             </div>
         </div>
@@ -313,7 +321,23 @@
                     <h5 class="mt-3">Are you sure?</h5>
                     <p>This announcement will be removed.</p>
                 </div>
-                <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger" id="confirmDeleteBtn" type="button">Delete</button></div>
+                <form id="deleteAnnouncementForm" method="POST">
+                    <?= csrf_field() ?>
+
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary"
+                            type="button"
+                            data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+
+                        <button class="btn btn-danger"
+                            id="confirmDeleteBtn"
+                            type="submit">
+                            Delete
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -7,22 +7,54 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("Residents Management Loaded");
 
   // ==========================
-  // SEARCH RESIDENTS
+  // SEARCH + PUROK FILTER
   // ==========================
 
-  const searchInput = document.querySelector("input[type='text']");
-  const tableRows = document.querySelectorAll("tbody tr");
+  const searchInput = document.getElementById("residentSearch");
+  const statusFilter = document.getElementById("statusFilter");
+  const purokFilter = document.getElementById("purokFilter");
+  const tableRows = document.querySelectorAll(".resident-row");
+
+  function applyResidentFilters() {
+    const searchValue = searchInput
+      ? searchInput.value.toLowerCase().trim()
+      : "";
+
+    const selectedStatus = statusFilter
+      ? statusFilter.value.toLowerCase()
+      : "all status";
+
+    const selectedPurok = purokFilter ? purokFilter.value : "";
+
+    tableRows.forEach((row) => {
+      const rowText = row.textContent.toLowerCase();
+
+      const rowStatus = (row.getAttribute("data-status") || "").toLowerCase();
+
+      const rowPurokId = row.getAttribute("data-purok-id") || "unassigned";
+
+      const matchesSearch = searchValue === "" || rowText.includes(searchValue);
+
+      const matchesStatus =
+        selectedStatus === "all status" || rowStatus === selectedStatus;
+
+      const matchesPurok = selectedPurok === "" || rowPurokId === selectedPurok;
+
+      row.style.display =
+        matchesSearch && matchesStatus && matchesPurok ? "" : "none";
+    });
+  }
 
   if (searchInput) {
-    searchInput.addEventListener("keyup", function () {
-      const value = this.value.toLowerCase();
+    searchInput.addEventListener("input", applyResidentFilters);
+  }
 
-      tableRows.forEach((row) => {
-        const text = row.textContent.toLowerCase();
+  if (statusFilter) {
+    statusFilter.addEventListener("change", applyResidentFilters);
+  }
 
-        row.style.display = text.includes(value) ? "" : "none";
-      });
-    });
+  if (purokFilter) {
+    purokFilter.addEventListener("change", applyResidentFilters);
   }
 
   // ==========================
@@ -194,6 +226,49 @@ document.addEventListener("DOMContentLoaded", () => {
       const resident = result.resident || {};
       const stats = result.statistics || {};
 
+      // ==========================
+      // ACCOUNT STATUS
+      // ==========================
+
+      const statusBadge = document.getElementById("residentModalStatus");
+      const statusForm = document.getElementById("residentStatusForm");
+      const statusButton = document.getElementById("residentStatusButton");
+      const statusButtonIcon = document.getElementById(
+        "residentStatusButtonIcon",
+      );
+      const statusButtonText = document.getElementById(
+        "residentStatusButtonText",
+      );
+
+      const isActive = Number(resident.is_active) === 1;
+
+      // Status badge
+      if (isActive) {
+        statusBadge.textContent = "Active";
+        statusBadge.className = "badge bg-success";
+      } else {
+        statusBadge.textContent = "Inactive";
+        statusBadge.className = "badge bg-secondary";
+      }
+
+      // Connect form to real resident
+      statusForm.action = `/admin/residents/${resident.user_id}/status`;
+
+      statusButton.disabled = false;
+
+      // Button appearance
+      if (isActive) {
+        statusButton.className = "btn btn-danger";
+        statusButtonIcon.className = "bi bi-person-dash-fill me-1";
+
+        statusButtonText.textContent = "Deactivate Account";
+      } else {
+        statusButton.className = "btn btn-success";
+        statusButtonIcon.className = "bi bi-person-check-fill me-1";
+
+        statusButtonText.textContent = "Activate Account";
+      }
+
       document.getElementById("residentModalImage").src =
         resident.image_url || "";
 
@@ -309,18 +384,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ==========================
-  // ADD RESIDENT
-  // ==========================
-
-  const addResidentBtn = document.querySelector(".top-actions .btn-success");
-
-  if (addResidentBtn) {
-    addResidentBtn.addEventListener("click", () => {
-      alert("Add Resident module will be added in the backend.");
-    });
-  }
-
-  // ==========================
   // PAGINATION
   // ==========================
 
@@ -365,4 +428,89 @@ document.addEventListener("DOMContentLoaded", () => {
   setInterval(() => {
     console.log("Refreshing resident records...");
   }, 30000);
+
+  // ==========================
+  // ADD RESIDENT PASSWORD UX
+  // ==========================
+
+  document.querySelectorAll(".toggle-resident-password").forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetId = button.dataset.target;
+      const input = document.getElementById(targetId);
+      const icon = button.querySelector("i");
+
+      if (!input) return;
+
+      const isHidden = input.type === "password";
+
+      input.type = isHidden ? "text" : "password";
+
+      if (icon) {
+        icon.className = isHidden ? "bi bi-eye-slash" : "bi bi-eye";
+      }
+
+      button.title = isHidden ? "Hide Password" : "Show Password";
+    });
+  });
+
+  const addResidentForm = document.getElementById("addResidentForm");
+
+  const residentPassword = document.getElementById("residentPassword");
+
+  const residentConfirmPassword = document.getElementById(
+    "residentConfirmPassword",
+  );
+
+  if (addResidentForm && residentPassword && residentConfirmPassword) {
+    addResidentForm.addEventListener("submit", (event) => {
+      residentConfirmPassword.setCustomValidity("");
+
+      if (residentPassword.value !== residentConfirmPassword.value) {
+        event.preventDefault();
+
+        residentConfirmPassword.setCustomValidity("Passwords do not match.");
+
+        residentConfirmPassword.reportValidity();
+      }
+    });
+
+    residentConfirmPassword.addEventListener("input", () => {
+      residentConfirmPassword.setCustomValidity("");
+
+      if (
+        residentConfirmPassword.value !== "" &&
+        residentPassword.value !== residentConfirmPassword.value
+      ) {
+        residentConfirmPassword.setCustomValidity("Passwords do not match.");
+      }
+    });
+
+    residentPassword.addEventListener("input", () => {
+      residentConfirmPassword.setCustomValidity("");
+    });
+  }
+
+  // ==========================
+  // ACTIVATE / DEACTIVATE
+  // ==========================
+
+  const residentStatusForm = document.getElementById("residentStatusForm");
+
+  if (residentStatusForm) {
+    residentStatusForm.addEventListener("submit", function (event) {
+      const buttonText = document
+        .getElementById("residentStatusButtonText")
+        ?.textContent.trim();
+
+      const isDeactivate = buttonText === "Deactivate Account";
+
+      const message = isDeactivate
+        ? "Deactivate this resident account? The resident will no longer be able to log in until the account is activated again."
+        : "Activate this resident account? The resident will be able to log in and use the system again.";
+
+      if (!confirm(message)) {
+        event.preventDefault();
+      }
+    });
+  }
 });

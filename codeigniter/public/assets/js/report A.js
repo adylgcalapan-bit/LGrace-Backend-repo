@@ -5,29 +5,42 @@
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Reports Page Loaded");
 
-  const searchInput = document.querySelector("input[type='text']");
   const tableRows = document.querySelectorAll("tbody tr");
 
-  if (searchInput) {
-    searchInput.addEventListener("keyup", function () {
-      const value = this.value.toLowerCase();
+  const filtersForm = document.getElementById("reportFiltersForm");
+  const searchInput = document.getElementById("reportSearch");
+  const categoryFilter = document.getElementById("reportCategoryFilter");
+  const statusFilter = document.getElementById("reportStatusFilter");
+  const fromDate = document.getElementById("reportFromDate");
+  const toDate = document.getElementById("reportToDate");
+  const sortFilter = document.getElementById("reportSort");
 
-      tableRows.forEach((row) => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(value) ? "" : "none";
-      });
+  let searchTimer;
+
+  if (searchInput && filtersForm) {
+    searchInput.addEventListener("input", function () {
+      clearTimeout(searchTimer);
+
+      searchTimer = setTimeout(() => {
+        filtersForm.requestSubmit();
+      }, 500);
     });
   }
 
-  const filterButton = document.querySelector(".filter-btn");
-  if (filterButton) {
-    filterButton.addEventListener("click", function () {
-      alert("Filter feature will be connected to the database later.");
-    });
-  }
+  [categoryFilter, statusFilter, fromDate, toDate, sortFilter].forEach(
+    (filter) => {
+      if (filter && filtersForm) {
+        filter.addEventListener("change", () => {
+          filtersForm.requestSubmit();
+        });
+      }
+    },
+  );
 
   const viewButtons = document.querySelectorAll(".view-btn");
   const reportModal = document.getElementById("reportModal");
+  let reportMapInstance = null;
+  let reportMapMarker = null;
 
   viewButtons.forEach((button) => {
     button.addEventListener("click", function () {
@@ -39,10 +52,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const reportId = row.getAttribute("data-id") || "";
       const resident = row.getAttribute("data-resident") || "";
+      const residentId = row.getAttribute("data-resident-id") || "";
       const title = row.getAttribute("data-title") || "";
       const category = row.getAttribute("data-category") || "";
       const location = row.getAttribute("data-location") || "";
       const address = row.getAttribute("data-address") || "";
+      const latitude = parseFloat(row.getAttribute("data-latitude"));
+
+      const longitude = parseFloat(row.getAttribute("data-longitude"));
       const date = row.getAttribute("data-date") || "";
       const status = row.getAttribute("data-status") || "";
       const description = row.getAttribute("data-description") || "";
@@ -53,6 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       reportModal.querySelector("#reportId").textContent = reportId;
       reportModal.querySelector("#reportResident").textContent = resident;
+      reportModal.querySelector("#reportResidentId").textContent = residentId;
       reportModal.querySelector("#reportTitle").textContent = title;
       reportModal.querySelector("#reportCategory").textContent = category;
       reportModal.querySelector("#reportStatus").textContent = status;
@@ -78,6 +96,73 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const modal = new bootstrap.Modal(reportModal);
       modal.show();
+
+      reportModal.addEventListener(
+        "shown.bs.modal",
+        function () {
+          const mapElement = document.getElementById("reportMap");
+
+          const mapMessage = document.getElementById("reportMapMessage");
+
+          const hasValidCoordinates =
+            Number.isFinite(latitude) &&
+            Number.isFinite(longitude) &&
+            !(latitude === 0 && longitude === 0);
+
+          if (!mapElement) {
+            return;
+          }
+
+          // No valid coordinates
+          if (!hasValidCoordinates) {
+            mapElement.style.display = "none";
+
+            if (mapMessage) {
+              mapMessage.classList.remove("d-none");
+            }
+
+            return;
+          }
+
+          mapElement.style.display = "block";
+
+          if (mapMessage) {
+            mapMessage.classList.add("d-none");
+          }
+
+          // Create map once
+          if (!reportMapInstance) {
+            reportMapInstance = L.map("reportMap");
+
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+              maxZoom: 19,
+              attribution: "&copy; OpenStreetMap contributors",
+            }).addTo(reportMapInstance);
+          }
+
+          // Move map to selected report
+          reportMapInstance.setView([latitude, longitude], 17);
+
+          // Remove previous report marker
+          if (reportMapMarker) {
+            reportMapInstance.removeLayer(reportMapMarker);
+          }
+
+          // Add marker for current report
+          reportMapMarker = L.marker([latitude, longitude])
+            .addTo(reportMapInstance)
+            .bindPopup(
+              `<strong>${title || "Reported Location"}</strong><br>${address || "No address available"}`,
+            )
+            .openPopup();
+
+          // Important because map is inside Bootstrap modal
+          setTimeout(() => {
+            reportMapInstance.invalidateSize();
+          }, 150);
+        },
+        { once: true },
+      );
     });
   });
 
@@ -117,97 +202,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  if (tableBody) {
-    tableBody.addEventListener("click", function (event) {
-      const button = event.target.closest("button");
-      if (!button) return;
-
-      const row = button.closest("tr");
-      const statusBadge = row.querySelector(".status-badge");
-      const actionCell = row.querySelector(".action-cell");
-
-      if (button.classList.contains("accept-btn")) {
-        if (statusBadge) {
-          statusBadge.className = "badge bg-primary status-badge";
-          statusBadge.textContent = "In Progress";
-        }
-        row.setAttribute("data-state", "in-progress");
-        const prioritySelect = row.querySelector(".priority-select");
-        if (prioritySelect) {
-          prioritySelect.disabled = false;
-        }
-        if (actionCell) {
-          actionCell.innerHTML =
-            '<div class="action-buttons"><button class="btn btn-sm btn-success resolve-btn">Resolve</button></div>';
-        }
-      }
-
-      if (button.classList.contains("decline-btn")) {
-        if (statusBadge) {
-          statusBadge.className = "badge bg-danger status-badge";
-          statusBadge.textContent = "Rejected";
-        }
-        row.setAttribute("data-state", "rejected");
-        const prioritySelect = row.querySelector(".priority-select");
-        if (prioritySelect) {
-          prioritySelect.disabled = true;
-        }
-        if (actionCell) {
-          actionCell.innerHTML =
-            '<span class="text-muted small">Declined</span>';
-        }
-      }
-
-      if (button.classList.contains("resolve-btn")) {
-        if (statusBadge) {
-          statusBadge.className = "badge bg-success status-badge";
-          statusBadge.textContent = "Resolved";
-        }
-        row.setAttribute("data-state", "resolved");
-        const prioritySelect = row.querySelector(".priority-select");
-        if (prioritySelect) {
-          prioritySelect.disabled = false;
-        }
-        if (actionCell) {
-          actionCell.innerHTML =
-            '<span class="text-success small">Completed</span>';
-        }
-      }
-    });
-  }
-
   tableRows.forEach((row) => {
     row.addEventListener("mouseenter", function () {
       this.style.cursor = "pointer";
     });
   });
-
-  const exportButton = document.querySelector(".export-btn");
-  if (exportButton) {
-    exportButton.addEventListener("click", function () {
-      alert("Export feature will be available soon.");
-    });
-  }
-
-  const pages = document.querySelectorAll(".pagination .page-link");
-  pages.forEach((page) => {
-    page.addEventListener("click", function (e) {
-      e.preventDefault();
-
-      pages.forEach((item) => {
-        item.parentElement.classList.remove("active");
-      });
-
-      if (!this.parentElement.classList.contains("disabled")) {
-        this.parentElement.classList.add("active");
-      }
-    });
-  });
-
-  setInterval(() => {
-    console.log("Checking for new reports...");
-  }, 30000);
 });
+
 // =====================================
 // Auto-open report from notification
 // =====================================

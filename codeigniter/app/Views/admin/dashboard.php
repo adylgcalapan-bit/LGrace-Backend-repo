@@ -70,6 +70,7 @@
 
                 <?= view('admin/notification_menu') ?>
 
+
                 <li>
                     <a href="<?= base_url('admin/settings') ?>">
                         <i class="bi bi-gear"></i>
@@ -85,7 +86,7 @@
                 </li>
 
                 <li class="logout">
-                    <a href="#">
+                    <a href="<?= base_url('logout') ?>">
                         <i class="bi bi-box-arrow-right"></i>
                         Logout
                     </a>
@@ -251,7 +252,7 @@
                                         </td>
 
                                         <td>
-                                            <?= esc($report['full_name'] ?? 'Unknown Resident') ?>
+                                            <?= esc($report['display_resident_name'] ?? 'Unknown Resident') ?>
                                         </td>
 
                                         <td>
@@ -369,7 +370,7 @@
                                 ✔ Report
                                 <strong>#<?= esc($report['report_id']) ?></strong>
                                 by
-                                <strong><?= esc($report['full_name'] ?? 'Unknown Resident') ?></strong>
+                                <strong><?= esc($report['display_resident_name'] ?? 'Unknown Resident') ?></strong>
                                 is currently
                                 <strong><?= esc($report['status'] ?? 'Pending') ?></strong>.
                             </li>

@@ -29,6 +29,7 @@ class DashboardController extends BaseController
         $recentReports = $db->table('reports r')
             ->select('
         r.report_id,
+        r.is_anonymous,
         r.address,
         r.status,
         r.date_reported,
@@ -41,6 +42,38 @@ class DashboardController extends BaseController
             ->limit(5)
             ->get()
             ->getResultArray();
+        foreach ($recentReports as &$report) {
+
+            $realName = trim(
+                (string) ($report['full_name'] ?? 'Unknown Resident')
+            );
+
+            $report['display_resident_name'] = $realName;
+
+            if (
+                (int) ($report['is_anonymous'] ?? 0) === 1 &&
+                $realName !== 'Unknown Resident'
+            ) {
+                $nameParts = preg_split('/\s+/', $realName);
+
+                $maskedParts = array_map(function ($part) {
+
+                    if ($part === '') {
+                        return '';
+                    }
+
+                    return mb_strtoupper(
+                        mb_substr($part, 0, 1)
+                    ) . '***';
+                }, $nameParts);
+
+                $report['display_resident_name'] =
+                    implode(' ', $maskedParts);
+            }
+        }
+
+        unset($report);
+
 
         $mapReports = $db->table('reports r')
             ->select('
@@ -87,58 +120,10 @@ class DashboardController extends BaseController
     // =========================
     // RESIDENT DASHBOARD
     // =========================
-    public function resident()
-    {
-        $db = \Config\Database::connect();
 
-        $userId = (int) session()->get('user_id');
 
-        $totalReports = $db->table('reports')
-            ->where('user_id', $userId)
-            ->countAllResults();
 
-        $pendingReports = $db->table('reports')
-            ->where('user_id', $userId)
-            ->where('status', 'Pending')
-            ->countAllResults();
 
-        $progressReports = $db->table('reports')
-            ->where('user_id', $userId)
-            ->where('status', 'In Progress')
-            ->countAllResults();
-
-        $resolvedReports = $db->table('reports')
-            ->where('user_id', $userId)
-            ->where('status', 'Resolved')
-            ->countAllResults();
-
-        $recentReports = $db->table('reports r')
-            ->select('
-            r.report_id,
-            r.title,
-            r.status,
-            r.date_reported,
-            c.category_name
-        ')
-            ->join(
-                'category c',
-                'c.category_id = r.category_id',
-                'left'
-            )
-            ->where('r.user_id', $userId)
-            ->orderBy('r.date_reported', 'DESC')
-            ->limit(5)
-            ->get()
-            ->getResultArray();
-
-        return view('resident/dashboard', [
-            'totalReports' => $totalReports,
-            'pendingReports' => $pendingReports,
-            'progressReports' => $progressReports,
-            'resolvedReports' => $resolvedReports,
-            'recentReports' => $recentReports
-        ]);
-    }
     public function residentDetails($userId = null)
     {
         $db = \Config\Database::connect();
@@ -163,11 +148,12 @@ class DashboardController extends BaseController
             user_id,
             full_name,
             email,
-            mobile_number,
-            username,
-            address,
-            profile_image,
-            created_at
+          mobile_number,
+username,
+address,
+profile_image,
+is_active,
+created_at
         ')
             ->where('user_id', $userId)
             ->where('role', 'resident')
@@ -254,6 +240,7 @@ class DashboardController extends BaseController
                 'mobile_number' => $resident['mobile_number'],
                 'address' => $resident['address'],
                 'image_url' => $resident['image_url'],
+                'is_active' => (int) $resident['is_active'],
                 'created_at' => $resident['created_at']
             ],
 
@@ -267,13 +254,385 @@ class DashboardController extends BaseController
             'recent_reports' => $recentReports
         ]);
     }
+    public function resident()
+    {
+        $db = \Config\Database::connect();
+
+        $userId = (int) session()->get('user_id');
+
+        $resident = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->get()
+            ->getRowArray();
+
+        if (!$resident) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Resident not found.'
+                ]);
+        }
+
+
+
+        $totalReports = $db->table('reports')
+            ->where('user_id', $userId)
+            ->countAllResults();
+
+        $pendingReports = $db->table('reports')
+            ->where('user_id', $userId)
+            ->where('status', 'Pending')
+            ->countAllResults();
+
+        $progressReports = $db->table('reports')
+            ->where('user_id', $userId)
+            ->where('status', 'In Progress')
+            ->countAllResults();
+
+        $resolvedReports = $db->table('reports')
+            ->where('user_id', $userId)
+            ->where('status', 'Resolved')
+            ->countAllResults();
+
+        $recentReports = $db->table('reports r')
+            ->select('
+            r.report_id,
+            r.title,
+            r.status,
+            r.date_reported,
+            c.category_name
+        ')
+            ->join(
+                'category c',
+                'c.category_id = r.category_id',
+                'left'
+            )
+            ->where('r.user_id', $userId)
+            ->orderBy('r.date_reported', 'DESC')
+            ->limit(5)
+            ->get()
+            ->getResultArray();
+
+        $imageUrl = !empty($resident['profile_image'])
+            ? base_url(ltrim($resident['profile_image'], '/\\'))
+            : base_url('assets/images/resident picture.jpg');
+
+        return view('resident/dashboard', [
+            'resident' => [
+                'user_id'       => $resident['user_id'],
+                'resident_id'   => 'R-' . str_pad(
+                    (string) $resident['user_id'],
+                    3,
+                    '0',
+                    STR_PAD_LEFT
+                ),
+                'full_name'     => $resident['full_name'] ?? '',
+                'username'      => $resident['username'] ?? '',
+                'email'         => $resident['email'] ?? '',
+                'mobile_number' => $resident['mobile_number'] ?? '',
+                'address'       => $resident['address'] ?? '',
+                'image_url'     => $imageUrl,
+                'is_active' => (int) $resident['is_active'],
+                'created_at'    => $resident['created_at'] ?? null,
+            ],
+
+            'statistics' => [
+                'total'       => $totalReports,
+                'pending'     => $pendingReports,
+                'in_progress' => $progressReports,
+                'resolved'    => $resolvedReports,
+            ],
+
+            'recent_reports' => $recentReports,
+        ]);
+    }
+
+    public function createResident()
+    {
+        $db = \Config\Database::connect();
+        $userModel = new \App\Models\UserModel();
+
+        $fullName = trim(
+            (string) $this->request->getPost('full_name')
+        );
+
+        $email = trim(
+            (string) $this->request->getPost('email')
+        );
+
+        $mobileNumber = trim(
+            (string) $this->request->getPost('mobile_number')
+        );
+
+        $username = trim(
+            (string) $this->request->getPost('username')
+        );
+
+        $purokId = (int) $this->request->getPost('purok_id');
+
+        $address = trim(
+            (string) $this->request->getPost('address')
+        );
+
+        $password = (string) $this->request->getPost('password');
+
+        $confirmPassword =
+            (string) $this->request->getPost('confirm_password');
+
+        // =========================
+        // REQUIRED FIELDS
+        // =========================
+        if (
+            $fullName === '' ||
+            $email === '' ||
+            $username === '' ||
+            $purokId <= 0 ||
+            $address === '' ||
+            $password === '' ||
+            $confirmPassword === ''
+        ) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Please complete all required resident information.'
+                );
+        }
+
+        // =========================
+        // VALID EMAIL
+        // =========================
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Please enter a valid email address.'
+                );
+        }
+
+        // =========================
+        // VALID PUROK
+        // =========================
+        $purok = $db->table('puroks')
+            ->select('purok_id')
+            ->where('purok_id', $purokId)
+            ->where('is_active', 1)
+            ->get()
+            ->getRowArray();
+
+        if (!$purok) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Please select a valid active Purok.'
+                );
+        }
+
+        // =========================
+        // PASSWORD
+        // =========================
+        if (strlen($password) < 8) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Password must be at least 8 characters.'
+                );
+        }
+
+        if ($password !== $confirmPassword) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Passwords do not match.'
+                );
+        }
+
+        // =========================
+        // DUPLICATE EMAIL
+        // =========================
+        if ($userModel->where('email', $email)->first()) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Email address is already registered.'
+                );
+        }
+
+        // =========================
+        // DUPLICATE USERNAME
+        // =========================
+        if ($userModel->where('username', $username)->first()) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Username is already taken.'
+                );
+        }
+
+
+
+        // =========================
+        // OPTIONAL PROFILE PICTURE
+        // =========================
+        $profileImage = $this->request->getFile('profile_image');
+        $profileImagePath = null;
+
+        $hasProfileImage =
+            $profileImage !== null &&
+            $profileImage->getError() !== UPLOAD_ERR_NO_FILE;
+
+        if ($hasProfileImage) {
+
+            if (!$profileImage->isValid()) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Unable to upload the profile picture.');
+            }
+
+            // Maximum 2 MB
+            if ($profileImage->getSize() > 2 * 1024 * 1024) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Profile picture must not exceed 2 MB.');
+            }
+
+            $allowedMimeTypes = [
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+            ];
+
+            if (!in_array($profileImage->getMimeType(), $allowedMimeTypes, true)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Profile picture must be a JPG, PNG, or WebP image.'
+                    );
+            }
+
+            $uploadDirectory = FCPATH . 'uploads/profiles';
+
+            if (!is_dir($uploadDirectory)) {
+                mkdir($uploadDirectory, 0755, true);
+            }
+
+            $newName = $profileImage->getRandomName();
+
+            try {
+                $profileImage->move(
+                    $uploadDirectory,
+                    $newName
+                );
+            } catch (\Throwable $e) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Unable to save the profile picture.');
+            }
+
+            $profileImagePath = 'uploads/profiles/' . $newName;
+        }
+
+
+        // =========================
+        // CREATE RESIDENT
+        // =========================
+        $userModel->insert([
+            'full_name'     => $fullName,
+            'email'         => $email,
+            'mobile_number' => $mobileNumber !== ''
+                ? $mobileNumber
+                : null,
+            'username'      => $username,
+            'address'       => $address,
+            'purok_id'      => $purokId,
+            'profile_image' => $profileImagePath,
+            'password'      => password_hash(
+                $password,
+                PASSWORD_DEFAULT
+            ),
+            'role'          => 'resident',
+            'is_active'     => 1,
+        ]);
+
+        return redirect()->to('/admin/residents')
+            ->with(
+                'success',
+                'Resident account created successfully.'
+            );
+    }
+
+    public function updateResidentStatus($userId)
+    {
+        $db = \Config\Database::connect();
+
+        $resident = $db->table('users')
+            ->select('user_id, full_name, is_active')
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->get()
+            ->getRowArray();
+
+        if (!$resident) {
+            return redirect()->to('/admin/residents')
+                ->with('error', 'Resident account not found.');
+        }
+
+        $newStatus = (int) $resident['is_active'] === 1 ? 0 : 1;
+
+        $updated = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->update([
+                'is_active' => $newStatus,
+            ]);
+
+        if (!$updated) {
+            return redirect()->to('/admin/residents')
+                ->with('error', 'Unable to update resident account status.');
+        }
+
+        // Remove Remember Me tokens when account is deactivated
+        if ($newStatus === 0) {
+            $db->table('remember_tokens')
+                ->where('user_id', $userId)
+                ->delete();
+        }
+
+        $message = $newStatus === 1
+            ? 'Resident account activated successfully.'
+            : 'Resident account deactivated successfully.';
+
+        return redirect()->to('/admin/residents')
+            ->with('success', $message);
+    }
+
 
     // =========================
     // SUBMIT REPORT PAGE
     // =========================
     public function report()
     {
-        return view('resident/report');
+        $db = \Config\Database::connect();
+
+        $categories = $db->table('category')
+            ->select('category_id, category_name')
+            ->where('is_active', 1)
+            ->orderBy('category_name', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        return view('resident/report', [
+            'categories' => $categories
+        ]);
     }
 
     // =========================
@@ -385,7 +744,7 @@ class DashboardController extends BaseController
 
 
 
-    public function openAdminNotification($notificationId)
+    public function openAdminNotification(int $notificationId)
     {
         $db = \Config\Database::connect();
 
@@ -707,13 +1066,131 @@ class DashboardController extends BaseController
     {
         $db = \Config\Database::connect();
 
-        $reports = $db->table('reports')
+        // =========================
+        // GET FILTER VALUES
+        // =========================
+        $search = trim((string) $this->request->getGet('search'));
+        $categoryId = (int) $this->request->getGet('category');
+        $status = trim((string) $this->request->getGet('status'));
+        $fromDate = trim((string) $this->request->getGet('from_date'));
+        $toDate = trim((string) $this->request->getGet('to_date'));
+        $sort = strtolower(trim((string) $this->request->getGet('sort')));
+
+        if (!in_array($sort, ['newest', 'oldest'], true)) {
+            $sort = 'newest';
+        }
+
+        // =========================
+        // PAGINATION
+        // =========================
+        $perPage = 20;
+        $page = max(1, (int) $this->request->getGet('page'));
+        $offset = ($page - 1) * $perPage;
+
+        // =========================
+        // REUSABLE FILTER FUNCTION
+        // =========================
+        $applyFilters = function ($builder) use (
+            $search,
+            $categoryId,
+            $status,
+            $fromDate,
+            $toDate
+        ) {
+            if ($search !== '') {
+                $builder->groupStart()
+                    ->like('reports.title', $search)
+                    ->orLike('reports.description', $search)
+                    ->orLike('reports.address', $search)
+                    ->orLike('category.category_name', $search)
+
+                    // Search resident name ONLY for non-anonymous reports
+                    ->orGroupStart()
+                    ->where('reports.is_anonymous', 0)
+                    ->like('users.full_name', $search)
+                    ->groupEnd();
+
+                // Allow searching exact report ID
+                if (preg_match('/^(?:RPT-)?0*(\d+)$/i', $search, $matches)) {
+                    $builder->orWhere(
+                        'reports.report_id',
+                        (int) $matches[1]
+                    );
+                }
+
+                $builder->groupEnd();
+            }
+
+            if ($categoryId > 0) {
+                $builder->where(
+                    'reports.category_id',
+                    $categoryId
+                );
+            }
+
+            if ($status !== '' && $status !== 'all') {
+                $builder->where(
+                    'reports.status',
+                    $status
+                );
+            }
+
+            if ($fromDate !== '') {
+                $builder->where(
+                    'reports.date_reported >=',
+                    $fromDate . ' 00:00:00'
+                );
+            }
+
+            if ($toDate !== '') {
+                $builder->where(
+                    'reports.date_reported <=',
+                    $toDate . ' 23:59:59'
+                );
+            }
+
+            return $builder;
+        };
+
+        // =========================
+        // COUNT FILTERED REPORTS
+        // =========================
+        $countBuilder = $db->table('reports')
+            ->join(
+                'category',
+                'category.category_id = reports.category_id',
+                'left'
+            )
+            ->join(
+                'users',
+                'users.user_id = reports.user_id',
+                'left'
+            );
+
+        $applyFilters($countBuilder);
+
+        $totalReports = $countBuilder->countAllResults();
+
+        $totalPages = max(
+            1,
+            (int) ceil($totalReports / $perPage)
+        );
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+            $offset = ($page - 1) * $perPage;
+        }
+
+        // =========================
+        // GET REPORTS
+        // =========================
+        $builder = $db->table('reports')
             ->select('
-                reports.*,
-                category.category_name,
-                image.image_path,
-                users.full_name
-            ')
+            reports.*,
+            category.category_name,
+            image.image_path,
+            users.full_name
+        ')
             ->join(
                 'category',
                 'category.category_id = reports.category_id',
@@ -728,15 +1205,54 @@ class DashboardController extends BaseController
                 'users',
                 'users.user_id = reports.user_id',
                 'left'
-            )
-            ->orderBy('reports.report_id', 'DESC')
+            );
+
+        $applyFilters($builder);
+
+        $builder->orderBy(
+            'reports.date_reported',
+            $sort === 'oldest' ? 'ASC' : 'DESC'
+        );
+
+        $reports = $builder
+            ->limit($perPage, $offset)
+            ->get()
+            ->getResultArray();
+
+        // =========================
+        // CATEGORY FILTER OPTIONS
+        // Include inactive categories because
+        // old reports may still use them.
+        // =========================
+        $categories = $db->table('category')
+            ->select('category_id, category_name, is_active')
+            ->orderBy('category_name', 'ASC')
             ->get()
             ->getResultArray();
 
         return view('admin/reports', [
-            'reports' => $reports
+            'reports' => $reports,
+            'categories' => $categories,
+
+            'filters' => [
+                'search' => $search,
+                'category' => $categoryId,
+                'status' => $status,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'sort' => $sort,
+            ],
+
+            'pagination' => [
+                'current_page' => $page,
+                'total_pages' => $totalPages,
+                'total_reports' => $totalReports,
+                'per_page' => $perPage,
+            ],
         ]);
     }
+
+
 
     // =========================
     // ADMIN - RESIDENTS
@@ -745,27 +1261,42 @@ class DashboardController extends BaseController
     {
         $db = \Config\Database::connect();
 
-        $residents = $db->table('users')
+        $residents = $db->table('users u')
             ->select('
-            user_id,
-            full_name,
-            email,
-            mobile_number,
-            username,
-            address,
-            profile_image,
-            created_at
+            u.user_id,
+            u.full_name,
+            u.email,
+            u.mobile_number,
+            u.username,
+            u.address,
+           u.purok_id,
+u.profile_image,
+u.is_active,
+u.created_at,
+p.purok_name
         ')
-            ->where('role', 'resident')
-            ->orderBy('created_at', 'DESC')
+            ->join(
+                'puroks p',
+                'p.purok_id = u.purok_id',
+                'left'
+            )
+            ->where('u.role', 'resident')
+            ->orderBy('u.created_at', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        $puroks = $db->table('puroks')
+            ->select('purok_id, purok_name')
+            ->where('is_active', 1)
+            ->orderBy('purok_name', 'ASC')
             ->get()
             ->getResultArray();
 
         return view('admin/residents', [
-            'residents' => $residents
+            'residents' => $residents,
+            'puroks'    => $puroks,
         ]);
     }
-
 
 
     // =========================
@@ -773,8 +1304,222 @@ class DashboardController extends BaseController
     // =========================
     public function categories()
     {
-        return view('admin/categories');
+        $db = \Config\Database::connect();
+
+        $categories = $db->table('category c')
+            ->select('
+            c.category_id,
+            c.category_name,
+            c.description,
+            c.is_active,
+            COUNT(r.report_id) AS report_count
+        ')
+            ->join(
+                'reports r',
+                'r.category_id = c.category_id',
+                'left'
+            )
+            ->groupBy([
+                'c.category_id',
+                'c.category_name',
+                'c.description',
+                'c.is_active'
+            ])
+            ->orderBy('c.category_id', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        return view('admin/categories', [
+            'categories' => $categories
+        ]);
     }
+
+
+    public function createCategory()
+    {
+        $db = \Config\Database::connect();
+        log_message('error', 'CREATE CATEGORY METHOD HIT');
+
+        $categoryName = trim(
+            (string) $this->request->getPost('category_name')
+        );
+
+        $description = trim(
+            (string) $this->request->getPost('description')
+        );
+
+        $isActive = $this->request->getPost('is_active') === '0'
+            ? 0
+            : 1;
+
+        if ($categoryName === '') {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Category name is required.');
+        }
+
+        if (mb_strlen($categoryName) > 50) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Category name must not exceed 50 characters.');
+        }
+
+        $existingCategory = $db->table('category')
+            ->where('category_name', $categoryName)
+            ->get()
+            ->getRowArray();
+
+        if ($existingCategory) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Category already exists.');
+        }
+
+        $db->table('category')->insert([
+            'category_name' => $categoryName,
+            'description'   => $description !== '' ? $description : null,
+            'is_active'     => $isActive,
+        ]);
+
+        return redirect()->to('/admin/categories')
+            ->with('success', 'Category added successfully.');
+    }
+
+    public function updateCategory($categoryId = null)
+    {
+        $db = \Config\Database::connect();
+
+        $categoryId = (int) $categoryId;
+
+        $category = $db->table('category')
+            ->where('category_id', $categoryId)
+            ->get()
+            ->getRowArray();
+
+        if (!$category) {
+            return redirect()->to('/admin/categories')
+                ->with('error', 'Category not found.');
+        }
+
+        $categoryName = trim(
+            (string) $this->request->getPost('category_name')
+        );
+
+        $description = trim(
+            (string) $this->request->getPost('description')
+        );
+
+        $isActive = $this->request->getPost('is_active') === '0'
+            ? 0
+            : 1;
+
+        if ($categoryName === '') {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Category name is required.');
+        }
+
+        if (mb_strlen($categoryName) > 50) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Category name must not exceed 50 characters.');
+        }
+
+        $duplicate = $db->table('category')
+            ->where('category_name', $categoryName)
+            ->where('category_id !=', $categoryId)
+            ->get()
+            ->getRowArray();
+
+        if ($duplicate) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Category name already exists.');
+        }
+
+        $db->table('category')
+            ->where('category_id', $categoryId)
+            ->update([
+                'category_name' => $categoryName,
+                'description'   => $description !== '' ? $description : null,
+                'is_active'     => $isActive,
+            ]);
+
+        return redirect()->to('/admin/categories')
+            ->with('success', 'Category updated successfully.');
+    }
+
+    public function toggleCategory($categoryId = null)
+    {
+        $db = \Config\Database::connect();
+
+        $categoryId = (int) $categoryId;
+
+        $category = $db->table('category')
+            ->where('category_id', $categoryId)
+            ->get()
+            ->getRowArray();
+
+        if (!$category) {
+            return redirect()->to('/admin/categories')
+                ->with('error', 'Category not found.');
+        }
+
+        $newStatus = (int) $category['is_active'] === 1
+            ? 0
+            : 1;
+
+        $db->table('category')
+            ->where('category_id', $categoryId)
+            ->update([
+                'is_active' => $newStatus
+            ]);
+
+        return redirect()->to('/admin/categories')
+            ->with(
+                'success',
+                $newStatus === 1
+                    ? 'Category activated successfully.'
+                    : 'Category deactivated successfully.'
+            );
+    }
+
+    public function deleteCategory($categoryId = null)
+    {
+        $db = \Config\Database::connect();
+
+        $categoryId = (int) $categoryId;
+
+        $category = $db->table('category')
+            ->where('category_id', $categoryId)
+            ->get()
+            ->getRowArray();
+
+        if (!$category) {
+            return redirect()->to('/admin/categories')
+                ->with('error', 'Category not found.');
+        }
+
+        $reportCount = $db->table('reports')
+            ->where('category_id', $categoryId)
+            ->countAllResults();
+
+        if ($reportCount > 0) {
+            return redirect()->to('/admin/categories')
+                ->with(
+                    'error',
+                    'This category cannot be deleted because it is already used by existing reports. Deactivate it instead.'
+                );
+        }
+
+        $db->table('category')
+            ->where('category_id', $categoryId)
+            ->delete();
+
+        return redirect()->to('/admin/categories')
+            ->with('success', 'Category deleted successfully.');
+    }
+
 
     // =========================
     // ADMIN NOTIFICATIONS
@@ -875,7 +1620,6 @@ class DashboardController extends BaseController
         $title = trim((string) $this->request->getPost('title'));
         $content = trim((string) $this->request->getPost('content'));
         $category = trim((string) $this->request->getPost('category'));
-        $publishDate = trim((string) $this->request->getPost('publishDate'));
         $status = trim((string) $this->request->getPost('status'));
 
         // Required fields
@@ -885,20 +1629,13 @@ class DashboardController extends BaseController
                 ->with('error', 'Title and content are required.');
         }
 
-        // Allowed statuses
-        $allowedStatuses = [
-            'Published',
-            'Draft',
-            'Archived'
-        ];
-
-        if (!in_array($status, $allowedStatuses, true)) {
-            $status = 'Draft';
-        }
-
-        // Default category
+        // Default values
         if ($category === '') {
             $category = 'General';
+        }
+
+        if ($status === '') {
+            $status = 'Draft';
         }
 
         $data = [
@@ -906,10 +1643,8 @@ class DashboardController extends BaseController
             'title' => $title,
             'content' => $content,
             'category' => $category,
-            'publish_date' => $publishDate !== ''
-                ? $publishDate
-                : null,
-            'status' => $status
+            'publish_date' => date('Y-m-d'),
+            'status' => 'Published'
         ];
 
         $announcementId = $announcementModel->insert($data);
@@ -924,7 +1659,60 @@ class DashboardController extends BaseController
             ->with('success', 'Announcement created successfully.');
     }
 
+    public function deleteAnnouncement($announcementId)
+    {
+        $announcementModel = new \App\Models\AnnouncementModel();
 
+        $announcement = $announcementModel->find($announcementId);
+
+        if (!$announcement) {
+            return redirect()->to('/admin/announcements')
+                ->with('error', 'Announcement not found.');
+        }
+
+        $announcementModel->delete($announcementId);
+
+        return redirect()->to('/admin/announcements')
+            ->with('success', 'Announcement deleted successfully.');
+    }
+
+    public function updateAnnouncement($announcementId)
+    {
+        $announcementModel = new \App\Models\AnnouncementModel();
+
+        $announcement = $announcementModel->find($announcementId);
+
+        if (!$announcement) {
+            return redirect()->to('/admin/announcements')
+                ->with('error', 'Announcement not found.');
+        }
+
+        $title = trim((string) $this->request->getPost('title'));
+        $content = trim((string) $this->request->getPost('content'));
+        $category = trim((string) $this->request->getPost('category'));
+        $publishDate = trim((string) $this->request->getPost('publishDate'));
+
+        if ($title === '' || $content === '') {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Title and content are required.');
+        }
+
+        if ($category === '') {
+            $category = 'General';
+        }
+
+        $announcementModel->update($announcementId, [
+            'title'        => $title,
+            'content'      => $content,
+            'category'     => $category,
+            'publish_date' => $publishDate !== '' ? $publishDate : null,
+            'status'       => 'Published'
+        ]);
+
+        return redirect()->to('/admin/announcements')
+            ->with('success', 'Announcement updated successfully.');
+    }
 
     // =========================
     // MAP

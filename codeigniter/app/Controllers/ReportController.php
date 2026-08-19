@@ -16,6 +16,7 @@ class ReportController extends BaseController
         $title = trim((string) $this->request->getPost('title'));
         $categoryId = (int) $this->request->getPost('category_id');
         $description = trim((string) $this->request->getPost('description'));
+        $isAnonymous = $this->request->getPost('is_anonymous') ? 1 : 0;
 
         $latitude = $this->request->getPost('latitude');
         $longitude = $this->request->getPost('longitude');
@@ -117,6 +118,7 @@ class ReportController extends BaseController
             'description' => $description,
             'category_id' => $categoryId,
             'latitude' => $latitude,
+            'is_anonymous' => $isAnonymous,
 
             // Actual DB column name
             'longtitude' => $longitude,
@@ -441,6 +443,7 @@ class ReportController extends BaseController
         // Get categories
         $categories = $db->table('category')
             ->select('category_id, category_name')
+            ->where('is_active', 1)
             ->orderBy('category_name', 'ASC')
             ->get()
             ->getResultArray();
@@ -514,6 +517,7 @@ class ReportController extends BaseController
         // Make sure category exists
         $category = $db->table('category')
             ->where('category_id', $categoryId)
+            ->where('is_active', 1)
             ->get()
             ->getRowArray();
 

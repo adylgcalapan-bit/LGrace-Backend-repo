@@ -11,18 +11,19 @@ class LocationModel extends Model
     protected $returnType = 'array';
 
     protected $allowedFields = [
-    'user_id',
-    'title',
-    'description',
-    'category_id',
-    'latitude',
-    'longtitude',
-    'address',
-    'status',
-    'priority',
-];
+        'user_id',
+        'is_anonymous',
+        'title',
+        'description',
+        'category_id',
+        'latitude',
+        'longtitude',
+        'address',
+        'status',
+        'priority',
+    ];
 
     protected $useTimestamps = true;
-protected $createdField = 'date_reported';
-protected $updatedField = 'updated_reported';
+    protected $createdField = 'date_reported';
+    protected $updatedField = 'updated_reported';
 }

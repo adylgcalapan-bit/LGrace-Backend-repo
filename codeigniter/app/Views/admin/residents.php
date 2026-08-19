@@ -88,7 +88,7 @@
                 </li>
 
                 <li class="logout">
-                    <a href="#">
+                    <a href="<?= base_url('logout') ?>">
                         <i class="bi bi-box-arrow-right"></i>
                         Logout
                     </a>
@@ -113,14 +113,92 @@
 
                 <div class="top-actions">
 
-                    <button class="btn btn-success">
-                        <i class="bi bi-person-plus-fill"></i>
+                    <button
+                        type="button"
+                        class="btn btn-success"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addResidentModal">
+
+                        <i class="bi bi-person-plus-fill me-1"></i>
                         Add Resident
                     </button>
 
                 </div>
 
             </header>
+
+            <!-- SUCCESS / ERROR NOTIFICATION -->
+
+            <?php
+            $successMessage = session()->getFlashdata('success');
+            $errorMessage   = session()->getFlashdata('error');
+            ?>
+
+            <?php if ($successMessage): ?>
+
+                <div
+                    class="alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3 shadow"
+                    style="z-index: 2000; min-width: 340px;"
+                    role="alert">
+
+                    <i class="bi bi-check-circle-fill me-2"></i>
+
+                    <strong>Success!</strong>
+                    <?= esc($successMessage) ?>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                    </button>
+
+                </div>
+
+            <?php endif; ?>
+
+
+            <?php if ($errorMessage): ?>
+
+                <div
+                    class="alert alert-danger alert-dismissible fade show position-fixed top-0 end-0 m-3 shadow"
+                    style="z-index: 2000; min-width: 340px;"
+                    role="alert">
+
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+                    <strong>Error!</strong>
+                    <?= esc($errorMessage) ?>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                    </button>
+
+                </div>
+
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('error')): ?>
+
+                <div
+                    class="alert alert-danger alert-dismissible fade show shadow-sm"
+                    role="alert">
+
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+                    <?= esc(session()->getFlashdata('error')) ?>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                    </button>
+
+                </div>
+
+            <?php endif; ?>
 
             <!-- SEARCH & FILTERS -->
 
@@ -133,13 +211,14 @@
                         <input
                             type="text"
                             class="form-control"
+                            id="residentSearch"
                             placeholder="Search resident...">
 
                     </div>
 
                     <div class="col-lg-3">
 
-                        <select class="form-select">
+                        <select class="form-select" id="statusFilter">
 
                             <option>All Status</option>
                             <option>Active</option>
@@ -151,29 +230,33 @@
 
                     <div class="col-lg-3">
 
-                        <select class="form-select">
+                        <select
+                            class="form-select"
+                            id="purokFilter">
 
-                            <option>All Puroks</option>
-                            <option>Purok 1</option>
-                            <option>Purok 2</option>
-                            <option>Purok 3</option>
-                            <option>Purok 4</option>
-                            <option>Purok 5</option>
+                            <option value="">
+                                All Puroks
+                            </option>
+
+                            <?php foreach (($puroks ?? []) as $purok): ?>
+
+                                <option value="<?= (int) ($purok['purok_id'] ?? 0) ?>">
+                                    <?= esc($purok['purok_name'] ?? 'Unnamed Purok') ?>
+                                </option>
+
+                            <?php endforeach; ?>
+
+                            <option value="unassigned">
+                                Unassigned
+                            </option>
 
                         </select>
 
                     </div>
 
-                    <div class="col-lg-2 d-grid">
 
-                        <button class="btn btn-success">
 
-                            <i class="bi bi-funnel-fill"></i>
-                            Filter
 
-                        </button>
-
-                    </div>
 
                 </div>
 
@@ -208,8 +291,9 @@
                                         <th>Full Name</th>
                                         <th>Email</th>
                                         <th>Contact</th>
-                                        <th>Address</th>
+                                        <th>Purok</th>
                                         <th>Username</th>
+                                        <th>Status</th>
                                         <th>Registered</th>
                                     </tr>
                                 </thead>
@@ -234,6 +318,8 @@
                                         '0',
                                         STR_PAD_LEFT
                                     );
+
+                                    $isActive = (int) ($resident['is_active'] ?? 1) === 1;
                                     ?>
 
                                     <tr class="resident-row"
@@ -243,7 +329,8 @@
                                         data-email="<?= esc($resident['email'] ?? '') ?>"
                                         data-contact="<?= esc($resident['mobile_number'] ?? '') ?>"
                                         data-address="<?= esc($resident['address'] ?? '') ?>"
-                                        data-status="Registered"
+                                        data-purok-id="<?= !empty($resident['purok_id']) ? (int) $resident['purok_id'] : 'unassigned' ?>"
+                                        data-status="<?= $isActive ? 'active' : 'inactive' ?>"
                                         data-image="<?= esc($residentImage) ?>">
 
                                         <td>
@@ -289,12 +376,31 @@
                                             <?= esc($resident['mobile_number'] ?? 'N/A') ?>
                                         </td>
 
+
                                         <td>
-                                            <?= esc($resident['address'] ?? 'No address provided') ?>
+                                            <?= esc($resident['purok_name'] ?? 'Unassigned') ?>
                                         </td>
 
                                         <td>
                                             <?= esc($resident['username'] ?? 'N/A') ?>
+                                        </td>
+
+                                        <td>
+                                            <?php if ($isActive): ?>
+
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>
+                                                    Active
+                                                </span>
+
+                                            <?php else: ?>
+
+                                                <span class="badge bg-secondary">
+                                                    <i class="bi bi-slash-circle me-1"></i>
+                                                    Inactive
+                                                </span>
+
+                                            <?php endif; ?>
                                         </td>
 
                                         <td>
@@ -310,7 +416,7 @@
                             <?php else: ?>
 
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted py-4">
+                                    <td colspan="9" class="text-center text-muted py-4">
                                         No registered residents found.
                                     </td>
                                 </tr>
@@ -460,6 +566,18 @@
                                             </p>
                                         </div>
 
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Account Status</small>
+
+                                            <p class="mb-0">
+                                                <span
+                                                    id="residentModalStatus"
+                                                    class="badge bg-secondary">
+                                                    Loading...
+                                                </span>
+                                            </p>
+                                        </div>
+
                                     </div>
 
                                 </div>
@@ -578,14 +696,40 @@
 
                         <div class="modal-footer">
 
-                            <button type="button"
+                            <form
+                                id="residentStatusForm"
+                                method="post"
+                                class="me-auto">
+
+                                <?= csrf_field() ?>
+
+                                <button
+                                    type="submit"
+                                    id="residentStatusButton"
+                                    class="btn btn-secondary"
+                                    disabled>
+
+                                    <i
+                                        id="residentStatusButtonIcon"
+                                        class="bi bi-hourglass-split me-1">
+                                    </i>
+
+                                    <span id="residentStatusButtonText">
+                                        Loading...
+                                    </span>
+
+                                </button>
+
+                            </form>
+
+                            <button
+                                type="button"
                                 class="btn btn-secondary"
                                 data-bs-dismiss="modal">
                                 Close
                             </button>
 
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -734,6 +878,409 @@
             </div>
 
         </main>
+
+    </div>
+    <!-- ========================================= -->
+    <!-- ADD RESIDENT MODAL -->
+    <!-- ========================================= -->
+
+    <div
+        class="modal fade"
+        id="addResidentModal"
+        tabindex="-1"
+        aria-hidden="true">
+
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+
+            <div class="modal-content border-0 shadow">
+
+
+                <form
+                    method="post"
+                    action="<?= site_url('admin/residents/create') ?>"
+                    id="addResidentForm"
+                    enctype="multipart/form-data">
+
+                    <?= csrf_field() ?>
+
+                    <!-- HEADER -->
+                    <div class="modal-header bg-success text-white">
+
+                        <div>
+                            <h5 class="modal-title mb-1">
+                                <i class="bi bi-person-plus-fill me-2"></i>
+                                Add New Resident
+                            </h5>
+
+                            <small class="opacity-75">
+                                Create a resident account for the Community Visibility System
+                            </small>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal">
+                        </button>
+
+                    </div>
+
+                    <div class="modal-body p-4">
+
+                        <!-- ========================= -->
+                        <!-- PERSONAL INFORMATION -->
+                        <!-- ========================= -->
+
+                        <div class="resident-form-section mb-4">
+
+                            <div class="d-flex align-items-center mb-3">
+
+                                <div class="resident-section-icon">
+                                    <i class="bi bi-person-vcard"></i>
+                                </div>
+
+                                <div>
+                                    <h6 class="mb-0">Personal Information</h6>
+                                    <small class="text-muted">
+                                        Basic information of the resident
+                                    </small>
+                                </div>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+
+                                    <div class="col-12">
+
+                                        <label class="form-label">
+                                            Profile Picture
+                                        </label>
+
+                                        <div class="d-flex align-items-center gap-3 flex-wrap">
+
+                                            <div
+                                                class="resident-photo-preview d-flex align-items-center justify-content-center"
+                                                id="residentPhotoPreview">
+
+                                                <i class="bi bi-person-fill"></i>
+
+                                            </div>
+
+                                            <div class="flex-grow-1">
+
+                                                <input
+                                                    type="file"
+                                                    class="form-control"
+                                                    id="residentProfileImage"
+                                                    name="profile_image"
+                                                    accept="image/jpeg,image/png,image/webp">
+
+                                                <small class="text-muted">
+                                                    Optional. JPG, PNG, or WebP. Maximum 2 MB.
+                                                </small>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <label class="form-label">
+                                        Full Name
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        name="full_name"
+                                        placeholder="e.g. Portgas D. Ace"
+                                        value="<?= esc(old('full_name') ?? '') ?>"
+                                        required>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label">
+                                        Email Address
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <input
+                                        type="email"
+                                        class="form-control"
+                                        name="email"
+                                        placeholder="resident@example.com"
+                                        value="<?= esc(old('email') ?? '') ?>"
+                                        required>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label">
+                                        Mobile Number
+                                    </label>
+
+                                    <input
+                                        type="tel"
+                                        class="form-control"
+                                        name="mobile_number"
+                                        placeholder="09XXXXXXXXX"
+                                        value="<?= esc(old('mobile_number') ?? '') ?>">
+
+                                    <small class="text-muted">
+                                        Optional
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <hr>
+
+                        <!-- ========================= -->
+                        <!-- BARANGAY ADDRESS -->
+                        <!-- ========================= -->
+
+                        <div class="resident-form-section my-4">
+
+                            <div class="d-flex align-items-center mb-3">
+
+                                <div class="resident-section-icon">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                </div>
+
+                                <div>
+                                    <h6 class="mb-0">Barangay Address</h6>
+                                    <small class="text-muted">
+                                        Select the resident's home Purok
+                                    </small>
+                                </div>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-5">
+
+                                    <label class="form-label">
+                                        Purok
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <select
+                                        class="form-select"
+                                        name="purok_id"
+                                        required>
+
+                                        <option value="" selected disabled>
+                                            Select Purok
+                                        </option>
+
+                                        <?php foreach (($puroks ?? []) as $purok): ?>
+
+                                            <option
+                                                value="<?= (int) $purok['purok_id'] ?>">
+
+                                                <?= esc($purok['purok_name']) ?>
+
+                                            </option>
+
+                                        <?php endforeach; ?>
+
+                                    </select>
+
+                                </div>
+
+                                <div class="col-md-7">
+
+                                    <label class="form-label">
+                                        Additional Address Details
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        name="address"
+                                        placeholder="e.g. Near barangay hall, beside sari-sari store"
+                                        value="<?= esc(old('address') ?? '') ?>"
+                                        required>
+
+                                    <small class="text-muted">
+                                        Landmark, street, house location, or other helpful details
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <hr>
+
+                        <!-- ========================= -->
+                        <!-- ACCOUNT CREDENTIALS -->
+                        <!-- ========================= -->
+
+                        <div class="resident-form-section mt-4">
+
+                            <div class="d-flex align-items-center mb-3">
+
+                                <div class="resident-section-icon">
+                                    <i class="bi bi-shield-lock-fill"></i>
+                                </div>
+
+                                <div>
+                                    <h6 class="mb-0">Account Credentials</h6>
+                                    <small class="text-muted">
+                                        Login information for the resident
+                                    </small>
+                                </div>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-12">
+
+                                    <label class="form-label">
+                                        Username
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        name="username"
+                                        placeholder="Choose a unique username"
+                                        value="<?= esc(old('username') ?? '') ?>"
+                                        autocomplete="off"
+                                        required>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label">
+                                        Password
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <input
+                                            type="password"
+                                            class="form-control resident-password"
+                                            id="residentPassword"
+                                            name="password"
+                                            placeholder="Minimum 8 characters"
+                                            minlength="8"
+                                            autocomplete="new-password"
+                                            required>
+
+                                        <button
+                                            class="btn btn-outline-secondary toggle-resident-password"
+                                            type="button"
+                                            data-target="residentPassword"
+                                            title="Show Password">
+
+                                            <i class="bi bi-eye"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label">
+                                        Confirm Password
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <input
+                                            type="password"
+                                            class="form-control resident-password"
+                                            id="residentConfirmPassword"
+                                            name="confirm_password"
+                                            placeholder="Re-enter password"
+                                            minlength="8"
+                                            autocomplete="new-password"
+                                            required>
+
+                                        <button
+                                            class="btn btn-outline-secondary toggle-resident-password"
+                                            type="button"
+                                            data-target="residentConfirmPassword"
+                                            title="Show Password">
+
+                                            <i class="bi bi-eye"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="alert alert-light border mt-3 mb-0">
+
+                                <div class="d-flex">
+
+                                    <i class="bi bi-info-circle-fill text-success me-2"></i>
+
+                                    <small>
+                                        The resident account will be
+                                        <strong>Active</strong> immediately after creation
+                                        and can use these credentials to log in.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- FOOTER -->
+                    <div class="modal-footer">
+
+                        <button
+                            type="button"
+                            class="btn btn-light border"
+                            data-bs-dismiss="modal">
+
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="btn btn-success px-4">
+
+                            <i class="bi bi-person-check-fill me-1"></i>
+                            Create Resident Account
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
 
     </div>
 

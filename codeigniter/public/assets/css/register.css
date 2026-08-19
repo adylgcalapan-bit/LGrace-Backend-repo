@@ -1,291 +1,1086 @@
+/* =========================================================
+   COMMUNITY VISIBILITY SYSTEM
+   REGISTRATION PAGE
+   Soft Green / Cute / Modern Theme
+========================================================= */
 
+/* =========================
+   RESET
+========================= */
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-body{
-    font-family:'Poppins',sans-serif;
-    background:#f5fbf5;
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  font-family: "Poppins", sans-serif;
+  background: #f7fcf7;
+  color: #294b30;
+  overflow-x: hidden;
 }
 
 /* =========================
+   PAGE
+========================= */
+
+.register-page {
+  min-height: 100vh;
+}
+
+/* =========================================================
    LEFT PANEL
-========================= */
+========================================================= */
 
-.left-panel{
-   background:linear-gradient(135deg,#8FD694,#6BBF73);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding:60px;
-    text-align:center;
-    color:#2F5233;
+.left-panel {
+  position: relative;
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 42px 35px;
+
+  background: linear-gradient(145deg, #b8e6bd 0%, #91d49b 48%, #76c585 100%);
+
+  overflow: hidden;
 }
 
-.logo{
-    width:140px;
-    margin-bottom:25px;
+/* Decorative circles */
+
+.left-decoration {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  pointer-events: none;
 }
 
-.left-panel h1{
-    font-size:38px;
-    font-weight:700;
-    margin-bottom:15px;
+.decoration-one {
+  width: 340px;
+  height: 340px;
+  top: -150px;
+  left: -120px;
 }
 
-.left-panel p{
-    font-size:18px;
-    line-height:1.8;
-    max-width:420px;
+.decoration-two {
+  width: 280px;
+  height: 280px;
+  bottom: -120px;
+  right: -100px;
+}
+
+/* Left content */
+
+.left-panel-content {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 590px;
+
+  text-align: center;
+}
+
+/* Barangay badge */
+
+.welcome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 9px 17px;
+  margin-bottom: 20px;
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.72);
+
+  color: #35663e;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  box-shadow: 0 5px 16px rgba(47, 82, 51, 0.08);
+
+  backdrop-filter: blur(8px);
 }
 
 /* =========================
-   LOGIN & REGISTER CARD
+   SAGUING BUILDING
 ========================= */
 
-.login-card,
-.register-card{
+.building-image-wrapper {
+  width: 100%;
+  max-width: 560px;
 
-    width:100%;
-    max-width:650px;
+  margin: 0 auto 27px;
 
-    background:#ffffff;
+  padding: 9px;
 
-    border-radius:20px;
+  background: rgba(255, 255, 255, 0.88);
 
-    padding:40px;
+  border-radius: 28px;
 
-    box-shadow:0 10px 30px rgba(0,0,0,.08);
-
+  box-shadow: 0 20px 45px rgba(40, 83, 48, 0.17);
 }
 
-.login-card h2,
-.register-card h2{
+.saguing-building {
+  width: 100%;
 
-    color:#2F5233;
-    font-weight:700;
+  aspect-ratio: 16 / 10;
 
-}
+  display: block;
 
-.text-muted{
+  object-fit: cover;
+  object-position: center;
 
-    color:#6c757d !important;
-
+  border-radius: 21px;
 }
 
 /* =========================
+   LEFT TEXT
+========================= */
+
+.left-panel-text h1 {
+  max-width: 540px;
+
+  margin: 0 auto 13px;
+
+  color: #244d2d;
+
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.15;
+  font-weight: 700;
+
+  letter-spacing: -1px;
+}
+
+.left-panel-text h1 span {
+  display: block;
+
+  color: #32693e;
+}
+
+.left-panel-text p {
+  max-width: 500px;
+
+  margin: 0 auto;
+
+  color: #365e3d;
+
+  font-size: 15px;
+  line-height: 1.75;
+  font-weight: 400;
+}
+
+/* =========================
+   FEATURE PILLS
+========================= */
+
+.feature-pills {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  gap: 9px;
+
+  margin-top: 23px;
+}
+
+.feature-pills span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 8px 13px;
+
+  background: rgba(255, 255, 255, 0.58);
+
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+
+  color: #35633d;
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* =========================================================
+   RIGHT SIDE
+========================================================= */
+
+.register-side {
+  position: relative;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 46px 38px;
+
+  background:
+    radial-gradient(circle at top right, #e7f8e9 0%, transparent 32%),
+    linear-gradient(180deg, #fafffa 0%, #f4faf5 100%);
+}
+
+/* =========================================================
+   REGISTER CARD
+========================================================= */
+
+.register-card {
+  width: 100%;
+  max-width: 720px;
+
+  padding: 38px 40px;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  border: 1px solid #e5f0e6;
+  border-radius: 28px;
+
+  box-shadow: 0 22px 55px rgba(50, 90, 58, 0.1);
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.register-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 25px;
+
+  margin-bottom: 28px;
+}
+
+.register-header-text {
+  flex: 1;
+}
+
+.register-badge {
+  display: inline-block;
+
+  margin-bottom: 8px;
+  padding: 6px 12px;
+
+  border-radius: 999px;
+
+  background: #ebf8ed;
+
+  color: #55815d;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.register-header h2 {
+  margin-bottom: 6px;
+
+  color: #294f32;
+
+  font-size: clamp(29px, 3vw, 39px);
+  font-weight: 700;
+
+  letter-spacing: -0.8px;
+}
+
+.register-header p {
+  margin: 0;
+
+  color: #7b8d7e;
+
+  font-size: 14px;
+}
+
+/* =========================
+   HEADER LOGO
+========================= */
+
+.header-logo-wrapper {
+  width: 94px;
+  height: 94px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  padding: 6px;
+
+  border-radius: 50%;
+
+  background: #f3fbf4;
+
+  border: 1px solid #dceede;
+
+  box-shadow: 0 9px 22px rgba(62, 108, 71, 0.09);
+}
+
+.header-logo {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: contain;
+
+  border-radius: 50%;
+}
+
+/* =========================================================
+   PROFILE UPLOAD
+========================================================= */
+
+.profile-upload-card {
+  margin-bottom: 25px;
+  padding: 17px 18px;
+
+  background: linear-gradient(135deg, #f5fcf6 0%, #edf8ef 100%);
+
+  border: 1px solid #deeee1;
+  border-radius: 18px;
+}
+
+.profile-upload-content {
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+}
+
+/* Placeholder avatar */
+
+.profile-placeholder,
+.profile-preview {
+  width: 76px;
+  height: 76px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+}
+
+.profile-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(145deg, #dcefe0, #eff9f1);
+
+  border: 3px solid #d4ead8;
+
+  color: #77ad81;
+
+  font-size: 31px;
+}
+
+.profile-preview {
+  display: block;
+
+  object-fit: cover;
+
+  background: white;
+
+  border: 3px solid #d4ead8;
+}
+
+.profile-upload-text {
+  min-width: 0;
+}
+
+.profile-upload-text h6 {
+  margin-bottom: 4px;
+
+  color: #315a39;
+
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.profile-upload-text p {
+  margin: 0;
+
+  color: #809183;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.profile-file-input {
+  height: auto !important;
+
+  min-height: 45px;
+
+  margin-top: 14px;
+
+  padding: 8px 10px;
+
+  background: #fff !important;
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   LABELS
+========================================================= */
+
+.form-label {
+  margin-bottom: 7px;
+
+  color: #345a3b;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.required {
+  color: #dc6570;
+}
+
+/* =========================================================
    INPUTS
-========================= */
+========================================================= */
 
-.form-label{
+.field-group {
+  position: relative;
+}
 
-    font-weight:600;
-
+.form-control:not(textarea):not([type="file"]),
+.form-select {
+  min-height: 50px;
 }
 
 .form-control,
-.form-select{
+.form-select {
+  width: 100%;
 
-    height:50px;
+  padding-left: 14px;
+  padding-right: 14px;
 
-    border-radius:10px;
+  border: 1px solid #dce8de;
+  border-radius: 13px;
 
+  background: #fcfffc;
+
+  color: #344c38;
+
+  font-size: 14px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
-.form-control.is-invalid,
-.form-select.is-invalid,
-textarea.form-control.is-invalid{
-    border-color:#dc3545;
+.form-control::placeholder {
+  color: #a1aea3;
+
+  opacity: 1;
 }
 
-.form-control.is-valid,
-.form-select.is-valid,
-textarea.form-control.is-valid{
-    border-color:#6BBF73;
-}
-
-.invalid-feedback{
-    display:block;
-    min-height:1.2rem;
-    color:#dc3545;
-    font-size:0.875rem;
-    margin-top:0.35rem;
-}
-
-textarea.form-control{
-
-    height:auto;
-
+.form-control:hover,
+.form-select:hover {
+  border-color: #bdd8c2;
 }
 
 .form-control:focus,
-.form-select:focus{
+.form-select:focus {
+  background: #ffffff;
 
-    border-color:#74C69D;
+  border-color: #83c68e;
 
-    box-shadow:0 0 0 .2rem rgba(116,198,157,.25);
+  box-shadow: 0 0 0 4px rgba(131, 198, 142, 0.14);
 
+  outline: none;
 }
 
 /* =========================
-   PROFILE IMAGE
+   TEXTAREA
 ========================= */
 
-.profile-preview{
+textarea.form-control {
+  min-height: 100px;
 
-    width:120px;
-    height:120px;
+  padding-top: 12px;
 
-    border-radius:50%;
-
-    object-fit:cover;
-
-    border:4px solid #DDF6D2;
-
-    margin-bottom:10px;
-
+  resize: vertical;
 }
 
 /* =========================
-   BUTTONS
+   SELECT
 ========================= */
 
-.login-btn,
-.register-btn{
-
-    background:#6BBF73;
-
-    color:white;
-
-    font-weight:600;
-
-    border:none;
-
-    border-radius:10px;
-
-    padding:12px;
-
-    transition:.3s;
-
+.form-select {
+  cursor: pointer;
 }
 
-.login-btn:hover,
-.register-btn:hover{
+/* Disabled Register As */
 
-    background:#57A85E;
+.form-select:disabled {
+  color: #638068;
 
-    color:white;
+  background-color: #f4f9f5;
 
+  opacity: 1;
 }
 
-/* =========================
-   LINKS
-========================= */
+/* =========================================================
+   VALIDATION
+========================================================= */
 
-a{
+.error-text {
+  min-height: 17px;
 
-    color:#4F8A59;
+  margin-top: 4px;
 
-    text-decoration:none;
+  color: #d65460;
 
-    font-weight:600;
-
-}
-
-a:hover{
-
-    text-decoration:underline;
-
-}
-
-.field-group{
-    position:relative;
-}
-
-.error-text{
-    min-height:1.15rem;
-    margin-top:0.35rem;
-    color:#d9534f;
-    font-size:0.85rem;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .form-control.is-invalid,
-.form-select.is-invalid{
-    border-color:#dc3545;
-    box-shadow:0 0 0 .2rem rgba(220,53,69,.12);
+.form-select.is-invalid {
+  border-color: #de6b73;
+
+  background-image: none;
+
+  box-shadow: 0 0 0 3px rgba(222, 107, 115, 0.1);
 }
 
 .form-control.is-valid,
-.form-select.is-valid{
-    border-color:#28a745;
-    box-shadow:0 0 0 .2rem rgba(40,167,69,.12);
-}
+.form-select.is-valid {
+  border-color: #69b87a;
 
-.form-message{
-    padding:0.75rem 1rem;
-    border-radius:10px;
-    font-size:0.95rem;
-    margin-bottom:1rem;
-    display:none;
-}
+  background-image: none;
 
-.form-message.error{
-    display:block;
-    background:#fff4f4;
-    color:#b42318;
-}
-
-.form-message.success{
-    display:block;
-    background:#f1fff4;
-    color:#2f7d32;
-}
-
-.forgot-link{
-
-    font-size:14px;
-
+  box-shadow: 0 0 0 3px rgba(105, 184, 122, 0.09);
 }
 
 /* =========================
-   RESPONSIVE
+   HELPER TEXT
 ========================= */
 
-@media (max-width:991px){
+.field-helper {
+  display: block;
 
-.left-panel{
+  margin-top: 6px;
 
-display:none;
+  color: #8b9a8d;
 
+  font-size: 11px;
+  line-height: 1.5;
 }
 
-.login-card,
-.register-card{
+.field-helper i {
+  margin-right: 3px;
 
-margin:30px 15px;
-
-padding:30px;
-
+  color: #75aa7e;
 }
 
+/* =========================================================
+   SERVER ALERT
+========================================================= */
+
+.soft-alert {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+
+  margin-bottom: 20px;
+  padding: 12px 14px;
+
+  border-radius: 13px;
+
+  font-size: 13px;
+  line-height: 1.5;
 }
 
-@media (max-width:576px){
+.soft-alert-danger {
+  color: #a4454c;
 
-.login-card,
-.register-card{
+  background: #fff4f4;
 
-padding:20px;
-
+  border: 1px solid #f6d9dc;
 }
 
-.left-panel h1{
+.soft-alert-danger i {
+  margin-top: 2px;
 
-font-size:30px;
-
+  color: #d55e68;
 }
 
+/* =========================================================
+   JS FORM MESSAGE
+========================================================= */
+
+.form-message {
+  display: none;
+
+  margin-bottom: 14px;
+  padding: 11px 13px;
+
+  border-radius: 12px;
+
+  font-size: 12px;
+}
+
+.form-message.error {
+  display: block;
+
+  color: #aa464d;
+
+  background: #fff3f3;
+
+  border: 1px solid #f4d6d9;
+}
+
+.form-message.success {
+  display: block;
+
+  color: #357244;
+
+  background: #effaf1;
+
+  border: 1px solid #d4eed9;
+}
+
+/* =========================================================
+   REGISTER BUTTON
+========================================================= */
+
+.register-btn {
+  min-height: 51px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: linear-gradient(135deg, #76c785 0%, #5db570 100%);
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  box-shadow: 0 10px 22px rgba(93, 181, 112, 0.22);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.register-btn:hover {
+  color: #ffffff;
+
+  background: linear-gradient(135deg, #69be7a 0%, #4fa762 100%);
+
+  transform: translateY(-1px);
+
+  box-shadow: 0 13px 26px rgba(79, 167, 98, 0.25);
+}
+
+.register-btn:active {
+  transform: translateY(0);
+}
+
+/* =========================================================
+   LOGIN BOTTOM
+========================================================= */
+
+.login-bottom {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 23px;
+
+  color: #849087;
+
+  font-size: 13px;
+}
+
+.login-bottom a {
+  color: #4f9860;
+
+  font-weight: 600;
+
+  text-decoration: none;
+}
+
+.login-bottom a:hover {
+  color: #397b49;
+
+  text-decoration: underline;
+}
+
+/* =========================================================
+   GENERAL LINKS
+========================================================= */
+
+a {
+  color: #4f9860;
+
+  text-decoration: none;
+}
+
+a:hover {
+  color: #397b49;
+}
+
+/* =========================================================
+   LARGE LAPTOP
+========================================================= */
+
+@media (min-width: 992px) {
+  .left-panel {
+    position: sticky;
+
+    top: 0;
+
+    height: 100vh;
+
+    align-self: flex-start;
+  }
+}
+
+/* =========================================================
+   SMALL LAPTOP
+========================================================= */
+
+@media (max-width: 1200px) {
+  .left-panel {
+    padding: 35px 24px;
+  }
+
+  .building-image-wrapper {
+    max-width: 490px;
+  }
+
+  .left-panel-text p {
+    font-size: 14px;
+  }
+
+  .register-side {
+    padding: 35px 25px;
+  }
+
+  .register-card {
+    padding: 32px;
+  }
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 991.98px) {
+  .left-panel {
+    min-height: auto;
+
+    padding: 32px 25px;
+  }
+
+  .left-panel-content {
+    max-width: 720px;
+  }
+
+  .building-image-wrapper {
+    max-width: 620px;
+
+    margin-bottom: 20px;
+  }
+
+  .saguing-building {
+    aspect-ratio: 16 / 8;
+  }
+
+  .left-panel-text h1 {
+    max-width: 650px;
+
+    font-size: 31px;
+  }
+
+  .left-panel-text p {
+    max-width: 600px;
+  }
+
+  .feature-pills {
+    margin-top: 17px;
+  }
+
+  .register-side {
+    padding: 35px 20px 50px;
+  }
+
+  .register-card {
+    max-width: 760px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 767.98px) {
+  .left-panel {
+    padding: 25px 18px;
+  }
+
+  .welcome-badge {
+    margin-bottom: 15px;
+  }
+
+  .building-image-wrapper {
+    padding: 7px;
+
+    border-radius: 21px;
+  }
+
+  .saguing-building {
+    aspect-ratio: 16 / 9;
+
+    border-radius: 16px;
+  }
+
+  .left-panel-text h1 {
+    font-size: 27px;
+  }
+
+  .left-panel-text p {
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .feature-pills {
+    gap: 6px;
+  }
+
+  .feature-pills span {
+    padding: 7px 10px;
+
+    font-size: 11px;
+  }
+
+  .register-side {
+    padding: 25px 14px 40px;
+  }
+
+  .register-card {
+    padding: 27px 22px;
+
+    border-radius: 22px;
+  }
+
+  .register-header {
+    gap: 14px;
+  }
+
+  .header-logo-wrapper {
+    width: 78px;
+    height: 78px;
+  }
+
+  .register-header h2 {
+    font-size: 29px;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 576px) {
+  .left-panel {
+    padding: 21px 12px 24px;
+  }
+
+  .welcome-badge {
+    padding: 7px 13px;
+
+    font-size: 11px;
+  }
+
+  .building-image-wrapper {
+    margin-bottom: 16px;
+
+    border-radius: 18px;
+  }
+
+  .saguing-building {
+    border-radius: 13px;
+  }
+
+  .left-panel-text h1 {
+    font-size: 23px;
+    line-height: 1.2;
+  }
+
+  .left-panel-text p {
+    font-size: 12px;
+  }
+
+  .feature-pills {
+    margin-top: 14px;
+  }
+
+  .register-side {
+    padding: 20px 10px 35px;
+  }
+
+  .register-card {
+    padding: 22px 16px;
+
+    border-radius: 19px;
+  }
+
+  /* Header */
+
+  .register-header {
+    align-items: center;
+
+    margin-bottom: 22px;
+  }
+
+  .register-badge {
+    font-size: 9px;
+
+    padding: 5px 9px;
+  }
+
+  .register-header h2 {
+    font-size: 25px;
+
+    letter-spacing: -0.5px;
+  }
+
+  .register-header p {
+    font-size: 12px;
+  }
+
+  .header-logo-wrapper {
+    width: 66px;
+    height: 66px;
+
+    padding: 4px;
+  }
+
+  /* Profile */
+
+  .profile-upload-card {
+    padding: 14px;
+  }
+
+  .profile-placeholder,
+  .profile-preview {
+    width: 62px;
+    height: 62px;
+  }
+
+  .profile-placeholder {
+    font-size: 25px;
+  }
+
+  .profile-upload-text h6 {
+    font-size: 13px;
+  }
+
+  .profile-upload-text p {
+    font-size: 10px;
+  }
+
+  /* Form */
+
+  .form-label {
+    font-size: 12px;
+  }
+
+  .form-control,
+  .form-select {
+    font-size: 13px;
+  }
+
+  .form-control:not(textarea):not([type="file"]),
+  .form-select {
+    min-height: 47px;
+  }
+
+  textarea.form-control {
+    min-height: 95px;
+  }
+
+  .register-btn {
+    min-height: 49px;
+  }
+
+  .login-bottom {
+    flex-wrap: wrap;
+
+    text-align: center;
+
+    font-size: 12px;
+  }
+}
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+  .left-panel-text h1 {
+    font-size: 21px;
+  }
+
+  .feature-pills span {
+    font-size: 10px;
+  }
+
+  .register-card {
+    padding: 20px 13px;
+  }
+
+  .register-header {
+    gap: 9px;
+  }
+
+  .register-header h2 {
+    font-size: 22px;
+  }
+
+  .header-logo-wrapper {
+    width: 58px;
+    height: 58px;
+  }
+
+  .profile-upload-content {
+    gap: 10px;
+  }
+
+  .profile-placeholder,
+  .profile-preview {
+    width: 56px;
+    height: 56px;
+  }
 }
