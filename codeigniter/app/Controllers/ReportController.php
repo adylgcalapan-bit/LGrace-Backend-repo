@@ -8,197 +8,279 @@ use App\Models\NotificationModel;
 
 class ReportController extends BaseController
 {
-    public function create()
-    {
-        $reportModel = new LocationModel();
-        $imageModel = new ImageModel();
+   public function create()
+{
+    $reportModel = new LocationModel();
+    $imageModel = new ImageModel();
 
-        $title = trim((string) $this->request->getPost('title'));
-        $categoryId = (int) $this->request->getPost('category_id');
-        $description = trim((string) $this->request->getPost('description'));
-        $isAnonymous = $this->request->getPost('is_anonymous') ? 1 : 0;
+    // =====================================
+    // Get logged-in resident
+    // =====================================
 
-        $latitude = $this->request->getPost('latitude');
-        $longitude = $this->request->getPost('longitude');
-        $address = trim((string) $this->request->getPost('address'));
+    $userId = (int) session()->get('user_id');
 
+    if ($userId <= 0) {
+        return redirect()->to('/login');
+    }
 
-        // =====================================
-        // Validate report fields
-        // =====================================
+    // =====================================
+    // Get submitted report values
+    // =====================================
 
-        if (
-            $title === '' ||
-            $categoryId <= 0 ||
-            $description === '' ||
-            $latitude === null ||
-            $latitude === '' ||
-            $longitude === null ||
-            $longitude === ''
+    $title = trim((string) $this->request->getPost('title'));
+    $categoryId = (int) $this->request->getPost('category_id');
+    $description = trim((string) $this->request->getPost('description'));
+    $latitude = trim((string) $this->request->getPost('latitude'));
+    $longitude = trim((string) $this->request->getPost('longitude'));
+    $address = trim((string) $this->request->getPost('address'));
+
+    // =====================================
+    // Validate required report fields
+    // =====================================
+
+    if (
+        $title === '' ||
+        $categoryId <= 0 ||
+        $description === '' ||
+        $latitude === '' ||
+        $longitude === '' ||
+        !is_numeric($latitude) ||
+        !is_numeric($longitude)
+    ) {
+        return redirect()->back()
+            ->withInput()
+            ->with(
+                'error',
+                'Please complete all required report information.'
+            );
+    }
+
+    // =====================================
+    // Check if selected category exists
+    // =====================================
+
+    $db = \Config\Database::connect();
+
+    $category = $db->table('categories')
+        ->where('category_id', $categoryId)
+        ->get()
+        ->getRowArray();
+
+    if (!$category) {
+        return redirect()->back()
+            ->withInput()
+            ->with(
+                'error',
+                'Invalid category selected.'
+            );
+    }
+
+    // =====================================
+    // Get uploaded photos
+    // Maximum: 5 photos
+    // =====================================
+
+    $photos = $this->request->getFileMultiple('photos') ?? [];
+
+    // Remove empty upload entries
+    $photos = array_values(
+        array_filter(
+            $photos,
+            static function ($photo) {
+                return $photo !== null
+                    && $photo->getError() !== UPLOAD_ERR_NO_FILE;
+            }
         )
+    );
 
+    // =====================================
+    // Maximum 5 photos
+    // =====================================
 
-            // =====================================
-            // Notify all admins about new report
-            // =====================================
+    if (count($photos) > 5) {
+        return redirect()->back()
+            ->withInput()
+            ->with(
+                'error',
+                'You can upload a maximum of 5 photos only.'
+            );
+    }
 
-            $notificationModel = new \App\Models\NotificationModel();
+    // =====================================
+    // Validate every uploaded photo
+    // =====================================
 
+    $allowedTypes = [
+        'image/jpeg',
+        'image/png',
+        'image/webp'
+    ];
 
+    foreach ($photos as $photo) {
 
-        // =====================================
-        // Get logged-in resident
-        // =====================================
-
-        $userId = session()->get('user_id');
-
-        if (!$userId) {
-            return redirect()->to('/login');
-        }
-
-        // =====================================
-        // Get uploaded photo
-        // =====================================
-
-        $photo = $this->request->getFile('photo');
-
-        $hasPhoto = (
-            $photo !== null &&
-            $photo->getError() !== UPLOAD_ERR_NO_FILE
-        );
-
-        // =====================================
-        // Validate photo if uploaded
-        // =====================================
-
-        if ($hasPhoto) {
-
-            if (!$photo->isValid()) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        'The uploaded photo is invalid.'
-                    );
-            }
-
-            $allowedTypes = [
-                'image/jpeg',
-                'image/png',
-                'image/webp'
-            ];
-
-            if (!in_array($photo->getMimeType(), $allowedTypes, true)) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        'Only JPG, PNG, and WebP images are allowed.'
-                    );
-            }
-
-            // Maximum 5 MB
-            if ($photo->getSize() > (5 * 1024 * 1024)) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        'Photo must not exceed 5 MB.'
-                    );
-            }
-        }
-
-        // =====================================
-        // Save report
-        // =====================================
-
-        $reportId = $reportModel->insert([
-            'user_id' => $userId,
-            'title' => $title,
-            'description' => $description,
-            'category_id' => $categoryId,
-            'latitude' => $latitude,
-            'is_anonymous' => $isAnonymous,
-
-            // Actual DB column name
-            'longtitude' => $longitude,
-
-            'address' => $address !== '' ? $address : null,
-            'status' => 'Pending',
-        ]);
-
-        if ($reportId === false) {
+        if (!$photo->isValid()) {
             return redirect()->back()
                 ->withInput()
                 ->with(
                     'error',
-                    'Unable to save the report.'
+                    'One of the uploaded photos is invalid.'
                 );
         }
 
-        // =====================================
-        // Save uploaded photo
-        // =====================================
-
-        if ($hasPhoto) {
-
-            $newName = $photo->getRandomName();
-
-            $uploadPath =
-                FCPATH . 'uploads/reports';
-
-            try {
-
-                $photo->move(
-                    $uploadPath,
-                    $newName
+        if (
+            !in_array(
+                $photo->getMimeType(),
+                $allowedTypes,
+                true
+            )
+        ) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Only JPG, PNG, and WebP images are allowed.'
                 );
-            } catch (\Throwable $e) {
+        }
 
-                // Remove report if image saving fails
-                $reportModel->delete($reportId);
+        // Maximum 5 MB per photo
+        if ($photo->getSize() > (5 * 1024 * 1024)) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Each photo must not exceed 5 MB.'
+                );
+        }
+    }
 
-                return redirect()->back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        'Unable to save the uploaded photo.'
-                    );
-            }
+    // =====================================
+    // Save report
+    // =====================================
 
-            // Save photo path in image table
-            $imageSaved = $imageModel->insert([
-                'report_id' => $reportId,
-                'image_path' => 'uploads/reports/' . $newName,
-            ]);
+    $reportId = $reportModel->insert([
+        'user_id' => $userId,
+        'title' => $title,
+        'description' => $description,
+        'category_id' => $categoryId,
+        'latitude' => $latitude,
+        'longitude' => $longitude,
+        'address' => $address !== '' ? $address : null,
+        'status' => 'Pending',
+    ]);
 
-            if ($imageSaved === false) {
+    if ($reportId === false) {
+        return redirect()->back()
+            ->withInput()
+            ->with(
+                'error',
+                'Unable to save the report.'
+            );
+    }
 
-                $savedFile =
-                    FCPATH . 'uploads/reports/' . $newName;
+    // =====================================
+    // Prepare report upload folder
+    // =====================================
 
+    $uploadPath = FCPATH . 'uploads/reports';
+
+    if (!is_dir($uploadPath)) {
+        if (
+            !mkdir($uploadPath, 0775, true) &&
+            !is_dir($uploadPath)
+        ) {
+            $reportModel->delete($reportId);
+
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Unable to prepare the photo upload folder.'
+                );
+        }
+    }
+
+    // Keep track of files already saved.
+    // If one photo fails, they will all be removed.
+    $savedFiles = [];
+
+    // =====================================
+    // Save all uploaded photos
+    // =====================================
+
+    foreach ($photos as $photo) {
+
+        $newName = $photo->getRandomName();
+
+        try {
+
+            $photo->move(
+                $uploadPath,
+                $newName
+            );
+
+        } catch (\Throwable $e) {
+
+            // Remove physical files already uploaded
+            foreach ($savedFiles as $savedFile) {
                 if (is_file($savedFile)) {
-                    unlink($savedFile);
+                    @unlink($savedFile);
                 }
-
-                $reportModel->delete($reportId);
-
-                return redirect()->back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        'Unable to save the photo information.'
-                    );
             }
+
+            // Delete report.
+            // Related image rows are removed by DB cascade.
+            $reportModel->delete($reportId);
+
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Unable to save the uploaded photos.'
+                );
         }
 
+        $physicalPath =
+            $uploadPath . DIRECTORY_SEPARATOR . $newName;
+
+        $savedFiles[] = $physicalPath;
+
         // =====================================
-        // Notify all admins about new report
+        // Save one database row per photo
         // =====================================
 
-        $notificationModel = new \App\Models\NotificationModel();
+        $imageSaved = $imageModel->insert([
+            'report_id' => $reportId,
+            'image_path' => 'uploads/reports/' . $newName,
+        ]);
 
-        $db = \Config\Database::connect();
+        if ($imageSaved === false) {
+
+            // Remove every physical image uploaded
+            foreach ($savedFiles as $savedFile) {
+                if (is_file($savedFile)) {
+                    @unlink($savedFile);
+                }
+            }
+
+            // Delete report and related image rows
+            $reportModel->delete($reportId);
+
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Unable to save the photo information.'
+                );
+        }
+    }
+
+    // =====================================
+    // Notify all admins about new report
+    // =====================================
+
+    try {
+
+        $notificationModel = new NotificationModel();
 
         $admins = $db->table('users')
             ->select('user_id')
@@ -207,8 +289,15 @@ class ReportController extends BaseController
             ->getResultArray();
 
         foreach ($admins as $admin) {
+
+            $adminId = (int) ($admin['user_id'] ?? 0);
+
+            if ($adminId <= 0) {
+                continue;
+            }
+
             $notificationModel->insert([
-                'user_id' => $admin['user_id'],
+                'user_id' => $adminId,
                 'report_id' => $reportId,
                 'message' => 'New report submitted: ' . $title,
                 'status' => 'Unread',
@@ -216,22 +305,34 @@ class ReportController extends BaseController
             ]);
         }
 
+    } catch (\Throwable $e) {
 
-
-
-
-
-        // =====================================
-        // Successful report submission
-        // =====================================
-
-        return redirect()->to('/resident/my-reports')
-            ->with(
-                'success',
-                'Report submitted successfully.'
-            );
+        // Report is already saved.
+        // Notification failure should not delete the report.
+        log_message(
+            'error',
+            'Unable to create admin notification for report {reportId}: {message}',
+            [
+                'reportId' => $reportId,
+                'message' => $e->getMessage()
+            ]
+        );
     }
 
+    // =====================================
+    // Successful report submission
+    // =====================================
+
+    $photoCount = count($photos);
+
+    return redirect()->to('/resident/my-reports')
+        ->with(
+            'success',
+            $photoCount > 0
+                ? 'Report submitted successfully with ' . $photoCount . ' photo(s).'
+                : 'Report submitted successfully.'
+        );
+}
 
 
     public function updateStatus()
@@ -443,7 +544,6 @@ class ReportController extends BaseController
         // Get categories
         $categories = $db->table('category')
             ->select('category_id, category_name')
-            ->where('is_active', 1)
             ->orderBy('category_name', 'ASC')
             ->get()
             ->getResultArray();
@@ -517,7 +617,6 @@ class ReportController extends BaseController
         // Make sure category exists
         $category = $db->table('category')
             ->where('category_id', $categoryId)
-            ->where('is_active', 1)
             ->get()
             ->getRowArray();
 

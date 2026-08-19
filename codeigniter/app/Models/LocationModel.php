@@ -12,18 +12,18 @@ class LocationModel extends Model
 
     protected $allowedFields = [
         'user_id',
-        'is_anonymous',
         'title',
         'description',
         'category_id',
         'latitude',
-        'longtitude',
+        'longitude',
         'address',
         'status',
+        'moderation_status',
         'priority',
     ];
 
     protected $useTimestamps = true;
-    protected $createdField = 'date_reported';
+    protected $createdField = 'report_date';
     protected $updatedField = 'updated_reported';
 }

@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class ImageModel extends Model
 {
-    protected $table = 'image';
+    protected $table = 'images';
     protected $primaryKey = 'image_id';
     protected $returnType = 'array';
 

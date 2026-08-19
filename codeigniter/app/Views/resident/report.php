@@ -163,6 +163,8 @@
                         method="POST"
                         enctype="multipart/form-data">
 
+                        <?= csrf_field() ?>
+
                         <div class="row">
 
                             <div class="col-md-6 mb-3">
@@ -244,57 +246,26 @@
 
                                 <label class="form-label">
 
-                                    Upload Photo
+                                    Upload Photos
 
                                 </label>
 
                                 <input type="file"
                                     class="form-control"
-                                    id="photo"
-                                    name="photo"
-                                    accept="image/jpeg,image/png,image/webp">
+                                    id="photos"
+                                    name="photos[]"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    multiple>
 
                                 <small class="text-muted">
 
-                                    Upload a clear photo of the reported issue.
+                                    You may upload up to 5 photos. JPG, PNG, or WebP only. Maximum 5 MB per photo.
 
                                 </small>
 
                             </div>
 
-                            <div class="col-md-6 mb-3">
-
-                                <label class="form-label">
-
-                                    Anonymous Report
-
-                                </label>
-
-                                <div class="form-check mt-2">
-
-                                    <input class="form-check-input"
-                                        type="checkbox"
-                                        id="anonymous"
-                                        name="is_anonymous"
-                                        value="1">
-
-
-                                    <label class="form-check-label"
-                                        for="anonymous">
-
-                                        Submit this report anonymously
-
-                                    </label>
-
-                                </div>
-
-                                <small class="text-muted">
-
-                                    Your identity will be hidden from public display.
-
-                                </small>
-
-                            </div>
+                            
 
                             <div class="col-12 mb-4">
 
@@ -395,7 +366,7 @@
 
                 <p class="text-center text-muted">
 
-                    © 2026 Community Problems Visibility System with Location Feature
+                    ┬⌐ 2026 Community Problems Visibility System with Location Feature
                     <br>
                     Barangay Saguing
 

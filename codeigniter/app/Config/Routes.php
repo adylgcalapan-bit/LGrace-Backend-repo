@@ -34,6 +34,7 @@ $routes->post('admin/categories/toggle/(:num)', 'DashboardController::toggleCate
 $routes->get('admin/notifications', 'DashboardController::notificationsAdmin', ['filter' => 'admin']);
 $routes->get('admin/notifications/open/(:num)', 'DashboardController::openAdminNotification/$1', ['filter' => 'admin']);
 $routes->get('admin/settings', 'DashboardController::settings', ['filter' => 'admin']);
+$routes->post('admin/settings/save', 'DashboardController::saveSettings', ['filter' => 'admin']);
 $routes->get('admin/account', 'DashboardController::account', ['filter' => 'admin']);
 $routes->get('admin/announcements', 'DashboardController::announcements', ['filter' => 'admin']);
 $routes->post('admin/announcements/create', 'DashboardController::createAnnouncement', ['filter' => 'admin']);
@@ -54,6 +55,7 @@ $routes->get('resident/notifications', 'DashboardController::notifications', ['f
 $routes->get('resident/notifications/open/(:num)', 'DashboardController::openResidentNotification/$1', ['filter' => 'resident']);
 $routes->get('resident/profile', 'DashboardController::profile', ['filter' => 'resident']);
 $routes->post('resident/profile/update', 'DashboardController::updateProfile', ['filter' => 'resident']);
+$routes->post('resident/account/delete', 'DashboardController::deleteResidentAccount', ['filter' => 'resident']);
 $routes->get('resident/report-details', 'DashboardController::reportDetails', ['filter' => 'resident']);
 $routes->get('resident/report-details/(:num)', 'DashboardController::reportDetails/$1', ['filter' => 'resident']);
 

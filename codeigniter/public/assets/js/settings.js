@@ -1,19 +1,31 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const saveBtn = document.getElementById('saveBtn');
-    const resetBtn = document.getElementById('resetBtn');
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("settingsForm");
+    const resetBtn = document.getElementById("resetBtn");
+    const saveBtn = document.getElementById("saveBtn");
 
-    saveBtn?.addEventListener('click', () => {
-        const message = document.createElement('div');
-        message.className = 'alert alert-success mt-3';
-        message.textContent = 'Settings saved successfully.';
-        document.querySelector('.main-content').insertBefore(message, document.querySelector('.main-content').firstChild);
+    if (!form) {
+        return;
+    }
+
+    // Confirm reset of unsaved changes
+    resetBtn?.addEventListener("click", (event) => {
+        const confirmed = window.confirm(
+            "Discard all unsaved changes?"
+        );
+
+        if (!confirmed) {
+            event.preventDefault();
+        }
     });
 
-    resetBtn?.addEventListener('click', () => {
-        document.querySelectorAll('input, select, textarea').forEach(field => {
-            if (field.tagName === 'INPUT' && field.type === 'checkbox') return;
-            field.value = field.defaultValue || '';
-        });
-        alert('Changes reset to default values.');
+    // Prevent accidental double-submit
+    form.addEventListener("submit", () => {
+        if (!saveBtn) {
+            return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
     });
 });

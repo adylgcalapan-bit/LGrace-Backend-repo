@@ -232,39 +232,53 @@ if (!isset($report)) {
                         </div>
 
 
-                        <!-- PHOTO -->
-                        <div class="col-md-6 mb-4">
+                        <!-- PHOTOS -->
+<div class="col-md-6 mb-4">
 
-                            <label class="form-label">
-                                Uploaded Photo
-                            </label>
+    <label class="form-label">
+        Uploaded Photos
+    </label>
 
-                            <div class="image-container">
+    <?php if (!empty($images)): ?>
 
-                                <?php if (!empty($report['image_path'])): ?>
+        <div class="row g-2">
 
-                                    <img
-                                        src="<?= base_url($report['image_path']) ?>"
-                                        alt="Report Image"
-                                        class="img-fluid rounded"
-                                        style="
-                                        width: 100%;
-                                        max-height: 300px;
-                                        object-fit: cover;
-                                    ">
+            <?php foreach ($images as $image): ?>
 
-                                <?php else: ?>
+                <div class="col-12 <?= count($images) > 1 ? 'col-sm-6' : '' ?>">
 
-                                    <p class="text-muted">
-                                        No photo available.
-                                    </p>
+                    <div class="image-container">
 
-                                <?php endif; ?>
+                        <img
+                            src="<?= base_url($image['image_path']) ?>"
+                            alt="Report Photo"
+                            class="img-fluid rounded w-100"
+                            style="
+                                height: 220px;
+                                object-fit: cover;
+                            ">
 
-                            </div>
+                    </div>
 
-                        </div>
+                </div>
 
+            <?php endforeach; ?>
+
+        </div>
+
+        <small class="text-muted d-block mt-2">
+            <?= count($images) ?> photo(s) uploaded
+        </small>
+
+    <?php else: ?>
+
+        <p class="text-muted mb-0">
+            No photos available.
+        </p>
+
+    <?php endif; ?>
+
+</div>
 
                         <!-- LOCATION -->
                         <div class="col-md-6 mb-4">
