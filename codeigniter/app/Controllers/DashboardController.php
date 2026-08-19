@@ -88,57 +88,94 @@ class DashboardController extends BaseController
     // RESIDENT DASHBOARD
     // =========================
     public function resident()
-    {
-        $db = \Config\Database::connect();
+{
+    $db = \Config\Database::connect();
 
-        $userId = (int) session()->get('user_id');
+    $userId = (int) session()->get('user_id');
 
-        $totalReports = $db->table('reports')
-            ->where('user_id', $userId)
-            ->countAllResults();
+    if ($userId <= 0) {
+        return redirect()->to('/login');
+    }
 
-        $pendingReports = $db->table('reports')
-            ->where('user_id', $userId)
-            ->where('status', 'Pending')
-            ->countAllResults();
+    // Get the currently logged-in resident
+    $resident = $db->table('users')
+        ->select('
+            user_id,
+            full_name,
+            email,
+            username,
+            mobile_number,
+            address,
+            profile_image
+        ')
+        ->where('user_id', $userId)
+        ->where('role', 'resident')
+        ->get()
+        ->getRowArray();
 
-        $progressReports = $db->table('reports')
-            ->where('user_id', $userId)
-            ->where('status', 'In Progress')
-            ->countAllResults();
+    if (!$resident) {
+        session()->destroy();
 
-        $resolvedReports = $db->table('reports')
-            ->where('user_id', $userId)
-            ->where('status', 'Resolved')
-            ->countAllResults();
+        return redirect()->to('/login')
+            ->with('error', 'Resident account not found.');
+    }
 
-        $recentReports = $db->table('reports r')
-            ->select('
+    // System settings
+    $settings = $db->table('settings')
+        ->orderBy('setting_id', 'ASC')
+        ->get()
+        ->getRowArray();
+
+    // Report statistics
+    $totalReports = $db->table('reports')
+        ->where('user_id', $userId)
+        ->countAllResults();
+
+    $pendingReports = $db->table('reports')
+        ->where('user_id', $userId)
+        ->where('status', 'Pending')
+        ->countAllResults();
+
+    $progressReports = $db->table('reports')
+        ->where('user_id', $userId)
+        ->where('status', 'In Progress')
+        ->countAllResults();
+
+    $resolvedReports = $db->table('reports')
+        ->where('user_id', $userId)
+        ->where('status', 'Resolved')
+        ->countAllResults();
+
+    // Five most recent reports
+    $recentReports = $db->table('reports r')
+        ->select('
             r.report_id,
             r.title,
             r.status,
             r.report_date,
             c.category_name
         ')
-            ->join(
-                'categories c',
-                'c.category_id = r.category_id',
-                'left'
-            )
-            ->where('r.user_id', $userId)
-            ->orderBy('r.report_date', 'DESC')
-            ->limit(5)
-            ->get()
-            ->getResultArray();
+        ->join(
+            'categories c',
+            'c.category_id = r.category_id',
+            'left'
+        )
+        ->where('r.user_id', $userId)
+        ->orderBy('r.report_date', 'DESC')
+        ->limit(5)
+        ->get()
+        ->getResultArray();
 
-        return view('resident/dashboard', [
-            'totalReports' => $totalReports,
-            'pendingReports' => $pendingReports,
-            'progressReports' => $progressReports,
-            'resolvedReports' => $resolvedReports,
-            'recentReports' => $recentReports
-        ]);
-    }
+    return view('resident/dashboard', [
+        'resident' => $resident,
+        'settings' => $settings,
+        'totalReports' => $totalReports,
+        'pendingReports' => $pendingReports,
+        'progressReports' => $progressReports,
+        'resolvedReports' => $resolvedReports,
+        'recentReports' => $recentReports
+    ]);
+}
     public function residentDetails($userId = null)
     {
         $db = \Config\Database::connect();

@@ -99,8 +99,9 @@
 
                     <div>
 
-                        <h6 class="mb-0">Juan Dela Cruz</h6>
-
+                        <h6 class="mb-0">
+    <?= esc($resident['full_name'] ?? 'Resident') ?>
+</h6>
                         <small>Resident</small>
 
                     </div>
@@ -115,8 +116,9 @@
 
                 <div class="banner-text">
 
-                    <h3>Hello, Juan Dela Cruz! 👋</h3>
-
+                    <h3>
+    Hello, <?= esc($resident['full_name'] ?? 'Resident') ?>!
+</h3>
                     <p>
                         Welcome back! You can report community concerns,
                         monitor the status of your reports,
@@ -299,9 +301,9 @@
                                                 </td>
 
                                                 <td>
-                                                    <?= !empty($report['date_reported'])
-                                                        ? date('F d, Y', strtotime($report['date_reported']))
-                                                        : 'N/A' ?>
+                                                    <?= !empty($report['report_date'])
+    ? date('F d, Y', strtotime($report['report_date']))
+    : 'N/A' ?>
                                                 </td>
 
                                                 <td>
@@ -398,9 +400,15 @@
 
                 <p class="text-center text-muted">
 
-                    © 2026 Community Problems Visibility System with Location Feature
+                    &copy; 2026 <?= esc(
+    $settings['system_name']
+    ?? 'Community Problems Visibility System'
+) ?>
                     <br>
-                    Barangay Saguing
+                    <?= esc(
+    $settings['barangay_name']
+    ?? 'Barangay Saguing'
+) ?>
 
                 </p>
 
