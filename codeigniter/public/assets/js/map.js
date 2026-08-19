@@ -1,13 +1,44 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Default location sa inyong project area
+  // =====================================
+  // MAP INITIALIZATION
+  // =====================================
+
+  const mapElement = document.getElementById("map");
+
+  if (!mapElement || typeof L === "undefined") {
+    console.error("Map or Leaflet library not found.");
+    return;
+  }
+
   const map = L.map("map").setView([7.0083, 125.0894], 13);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors",
   }).addTo(map);
 
-  // Real reports gikan sa PHP/database
-  const reports = Array.isArray(window.reportData) ? window.reportData : [];
+
+  // =====================================
+  // CATEGORY NAMES
+  // Actual category_id from database
+  // =====================================
+
+  const categoryNames = {
+    "1": "Waste Management Problems",
+    "2": "Infrastructure and Public Works Issues",
+    "3": "Public Safety and Security Issues",
+    "4": "Environmental and Natural Issues",
+    "5": "Utilities and Public Services",
+    "6": "Health and Sanitation Issues",
+    "7": "Social and Community Conflicts",
+    "8": "Transportation and Road Safety Issues",
+    "9": "Public Facility Issues",
+    "10": "Animal Control Issues",
+  };
+
+
+  // =====================================
+  // STATUS COLORS
+  // =====================================
 
   const statusColors = {
     Pending: "#ff9800",
@@ -16,81 +47,358 @@ document.addEventListener("DOMContentLoaded", function () {
     Rejected: "#dc3545",
   };
 
-  const markers = [];
+
+  // =====================================
+  // DATA STORAGE
+  // =====================================
+
+  let allReports = [];
+
+
+  // =====================================
+  // MAP LAYERS
+  // =====================================
+
+  const markerLayer = L.layerGroup().addTo(map);
+
+  let heatLayer = null;
+
+  if (typeof L.heatLayer === "function") {
+    heatLayer = L.heatLayer([], {
+      radius: 35,
+      blur: 25,
+      maxZoom: 17,
+      minOpacity: 0.35,
+    }).addTo(map);
+  } else {
+    console.error("Leaflet Heat plugin was not loaded.");
+  }
+
+
+  // =====================================
+  // UI ELEMENTS
+  // =====================================
+
+  const searchLocation =
+    document.getElementById("searchLocation");
+
+  const categoryFilter =
+    document.getElementById("categoryFilter");
+
+  const statusFilter =
+    document.getElementById("statusFilter");
+
+
+  // =====================================
+  // SAFE POPUP TEXT
+  // =====================================
 
   function escapeHtml(value) {
     const div = document.createElement("div");
+
     div.textContent = value ?? "";
+
     return div.innerHTML;
   }
 
-  reports.forEach(function (report) {
-    const latitude = parseFloat(report.latitude);
-    const longitude = parseFloat(report.longtitude);
 
-    if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
-      return;
+  // =====================================
+  // DISPLAY MARKERS + HEATMAP
+  // =====================================
+
+  function displayReports(reports) {
+    markerLayer.clearLayers();
+
+    const visibleMarkers = [];
+    const heatPoints = [];
+
+
+    reports.forEach(function (report) {
+      const latitude =
+        parseFloat(report.latitude);
+
+      const longitude =
+        parseFloat(report.longitude);
+
+
+      if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude)
+      ) {
+        console.warn(
+          "Skipping report with invalid coordinates:",
+          report,
+        );
+
+        return;
+      }
+
+
+      const status =
+        String(report.status ?? "").trim();
+
+      const categoryId =
+        String(report.category_id ?? "");
+
+      const categoryName =
+        categoryNames[categoryId] ||
+        "Unknown Category";
+
+      const markerColor =
+        statusColors[status] ||
+        "#6c757d";
+
+
+      // =====================================
+      // HEATMAP POINT
+      // =====================================
+
+      heatPoints.push([
+        latitude,
+        longitude,
+        1,
+      ]);
+
+
+      // =====================================
+      // REPORT MARKER
+      // =====================================
+
+      const marker = L.circleMarker(
+        [latitude, longitude],
+        {
+          radius: 8,
+          color: markerColor,
+          fillColor: markerColor,
+          fillOpacity: 0.9,
+          weight: 2,
+        },
+      );
+
+
+      marker.bindPopup(`
+        <div>
+          <strong>
+            ${escapeHtml(report.title || "No title")}
+          </strong>
+
+          <br>
+
+          <strong>Category:</strong>
+          ${escapeHtml(categoryName)}
+
+          <br>
+
+          <strong>Status:</strong>
+          ${escapeHtml(status || "Unknown")}
+
+          <br>
+
+          <strong>Report ID:</strong>
+          ${escapeHtml(report.report_id)}
+        </div>
+      `);
+
+
+      marker.addTo(markerLayer);
+
+      visibleMarkers.push(marker);
+    });
+
+
+    // =====================================
+    // UPDATE HEATMAP
+    // =====================================
+
+    if (heatLayer) {
+      heatLayer.setLatLngs(heatPoints);
     }
 
-    const color = statusColors[report.status] || "#6c757d";
 
-    const marker = L.circleMarker([latitude, longitude], {
-      radius: 8,
-      color: color,
-      fillColor: color,
-      fillOpacity: 0.9,
-    }).addTo(map);
+    console.log("Visible reports:", reports);
+    console.log("Heatmap points:", heatPoints);
 
-    const photoHtml = report.image_url
-      ? `<img src="${escapeHtml(report.image_url)}"
-             alt="Report Photo"
-             style="width:180px;height:120px;object-fit:cover;border-radius:8px;margin-bottom:8px;"><br>`
-      : `<small>No photo available</small><br>`;
 
-    marker.bindPopup(`
-    ${photoHtml}
-    <strong>${escapeHtml(report.title)}</strong><br>
-    Category: ${escapeHtml(report.category_name ?? "No Category")}<br>
-    Status: ${escapeHtml(report.status)}<br>
-    ${report.address ? `Location: ${escapeHtml(report.address)}<br>` : ""}
-    <small>Report ID: ${escapeHtml(report.report_id)}</small>
-`);
+    // =====================================
+    // AUTOMATIC MAP ZOOM
+    // =====================================
 
-    markers.push(marker);
-  });
+    if (visibleMarkers.length > 0) {
+      const markerGroup =
+        L.featureGroup(visibleMarkers);
 
-  // Automatic zoom para makita tanan real markers
-  if (markers.length > 0) {
-    const markerGroup = L.featureGroup(markers);
-
-    map.fitBounds(markerGroup.getBounds().pad(0.2));
+      map.fitBounds(
+        markerGroup.getBounds().pad(0.2),
+        {
+          maxZoom: 16,
+        },
+      );
+    } else {
+      map.setView(
+        [7.0083, 125.0894],
+        13,
+      );
+    }
   }
 
+
   // =====================================
-  // Existing Search / Filter Controls
+  // CATEGORY + STATUS FILTER
   // =====================================
 
-  const searchLocation = document.getElementById("searchLocation");
+  function applyFilters() {
+    const selectedCategory =
+      categoryFilter
+        ? categoryFilter.value
+        : "all";
 
-  const categoryFilter = document.getElementById("categoryFilter");
+    const selectedStatus =
+      statusFilter
+        ? statusFilter.value
+        : "all";
 
-  const statusFilter = document.getElementById("statusFilter");
 
-  if (searchLocation) {
-    searchLocation.addEventListener("input", function (event) {
-      console.log("Search location:", event.target.value);
+    const filteredReports =
+      allReports.filter(function (report) {
+        const reportCategory =
+          String(report.category_id ?? "");
+
+        const reportStatus =
+          String(report.status ?? "").trim();
+
+
+        const categoryMatches =
+          selectedCategory === "all" ||
+          reportCategory === selectedCategory;
+
+
+        const statusMatches =
+          selectedStatus === "all" ||
+          reportStatus === selectedStatus;
+
+
+        return (
+          categoryMatches &&
+          statusMatches
+        );
+      });
+
+
+    console.log(
+      "Selected category:",
+      selectedCategory,
+    );
+
+    console.log(
+      "Selected status:",
+      selectedStatus,
+    );
+
+    console.log(
+      "Filtered reports:",
+      filteredReports,
+    );
+
+
+    displayReports(filteredReports);
+  }
+
+
+  // =====================================
+  // LOAD REAL REPORTS FROM API
+  // =====================================
+
+  fetch("/api/locations", {
+    method: "GET",
+
+    headers: {
+      Accept: "application/json",
+    },
+  })
+
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error(
+          "Unable to load reports from API.",
+        );
+      }
+
+      return response.json();
+    })
+
+    .then(function (result) {
+      console.log(
+        "Reports received from API:",
+        result,
+      );
+
+
+      if (
+        !result.success ||
+        !Array.isArray(result.data)
+      ) {
+        throw new Error(
+          "Invalid report data received.",
+        );
+      }
+
+
+      allReports = result.data;
+
+
+      // Show all reports initially
+      applyFilters();
+    })
+
+    .catch(function (error) {
+      console.error(
+        "Map report loading error:",
+        error,
+      );
     });
-  }
+
+
+  // =====================================
+  // CATEGORY FILTER EVENT
+  // =====================================
 
   if (categoryFilter) {
-    categoryFilter.addEventListener("change", function () {
-      console.log("Category filter:", categoryFilter.value);
-    });
+    categoryFilter.addEventListener(
+      "change",
+      function () {
+        applyFilters();
+      },
+    );
   }
 
+
+  // =====================================
+  // STATUS FILTER EVENT
+  // =====================================
+
   if (statusFilter) {
-    statusFilter.addEventListener("change", function () {
-      console.log("Status filter:", statusFilter.value);
-    });
+    statusFilter.addEventListener(
+      "change",
+      function () {
+        applyFilters();
+      },
+    );
+  }
+
+
+  // =====================================
+  // SEARCH LOCATION
+  // =====================================
+
+  if (searchLocation) {
+    searchLocation.addEventListener(
+      "input",
+      function (event) {
+        console.log(
+          "Search location:",
+          event.target.value,
+        );
+      },
+    );
   }
 });
