@@ -10,6 +10,11 @@ $routes->post('login', 'AuthController::login');
 
 $routes->get('register', 'AuthController::register');
 $routes->post('register', 'AuthController::registerSubmit');
+$routes->get('forgot-password', 'AuthController::forgotPassword');
+$routes->post('forgot-password', 'AuthController::sendResetLink');
+
+$routes->get('reset-password/(:segment)', 'AuthController::resetPassword/$1');
+$routes->post('reset-password/(:segment)', 'AuthController::updatePassword/$1');
 
 $routes->get('logout', 'AuthController::logout');
 
@@ -18,14 +23,22 @@ $routes->get('logout', 'AuthController::logout');
 $routes->get('admin/dashboard', 'DashboardController::admin', ['filter' => 'admin']);
 $routes->get('admin/reports', 'DashboardController::reports', ['filter' => 'admin']);
 $routes->get('admin/residents', 'DashboardController::residents', ['filter' => 'admin']);
+$routes->post('admin/residents/create', 'DashboardController::createResident', ['filter' => 'admin']);
+$routes->post('admin/residents/(:num)/status', 'DashboardController::updateResidentStatus/$1', ['filter' => 'admin']);
 $routes->get('admin/residents/details/(:num)', 'DashboardController::residentDetails/$1', ['filter' => 'admin']);
 $routes->get('admin/categories', 'DashboardController::categories', ['filter' => 'admin']);
+$routes->post('admin/categories/create', 'DashboardController::createCategory', ['filter' => 'admin']);
+$routes->post('admin/categories/delete/(:num)', 'DashboardController::deleteCategory/$1', ['filter' => 'admin']);
+$routes->post('admin/categories/update/(:num)', 'DashboardController::updateCategory/$1', ['filter' => 'admin']);
+$routes->post('admin/categories/toggle/(:num)', 'DashboardController::toggleCategory/$1', ['filter' => 'admin']);
 $routes->get('admin/notifications', 'DashboardController::notificationsAdmin', ['filter' => 'admin']);
 $routes->get('admin/notifications/open/(:num)', 'DashboardController::openAdminNotification/$1', ['filter' => 'admin']);
 $routes->get('admin/settings', 'DashboardController::settings', ['filter' => 'admin']);
 $routes->get('admin/account', 'DashboardController::account', ['filter' => 'admin']);
 $routes->get('admin/announcements', 'DashboardController::announcements', ['filter' => 'admin']);
 $routes->post('admin/announcements/create', 'DashboardController::createAnnouncement', ['filter' => 'admin']);
+$routes->post('admin/announcements/delete/(:num)', 'DashboardController::deleteAnnouncement/$1', ['filter' => 'admin']);
+$routes->post('admin/announcements/update/(:num)',  'DashboardController::updateAnnouncement/$1',  ['filter' => 'admin']);
 $routes->get('admin/map', 'DashboardController::map', ['filter' => 'admin']);
 $routes->post('admin/reports/update-status', 'ReportController::updateStatus', ['filter' => 'admin']);
 

@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const publishedAnnouncements = document.getElementById(
     "publishedAnnouncements",
   );
-  const draftAnnouncements = document.getElementById("draftAnnouncements");
+
   const deleteModal = document.getElementById("deleteAnnouncementModal");
   const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
 
@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ).length;
     if (totalAnnouncements) totalAnnouncements.textContent = allRows.length;
     if (publishedAnnouncements) publishedAnnouncements.textContent = published;
-    if (draftAnnouncements) draftAnnouncements.textContent = draft;
   };
 
   const applyFilters = () => {
@@ -65,49 +64,24 @@ document.addEventListener("DOMContentLoaded", () => {
         form.content.value = row.dataset.content;
         form.category.value = row.dataset.category;
         form.publishDate.value = row.dataset.publishDate;
-        form.status.value = row.dataset.status;
+        form.action = `/admin/announcements/update/${row.dataset.id}`;
+
         modal.show();
       });
 
       row.querySelector(".delete-btn")?.addEventListener("click", () => {
         currentRow = row;
+
+        const deleteForm = document.getElementById("deleteAnnouncementForm");
+
+        if (deleteForm) {
+          deleteForm.action = `/admin/announcements/delete/${row.dataset.id}`;
+        }
         const modal = new bootstrap.Modal(deleteModal);
         modal.show();
       });
     });
   };
-
-  editForm?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    if (!currentRow) return;
-    const formData = new FormData(editForm);
-    currentRow.dataset.title = formData.get("title");
-    currentRow.dataset.content = formData.get("content");
-    currentRow.dataset.category = formData.get("category") || "General";
-    currentRow.dataset.publishDate = formData.get("publishDate") || "";
-    currentRow.dataset.status = formData.get("status") || "Published";
-    currentRow.children[0].textContent = formData.get("title");
-    currentRow.children[1].textContent = formData.get("content");
-    currentRow.children[3].textContent = formData.get("publishDate") || "";
-    const badge = currentRow.querySelector(".badge");
-    const status = formData.get("status") || "Published";
-    badge.className = `badge ${status === "Published" ? "bg-success" : status === "Draft" ? "bg-warning text-dark" : "bg-secondary"}`;
-    badge.textContent = status;
-    updateSummary();
-    bootstrap.Modal.getInstance(
-      document.getElementById("editAnnouncementModal"),
-    )?.hide();
-    alert("Announcement updated.");
-  });
-
-  confirmDeleteBtn?.addEventListener("click", () => {
-    if (currentRow) {
-      currentRow.remove();
-      updateSummary();
-      bootstrap.Modal.getInstance(deleteModal)?.hide();
-      alert("Announcement deleted.");
-    }
-  });
 
   searchInput?.addEventListener("input", applyFilters);
   filterSelect?.addEventListener("change", applyFilters);

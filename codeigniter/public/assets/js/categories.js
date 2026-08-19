@@ -1,95 +1,126 @@
-window.openCategoryModal = function(modalId) {
-    const modal = document.getElementById(modalId);
-    if (!modal) return;
-    modal.classList.add('show');
-    modal.style.display = 'block';
-    modal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('modal-open');
-    let backdrop = document.getElementById(`${modalId}-backdrop`);
-    if (!backdrop) {
-        backdrop = document.createElement('div');
-        backdrop.className = 'modal-backdrop fade show';
-        backdrop.id = `${modalId}-backdrop`;
-        document.body.appendChild(backdrop);
-    }
+window.openCategoryModal = function (modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  modal.classList.add("show");
+  modal.style.display = "block";
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+  let backdrop = document.getElementById(`${modalId}-backdrop`);
+  if (!backdrop) {
+    backdrop = document.createElement("div");
+    backdrop.className = "modal-backdrop fade show";
+    backdrop.id = `${modalId}-backdrop`;
+    document.body.appendChild(backdrop);
+  }
 };
 
-window.closeCategoryModal = function(modalId) {
-    const modal = document.getElementById(modalId);
-    if (!modal) return;
-    modal.classList.remove('show');
-    modal.style.display = 'none';
-    modal.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('modal-open');
-    const backdrop = document.getElementById(`${modalId}-backdrop`);
-    if (backdrop) backdrop.remove();
+window.closeCategoryModal = function (modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  modal.classList.remove("show");
+  modal.style.display = "none";
+  modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+  const backdrop = document.getElementById(`${modalId}-backdrop`);
+  if (backdrop) backdrop.remove();
 };
 
-window.saveCategory = function() {
-    alert('Category saved successfully.');
-    closeCategoryModal('addCategoryModal');
-    closeCategoryModal('editCategoryModal');
-};
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("searchCategory");
+  const filterSelect = document.getElementById("filterStatus");
+  const rows = Array.from(document.querySelectorAll("#categoryTableBody tr"));
 
-document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('searchCategory');
-    const filterSelect = document.getElementById('filterStatus');
-    const filterBtn = document.getElementById('filterBtn');
-    const rows = Array.from(document.querySelectorAll('#categoryTableBody tr'));
-
-    document.querySelectorAll('.btn-close, [data-bs-dismiss="modal"]').forEach(button => {
-        button.addEventListener('click', () => {
-            const modalId = button.closest('.modal')?.id;
-            if (modalId) closeCategoryModal(modalId);
-        });
+  document
+    .querySelectorAll('.btn-close, [data-bs-dismiss="modal"]')
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        const modalId = button.closest(".modal")?.id;
+        if (modalId) closeCategoryModal(modalId);
+      });
     });
 
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', (event) => {
-            if (event.target === modal) closeCategoryModal(modal.id);
-        });
+  document.querySelectorAll(".modal").forEach((modal) => {
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) closeCategoryModal(modal.id);
     });
+  });
 
-    const applyFilters = () => {
-        const keyword = searchInput ? searchInput.value.toLowerCase() : '';
-        const status = filterSelect ? filterSelect.value : 'all';
+  const applyFilters = () => {
+    const keyword = searchInput ? searchInput.value.toLowerCase().trim() : "";
 
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            const hasStatus = status === 'all' || text.includes(status);
-            row.style.display = text.includes(keyword) && hasStatus ? '' : 'none';
-        });
-    };
+    const status = filterSelect ? filterSelect.value.toLowerCase() : "all";
 
-    if (searchInput) searchInput.addEventListener('input', applyFilters);
-    if (filterSelect) filterSelect.addEventListener('change', applyFilters);
-    if (filterBtn) filterBtn.addEventListener('click', applyFilters);
+    rows.forEach((row) => {
+      const text = row.textContent.toLowerCase();
+      const rowStatus = (row.dataset.status || "").toLowerCase();
 
-    document.querySelectorAll('.view-btn').forEach(btn => btn.addEventListener('click', () => {
-        alert('Category details preview opened.');
-    }));
+      const matchesSearch = text.includes(keyword);
+      const matchesStatus = status === "all" || rowStatus === status;
 
-    document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => {
-        openCategoryModal('editCategoryModal');
-    }));
+      row.style.display = matchesSearch && matchesStatus ? "" : "none";
+    });
+  };
 
-    document.querySelectorAll('.toggle-btn').forEach(btn => btn.addEventListener('click', () => {
-        const badge = btn.closest('tr').querySelector('.badge');
-        if (badge) {
-            badge.classList.toggle('bg-success');
-            badge.classList.toggle('bg-secondary');
-            badge.textContent = badge.textContent === 'Active' ? 'Inactive' : 'Active';
-        }
-    }));
+  if (searchInput) {
+    searchInput.addEventListener("input", applyFilters);
+  }
 
-    document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', () => {
-        openCategoryModal('deleteCategoryModal');
-    }));
+  if (filterSelect) {
+    filterSelect.addEventListener("change", applyFilters);
+  }
 
-    const saveBtn = document.getElementById('saveCategoryBtn');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-            saveCategory();
-        });
-    }
+  document.querySelectorAll(".edit-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const categoryId = btn.dataset.categoryId;
+      const categoryName = btn.dataset.categoryName || "";
+      const description = btn.dataset.description || "";
+      const status = btn.dataset.status || "1";
+
+      const editForm = document.getElementById("editCategoryForm");
+      const nameInput = document.getElementById("editCategoryName");
+      const descriptionInput = document.getElementById(
+        "editCategoryDescription",
+      );
+      const statusSelect = document.getElementById("editCategoryStatus");
+
+      if (!editForm) {
+        return;
+      }
+
+      editForm.action = `/admin/categories/update/${categoryId}`;
+
+      if (nameInput) {
+        nameInput.value = categoryName;
+      }
+
+      if (descriptionInput) {
+        descriptionInput.value = description;
+      }
+
+      if (statusSelect) {
+        statusSelect.value = status;
+      }
+
+      openCategoryModal("editCategoryModal");
+    });
+  });
+  document.querySelectorAll(".delete-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const categoryId = btn.dataset.categoryId;
+      const categoryName = btn.dataset.categoryName || "";
+
+      const deleteForm = document.getElementById("deleteCategoryForm");
+      const deleteName = document.getElementById("deleteCategoryName");
+
+      if (!deleteForm) return;
+
+      deleteForm.action = `/admin/categories/delete/${categoryId}`;
+
+      if (deleteName) {
+        deleteName.textContent = categoryName;
+      }
+
+      openCategoryModal("deleteCategoryModal");
+    });
+  });
 });

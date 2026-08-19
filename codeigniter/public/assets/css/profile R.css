@@ -119,10 +119,6 @@ body {
 ========================================== */
 
 .topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
   margin-bottom: 30px;
 }
 
@@ -135,35 +131,29 @@ body {
   color: #777;
   margin-top: 5px;
 }
-
-.back-link {
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-weight: 600;
-}
 /* ==========================================
-   REPORT CARD
+   PROFILE CARD
 ========================================== */
 
-.report-card {
+.profile-card {
   border: none;
   border-radius: 18px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
 
-.report-card .card-header {
+.profile-card .card-header {
   background: #2e7d32;
   color: #fff;
   padding: 18px 25px;
 }
 
-.report-card .card-header h4 {
+.profile-card .card-header h4 {
   margin: 0;
   font-weight: 600;
 }
 
-.report-card .card-body {
+.profile-card .card-body {
   background: #fff;
   padding: 35px;
 }
@@ -178,71 +168,21 @@ body {
   margin-bottom: 8px;
 }
 
-.form-control,
-.form-select {
+.form-control {
   border-radius: 10px;
   padding: 12px;
   border: 1px solid #ced4da;
   transition: 0.3s;
 }
 
-.form-control:focus,
-.form-select:focus {
+.form-control:focus {
   border-color: #43a047;
   box-shadow: 0 0 0 0.2rem rgba(67, 160, 71, 0.25);
 }
 
-.form-control.is-invalid,
-.form-select.is-invalid,
-textarea.is-invalid {
-  border-color: #dc3545;
-  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
-}
-
-.form-control.is-valid,
-.form-select.is-valid,
-textarea.is-valid {
-  border-color: #2e7d32;
-  box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.15);
-}
-
-.invalid-feedback {
-  display: none;
-  color: #dc3545;
-  font-size: 13px;
-  margin-top: 6px;
-}
-
-.invalid-feedback.show {
-  display: block;
-}
-
-.form-feedback {
-  display: none;
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  font-size: 14px;
-}
-
-.form-feedback.show {
-  display: block;
-}
-
-.success-feedback {
-  background: #e8f5e9;
-  color: #2e7d32;
-  border: 1px solid #a5d6a7;
-}
-
-textarea.form-control {
-  resize: none;
-}
-
-small.text-muted {
-  display: block;
-  margin-top: 6px;
-  font-size: 13px;
+input[readonly] {
+  background: #f8f9fa;
+  cursor: not-allowed;
 }
 
 /* ==========================================
@@ -252,50 +192,6 @@ small.text-muted {
 input[type="file"] {
   padding: 10px;
   cursor: pointer;
-}
-
-/* ==========================================
-   CHECKBOX
-========================================== */
-
-.form-check {
-  padding-top: 10px;
-}
-
-.form-check-input:checked {
-  background-color: #2e7d32;
-  border-color: #2e7d32;
-}
-
-/* ==========================================
-   MAP
-========================================== */
-
-#map {
-  width: 100%;
-  height: 420px;
-  border-radius: 12px;
-  border: 2px solid #dcdcdc;
-  margin-top: 10px;
-  overflow: hidden;
-}
-
-#map.map-invalid {
-  border-color: #dc3545;
-}
-
-#map.map-valid {
-  border-color: #2e7d32;
-}
-
-#locationStatus {
-  font-size: 13px;
-  color: #666;
-}
-
-#useLocationBtn {
-  border-radius: 10px;
-  font-weight: 600;
 }
 
 /* ==========================================
@@ -326,44 +222,21 @@ input[type="file"] {
 .btn-secondary:hover {
   transform: translateY(-2px);
 }
+
+/* ==========================================
+   CARD ANIMATION
+========================================== */
+
+.profile-card {
+  transition: 0.3s;
+}
+
+.profile-card:hover {
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+}
 /* ==========================================
    FOOTER
 ========================================== */
-
-.footer {
-  margin-top: 30px;
-}
-
-/* ==========================================
-   RESPONSIVE
-========================================== */
-
-@media (max-width: 768px) {
-  .wrapper {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-  }
-
-  .main-content {
-    margin-left: 0;
-    width: 100%;
-    padding: 20px;
-  }
-
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .report-card .card-body {
-    padding: 20px;
-  }
-}
 
 .footer {
   margin-top: 50px;
@@ -373,18 +246,6 @@ input[type="file"] {
 
 .footer hr {
   margin-bottom: 20px;
-}
-
-/* ==========================================
-   CARD ANIMATION
-========================================== */
-
-.report-card {
-  transition: 0.3s;
-}
-
-.report-card:hover {
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
 }
 
 /* ==========================================
@@ -431,12 +292,8 @@ input[type="file"] {
     padding: 20px;
   }
 
-  .report-card .card-body {
+  .profile-card .card-body {
     padding: 25px;
-  }
-
-  #map {
-    height: 350px;
   }
 }
 
@@ -449,7 +306,7 @@ input[type="file"] {
     font-size: 14px;
   }
 
-  .report-card .card-body {
+  .profile-card .card-body {
     padding: 20px;
   }
 
@@ -472,17 +329,12 @@ input[type="file"] {
     font-size: 38px;
   }
 
-  .form-control,
-  .form-select {
+  .form-control {
     font-size: 14px;
   }
 
   .form-label {
     font-size: 14px;
-  }
-
-  #map {
-    height: 280px;
   }
 
   .footer {

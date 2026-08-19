@@ -1,20 +1,56 @@
-@import url('dashboard-admin.css');
+@import url("dashboard-admin.css");
 
 .page-card {
-    border: none;
-    border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0,0,0,.05);
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
 
 .table thead th {
-    font-size: 13px;
+  font-size: 13px;
 }
 
 .btn-sm {
-    width: 36px;
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 4px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+}
+/* CATEGORY ACTION BUTTONS */
+.category-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.category-actions form {
+  margin: 0;
+  padding: 0;
+}
+
+.category-action-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.category-action-btn i {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.category-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
 }

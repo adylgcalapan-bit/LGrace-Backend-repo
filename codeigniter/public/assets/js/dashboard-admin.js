@@ -73,17 +73,16 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Logout Button
-  const logoutBtn = document.querySelector(".logout");
+  const logoutLink = document.querySelector(".logout a");
 
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", function (e) {
+  if (logoutLink) {
+    logoutLink.addEventListener("click", function (e) {
       e.preventDefault();
 
       const confirmLogout = confirm("Are you sure you want to logout?");
 
       if (confirmLogout) {
-        alert("Logged out successfully!");
-        window.location.href = "/login";
+        window.location.href = this.href;
       }
     });
   }
