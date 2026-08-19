@@ -163,7 +163,7 @@ class ReportController extends BaseController
         'description' => $description,
         'category_id' => $categoryId,
         'latitude' => $latitude,
-        'longitude' => $longitude,
+        'longtitude' => $longitude,
         'address' => $address !== '' ? $address : null,
         'status' => 'Pending',
     ]);
@@ -463,7 +463,7 @@ class ReportController extends BaseController
         }
 
         // Get associated photos before deleting database records
-        $images = $db->table('image')
+        $images = $db->table('images')
             ->where('report_id', $reportId)
             ->get()
             ->getResultArray();
@@ -477,7 +477,7 @@ class ReportController extends BaseController
             ->delete();
 
         // Delete image database records
-        $db->table('image')
+        $db->table('images')
             ->where('report_id', $reportId)
             ->delete();
 
@@ -542,14 +542,14 @@ class ReportController extends BaseController
         }
 
         // Get categories
-        $categories = $db->table('category')
+        $categories = $db->table('categories')
             ->select('category_id, category_name')
             ->orderBy('category_name', 'ASC')
             ->get()
             ->getResultArray();
 
         // Get current photo
-        $image = $db->table('image')
+        $image = $db->table('images')
             ->where('report_id', $reportId)
             ->orderBy('image_id', 'ASC')
             ->get()
@@ -615,7 +615,7 @@ class ReportController extends BaseController
         }
 
         // Make sure category exists
-        $category = $db->table('category')
+        $category = $db->table('categories')
             ->where('category_id', $categoryId)
             ->get()
             ->getRowArray();
@@ -680,7 +680,7 @@ class ReportController extends BaseController
         }
 
         // Get existing image before replacing it
-        $existingImage = $db->table('image')
+        $existingImage = $db->table('images')
             ->where('report_id', $reportId)
             ->orderBy('image_id', 'ASC')
             ->get()
@@ -711,14 +711,14 @@ class ReportController extends BaseController
 
             if ($existingImage) {
 
-                $db->table('image')
+                $db->table('images')
                     ->where('image_id', $existingImage['image_id'])
                     ->update([
                         'image_path' => $newImagePath
                     ]);
             } else {
 
-                $db->table('image')->insert([
+                $db->table('images')->insert([
                     'report_id' => $reportId,
                     'image_path' => $newImagePath
                 ]);
@@ -762,3 +762,5 @@ class ReportController extends BaseController
             ->with('success', 'Report updated successfully.');
     }
 }
+
+

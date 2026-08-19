@@ -399,6 +399,77 @@ class AuthController extends BaseController
             'token' => $rawToken,
         ]);
     }
+
+    public function updatePassword($rawToken = null)
+    {
+        if (!$rawToken) {
+            return redirect()->to('/forgot-password')
+                ->with('error', 'Invalid password reset link.');
+        }
+
+        $password = (string) $this->request->getPost('password');
+        $confirmPassword = (string) $this->request->getPost('confirm_password');
+
+        if ($password === '' || $confirmPassword === '') {
+            return redirect()->back()
+                ->with('error', 'Please complete both password fields.');
+        }
+
+        if (strlen($password) < 8) {
+            return redirect()->back()
+                ->with('error', 'Password must be at least 8 characters.');
+        }
+
+        if ($password !== $confirmPassword) {
+            return redirect()->back()
+                ->with('error', 'Passwords do not match.');
+        }
+
+        $db = \Config\Database::connect();
+        $tokenHash = hash('sha256', $rawToken);
+
+        $resetToken = $db->table('password_reset_tokens')
+            ->where('token_hash', $tokenHash)
+            ->where('expires_at > NOW()', null, false)
+            ->where('used_at', null)
+            ->get()
+            ->getRowArray();
+
+        if (!$resetToken) {
+            return redirect()->to('/forgot-password')
+                ->with('error', 'This password reset link is invalid or has expired.');
+        }
+
+        $db->transStart();
+
+        $db->table('users')
+            ->where('user_id', $resetToken['user_id'])
+            ->update([
+                'password'   => password_hash($password, PASSWORD_DEFAULT),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+        $db->table('password_reset_tokens')
+            ->where('token_hash', $tokenHash)
+            ->update([
+                'used_at' => date('Y-m-d H:i:s'),
+            ]);
+
+        // Logout remembered sessions after password change.
+        $db->table('remember_tokens')
+            ->where('user_id', $resetToken['user_id'])
+            ->delete();
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->back()
+                ->with('error', 'Unable to reset the password. Please try again.');
+        }
+
+        return redirect()->to('/login')
+            ->with('success', 'Password reset successfully. You can now log in.');
+    }
     public function register()
     {
         if (session()->get('logged_in')) {

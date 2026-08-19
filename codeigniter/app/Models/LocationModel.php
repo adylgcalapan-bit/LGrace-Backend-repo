@@ -16,7 +16,7 @@ class LocationModel extends Model
         'description',
         'category_id',
         'latitude',
-        'longitude',
+        'longtitude',
         'address',
         'status',
         'moderation_status',
@@ -24,6 +24,6 @@ class LocationModel extends Model
     ];
 
     protected $useTimestamps = true;
-    protected $createdField = 'report_date';
+    protected $createdField = 'date_reported';
     protected $updatedField = 'updated_reported';
 }

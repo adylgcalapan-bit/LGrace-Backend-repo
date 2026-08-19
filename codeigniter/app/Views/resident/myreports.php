@@ -253,8 +253,8 @@
 
                                             <!-- Date -->
                                             <td>
-                                                <?= !empty($report['report_date'])
-                                                ? date('F d, Y', strtotime($report['report_date']))
+                                                <?= !empty($report['date_reported'])
+                                                ? date('F d, Y', strtotime($report['date_reported']))
                                                 : 'No Date' ?>
                                             </td>
 

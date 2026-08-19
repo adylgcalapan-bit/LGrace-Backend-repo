@@ -31,13 +31,13 @@ class DashboardController extends BaseController
         r.report_id,
         r.address,
         r.status,
-        r.report_date,
+        r.date_reported,
         u.full_name,
         c.category_name
     ')
             ->join('users u', 'u.user_id = r.user_id', 'left')
             ->join('categories c', 'c.category_id = r.category_id', 'left')
-            ->orderBy('r.report_date', 'DESC')
+            ->orderBy('r.date_reported', 'DESC')
             ->limit(5)
             ->get()
             ->getResultArray();
@@ -53,7 +53,7 @@ class DashboardController extends BaseController
         r.report_id,
         r.title,
         r.latitude,
-        r.longitude,
+        r.longtitude,
         r.address,
         r.status,
         c.category_name
@@ -64,7 +64,7 @@ class DashboardController extends BaseController
                 'left'
             )
             ->where('r.latitude IS NOT NULL', null, false)
-            ->where('r.longitude IS NOT NULL', null, false)
+            ->where('r.longtitude IS NOT NULL', null, false)
             ->get()
             ->getResultArray();
 
@@ -174,7 +174,7 @@ created_at
             r.report_id,
             r.title,
             r.status,
-            r.report_date,
+            r.date_reported,
             c.category_name
         ')
             ->join(
@@ -183,7 +183,7 @@ created_at
                 'left'
             )
             ->where('r.user_id', $userId)
-            ->orderBy('r.report_date', 'DESC')
+            ->orderBy('r.date_reported', 'DESC')
             ->limit(5)
             ->get()
             ->getResultArray();
@@ -274,7 +274,7 @@ created_at
             r.report_id,
             r.title,
             r.status,
-            r.report_date,
+            r.date_reported,
             c.category_name
         ')
             ->join(
@@ -283,7 +283,7 @@ created_at
                 'left'
             )
             ->where('r.user_id', $userId)
-            ->orderBy('r.report_date', 'DESC')
+            ->orderBy('r.date_reported', 'DESC')
             ->limit(5)
             ->get()
             ->getResultArray();
@@ -1129,14 +1129,14 @@ public function reportDetails($id = null)
 
             if ($fromDate !== '') {
                 $builder->where(
-                    'reports.report_date >=',
+                    'reports.date_reported >=',
                     $fromDate . ' 00:00:00'
                 );
             }
 
             if ($toDate !== '') {
                 $builder->where(
-                    'reports.report_date <=',
+                    'reports.date_reported <=',
                     $toDate . ' 23:59:59'
                 );
             }
@@ -1189,7 +1189,7 @@ public function reportDetails($id = null)
                 'left'
             )
             ->join(
-                'image',
+                'images image',
                 'image.report_id = reports.report_id',
                 'left'
             )
@@ -1202,7 +1202,7 @@ public function reportDetails($id = null)
         $applyFilters($builder);
 
         $builder->orderBy(
-            'reports.report_date',
+            'reports.date_reported',
             $sort === 'oldest' ? 'ASC' : 'DESC'
         );
 
@@ -1738,7 +1738,7 @@ public function settings()
                 reports.title,
                 reports.description,
                 reports.latitude,
-                reports.longitude,
+                reports.longtitude,
                 reports.address,
                 reports.status,
                 category.category_name,
@@ -1750,12 +1750,12 @@ public function settings()
                 'left'
             )
             ->join(
-                'image',
+                'images image',
                 'image.report_id = reports.report_id',
                 'left'
             )
             ->where('reports.latitude IS NOT NULL')
-            ->where('reports.longitude IS NOT NULL')
+            ->where('reports.longtitude IS NOT NULL')
             ->get()
             ->getResultArray();
 
