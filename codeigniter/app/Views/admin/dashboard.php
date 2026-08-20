@@ -48,7 +48,7 @@
                 </li>
 
                 <li>
-                    <a href="href=" <?= base_url('admin/map') ?>>
+                    <a href="<?= base_url('admin/map') ?>">
                         <i class="bi bi-map"></i>
                         Map View
                     </a>
