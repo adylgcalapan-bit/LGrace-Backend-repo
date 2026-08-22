@@ -5,21 +5,41 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const mapElement = document.getElementById("map");
 
-  if (!mapElement || typeof L === "undefined") {
-    console.error("Map or Leaflet library not found.");
+  if (!mapElement) {
+    console.error("Map element was not found.");
     return;
   }
 
-  const map = L.map("map").setView([7.0083, 125.0894], 13);
+  if (typeof L === "undefined") {
+    console.error("Leaflet library was not loaded.");
+    return;
+  }
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "&copy; OpenStreetMap contributors",
-  }).addTo(map);
+  const defaultCenter = [7.0083, 125.0894];
+  const defaultZoom = 13;
+
+  const map = L.map("map").setView(
+    defaultCenter,
+    defaultZoom
+  );
+
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      attribution: "&copy; OpenStreetMap contributors",
+      maxZoom: 19,
+    }
+  ).addTo(map);
+
+  // Fix map size if inside dashboard/layout containers
+  setTimeout(function () {
+    map.invalidateSize();
+  }, 200);
 
 
   // =====================================
   // CATEGORY NAMES
-  // Actual category_id from database
+  // Based on actual database category_id
   // =====================================
 
   const categoryNames = {
@@ -70,8 +90,12 @@ document.addEventListener("DOMContentLoaded", function () {
       maxZoom: 17,
       minOpacity: 0.35,
     }).addTo(map);
+
+    console.log("Heatmap layer initialized.");
   } else {
-    console.error("Leaflet Heat plugin was not loaded.");
+    console.error(
+      "Leaflet Heat plugin was not loaded. Check leaflet-heat.js."
+    );
   }
 
 
@@ -96,9 +120,46 @@ document.addEventListener("DOMContentLoaded", function () {
   function escapeHtml(value) {
     const div = document.createElement("div");
 
-    div.textContent = value ?? "";
+    div.textContent =
+      value === null || value === undefined
+        ? ""
+        : String(value);
 
     return div.innerHTML;
+  }
+
+
+  // =====================================
+  // GET REPORT LONGITUDE
+  // Current DB uses "longtitude".
+  // "longitude" is kept as fallback.
+  // =====================================
+
+  function getReportLongitude(report) {
+    const value =
+      report.longtitude ??
+      report.longitude;
+
+    return parseFloat(value);
+  }
+
+
+  // =====================================
+  // VALIDATE COORDINATES
+  // =====================================
+
+  function hasValidCoordinates(
+    latitude,
+    longitude
+  ) {
+    return (
+      Number.isFinite(latitude) &&
+      Number.isFinite(longitude) &&
+      latitude >= -90 &&
+      latitude <= 90 &&
+      longitude >= -180 &&
+      longitude <= 180
+    );
   }
 
 
@@ -118,16 +179,19 @@ document.addEventListener("DOMContentLoaded", function () {
         parseFloat(report.latitude);
 
       const longitude =
-        parseFloat(report.longitude);
+        getReportLongitude(report);
 
 
+      // Skip reports without valid coordinates
       if (
-        !Number.isFinite(latitude) ||
-        !Number.isFinite(longitude)
+        !hasValidCoordinates(
+          latitude,
+          longitude
+        )
       ) {
         console.warn(
           "Skipping report with invalid coordinates:",
-          report,
+          report
         );
 
         return;
@@ -135,10 +199,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
       const status =
-        String(report.status ?? "").trim();
+        String(
+          report.status ?? ""
+        ).trim();
 
       const categoryId =
-        String(report.category_id ?? "");
+        String(
+          report.category_id ?? ""
+        );
 
       const categoryName =
         categoryNames[categoryId] ||
@@ -151,6 +219,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // =====================================
       // HEATMAP POINT
+      // [latitude, longitude, intensity]
       // =====================================
 
       heatPoints.push([
@@ -172,14 +241,20 @@ document.addEventListener("DOMContentLoaded", function () {
           fillColor: markerColor,
           fillOpacity: 0.9,
           weight: 2,
-        },
+        }
       );
 
+
+      // =====================================
+      // MARKER POPUP
+      // =====================================
 
       marker.bindPopup(`
         <div>
           <strong>
-            ${escapeHtml(report.title || "No title")}
+            ${escapeHtml(
+              report.title || "No title"
+            )}
           </strong>
 
           <br>
@@ -190,12 +265,28 @@ document.addEventListener("DOMContentLoaded", function () {
           <br>
 
           <strong>Status:</strong>
-          ${escapeHtml(status || "Unknown")}
+          ${escapeHtml(
+            status || "Unknown"
+          )}
 
           <br>
 
           <strong>Report ID:</strong>
-          ${escapeHtml(report.report_id)}
+          ${escapeHtml(
+            report.report_id
+          )}
+
+          ${
+            report.address
+              ? `
+                <br>
+                <strong>Address:</strong>
+                ${escapeHtml(
+                  report.address
+                )}
+              `
+              : ""
+          }
         </div>
       `);
 
@@ -211,12 +302,21 @@ document.addEventListener("DOMContentLoaded", function () {
     // =====================================
 
     if (heatLayer) {
-      heatLayer.setLatLngs(heatPoints);
+      heatLayer.setLatLngs(
+        heatPoints
+      );
     }
 
 
-    console.log("Visible reports:", reports);
-    console.log("Heatmap points:", heatPoints);
+    console.log(
+      "Visible reports:",
+      reports.length
+    );
+
+    console.log(
+      "Heatmap points:",
+      heatPoints
+    );
 
 
     // =====================================
@@ -225,18 +325,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (visibleMarkers.length > 0) {
       const markerGroup =
-        L.featureGroup(visibleMarkers);
+        L.featureGroup(
+          visibleMarkers
+        );
 
-      map.fitBounds(
-        markerGroup.getBounds().pad(0.2),
-        {
-          maxZoom: 16,
-        },
-      );
+      const bounds =
+        markerGroup.getBounds();
+
+      if (bounds.isValid()) {
+        map.fitBounds(
+          bounds.pad(0.2),
+          {
+            maxZoom: 16,
+          }
+        );
+      }
     } else {
       map.setView(
-        [7.0083, 125.0894],
-        13,
+        defaultCenter,
+        defaultZoom
       );
     }
   }
@@ -249,58 +356,74 @@ document.addEventListener("DOMContentLoaded", function () {
   function applyFilters() {
     const selectedCategory =
       categoryFilter
-        ? categoryFilter.value
+        ? String(
+            categoryFilter.value
+          )
         : "all";
 
     const selectedStatus =
       statusFilter
-        ? statusFilter.value
+        ? String(
+            statusFilter.value
+          )
         : "all";
 
 
     const filteredReports =
-      allReports.filter(function (report) {
-        const reportCategory =
-          String(report.category_id ?? "");
+      allReports.filter(
+        function (report) {
+          const reportCategory =
+            String(
+              report.category_id ?? ""
+            );
 
-        const reportStatus =
-          String(report.status ?? "").trim();
-
-
-        const categoryMatches =
-          selectedCategory === "all" ||
-          reportCategory === selectedCategory;
-
-
-        const statusMatches =
-          selectedStatus === "all" ||
-          reportStatus === selectedStatus;
+          const reportStatus =
+            String(
+              report.status ?? ""
+            ).trim();
 
 
-        return (
-          categoryMatches &&
-          statusMatches
-        );
-      });
+          const categoryMatches =
+            selectedCategory === "all" ||
+            selectedCategory === "" ||
+            reportCategory ===
+              selectedCategory;
+
+
+          const statusMatches =
+            selectedStatus === "all" ||
+            selectedStatus === "" ||
+            reportStatus ===
+              selectedStatus;
+
+
+          return (
+            categoryMatches &&
+            statusMatches
+          );
+        }
+      );
 
 
     console.log(
       "Selected category:",
-      selectedCategory,
+      selectedCategory
     );
 
     console.log(
       "Selected status:",
-      selectedStatus,
+      selectedStatus
     );
 
     console.log(
       "Filtered reports:",
-      filteredReports,
+      filteredReports.length
     );
 
 
-    displayReports(filteredReports);
+    displayReports(
+      filteredReports
+    );
   }
 
 
@@ -314,12 +437,15 @@ document.addEventListener("DOMContentLoaded", function () {
     headers: {
       Accept: "application/json",
     },
+
+    cache: "no-store",
   })
 
     .then(function (response) {
       if (!response.ok) {
         throw new Error(
-          "Unable to load reports from API.",
+          "Unable to load reports from API. HTTP " +
+            response.status
         );
       }
 
@@ -329,7 +455,7 @@ document.addEventListener("DOMContentLoaded", function () {
     .then(function (result) {
       console.log(
         "Reports received from API:",
-        result,
+        result
       );
 
 
@@ -338,23 +464,37 @@ document.addEventListener("DOMContentLoaded", function () {
         !Array.isArray(result.data)
       ) {
         throw new Error(
-          "Invalid report data received.",
+          "Invalid report data received from API."
         );
       }
 
 
-      allReports = result.data;
+      allReports =
+        result.data;
 
 
-      // Show all reports initially
+      console.log(
+        "Total reports loaded:",
+        allReports.length
+      );
+
+
+      // Display all reports initially
       applyFilters();
     })
 
     .catch(function (error) {
       console.error(
         "Map report loading error:",
-        error,
+        error
       );
+
+      // Clear existing map data if API failed
+      markerLayer.clearLayers();
+
+      if (heatLayer) {
+        heatLayer.setLatLngs([]);
+      }
     });
 
 
@@ -367,7 +507,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "change",
       function () {
         applyFilters();
-      },
+      }
     );
   }
 
@@ -381,7 +521,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "change",
       function () {
         applyFilters();
-      },
+      }
     );
   }
 
@@ -394,11 +534,18 @@ document.addEventListener("DOMContentLoaded", function () {
     searchLocation.addEventListener(
       "input",
       function (event) {
+        const searchValue =
+          String(
+            event.target.value ?? ""
+          )
+            .trim()
+            .toLowerCase();
+
         console.log(
           "Search location:",
-          event.target.value,
+          searchValue
         );
-      },
+      }
     );
   }
 });
