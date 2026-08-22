@@ -1,33 +1,461 @@
-@import url('dashboard-admin.css');
+@import url("dashboard-admin.css");
+
+/* =========================================================
+   MAP PAGE - RESPONSIVE UI
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    margin: 0;
+}
+
+/* =========================================================
+   MAIN CONTENT SAFETY
+   ========================================================= */
+
+.main-content {
+    min-width: 0;
+}
+
+.topbar {
+    gap: 16px;
+}
+
+.welcome {
+    min-width: 0;
+}
+
+.welcome h2 {
+    margin-bottom: 4px;
+}
+
+.welcome p {
+    margin-bottom: 0;
+    word-break: break-word;
+}
+
+/* =========================================================
+   CARDS
+   ========================================================= */
 
 .card {
     border: none;
     border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0,0,0,.05);
-}
-
-#map {
-    height: 500px;
-    width: 100%;
-    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
     overflow: hidden;
 }
 
+.map-filter-card,
+.map-container-card {
+    width: 100%;
+}
+
+/* =========================================================
+   FILTERS
+   ========================================================= */
+
+.map-filter-card .form-label {
+    font-weight: 600;
+    color: #343a40;
+    margin-bottom: 7px;
+}
+
+.map-filter-card .form-control,
+.map-filter-card .form-select {
+    min-height: 46px;
+    width: 100%;
+    border-radius: 10px;
+}
+
+.map-filter-card .form-control:focus,
+.map-filter-card .form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.15);
+}
+
+/* =========================================================
+   MAP LEGEND
+   ========================================================= */
+
 .map-legend {
     display: flex;
-    gap: 16px;
+    align-items: center;
+    gap: 12px 20px;
     flex-wrap: wrap;
 }
 
 .map-legend span {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
+    min-width: max-content;
     font-size: 14px;
     color: #555;
 }
 
-.pending { color: #ff9800; }
-.progress { color: #2196f3; }
-.resolved { color: #28a745; }
-.rejected { color: #dc3545; }
+.map-legend i {
+    font-size: 12px;
+}
+
+.pending {
+    color: #ff9800;
+}
+
+.progress {
+    color: #2196f3;
+}
+
+.resolved {
+    color: #28a745;
+}
+
+.rejected {
+    color: #dc3545;
+}
+
+/* =========================================================
+   LEAFLET MAP
+   ========================================================= */
+
+#map {
+    width: 100%;
+    height: clamp(460px, 62vh, 650px);
+    min-height: 400px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #e9ecef;
+}
+
+/*
+ Leaflet needs the container to maintain its dimensions.
+*/
+.leaflet-container {
+    width: 100%;
+    max-width: 100%;
+    font-family: inherit;
+}
+
+.leaflet-popup-content {
+    max-width: min(260px, 70vw);
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Keep Leaflet controls accessible */
+.leaflet-top,
+.leaflet-bottom {
+    z-index: 500;
+}
+
+/* =========================================================
+   MOBILE MENU BUTTON
+   ========================================================= */
+
+.mobile-menu-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border: none;
+    border-radius: 10px;
+    background: #198754;
+    color: #fff;
+    font-size: 23px;
+    cursor: pointer;
+}
+
+.mobile-menu-btn:hover {
+    background: #157347;
+}
+
+/* =========================================================
+   SIDEBAR BACKDROP
+   ========================================================= */
+
+.sidebar-backdrop {
+    display: none;
+}
+
+/* =========================================================
+   LARGE LAPTOP / TABLET
+   ========================================================= */
+
+@media (max-width: 1199.98px) {
+    #map {
+        height: clamp(450px, 58vh, 580px);
+    }
+
+    .map-legend {
+        gap: 10px 16px;
+    }
+}
+
+/* =========================================================
+   TABLET + MOBILE SIDEBAR
+   ========================================================= */
+
+@media (max-width: 991.98px) {
+    .wrapper {
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    .sidebar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        width: min(280px, 82vw) !important;
+        height: 100vh;
+        z-index: 1200;
+        transform: translateX(-105%);
+        transition: transform 0.25s ease;
+        overflow-y: auto;
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1100;
+        background: rgba(0, 0, 0, 0.42);
+    }
+
+    .sidebar-backdrop.show {
+        display: block;
+    }
+
+    .main-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    .mobile-menu-btn {
+        display: inline-flex;
+    }
+
+    .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .welcome {
+        flex: 1;
+    }
+
+    #map {
+        height: 500px;
+        min-height: 420px;
+    }
+}
+
+/* =========================================================
+   TABLET PORTRAIT
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+    .main-content {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+    }
+
+    .topbar {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .welcome h2 {
+        font-size: 1.55rem;
+    }
+
+    .welcome p {
+        font-size: 0.9rem;
+    }
+
+    .top-actions {
+        margin-left: auto;
+    }
+
+    .profile img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .map-filter-card,
+    .map-container-card {
+        border-radius: 14px;
+    }
+
+    .map-filter-card {
+        padding: 18px !important;
+    }
+
+    .map-container-card {
+        padding: 14px !important;
+    }
+
+    .map-legend {
+        gap: 9px 14px;
+    }
+
+    .map-legend span {
+        font-size: 13px;
+    }
+
+    #map {
+        height: 460px;
+        min-height: 400px;
+        border-radius: 12px;
+    }
+}
+
+/* =========================================================
+   MOBILE PHONE
+   ========================================================= */
+
+@media (max-width: 575.98px) {
+    .main-content {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .topbar {
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .mobile-menu-btn {
+        width: 40px;
+        height: 40px;
+        flex-basis: 40px;
+        font-size: 21px;
+    }
+
+    .welcome h2 {
+        font-size: 1.3rem;
+    }
+
+    .welcome p {
+        font-size: 0.82rem;
+        line-height: 1.4;
+    }
+
+    /*
+      On very small screens the name can consume too much width.
+      Keep the avatar but simplify the profile area.
+    */
+    .top-actions .profile div {
+        display: none;
+    }
+
+    .map-filter-card {
+        padding: 14px !important;
+        margin-bottom: 14px !important;
+    }
+
+    .map-filter-card .row {
+        --bs-gutter-y: 12px;
+    }
+
+    .map-filter-card .form-label {
+        font-size: 13px;
+        margin-bottom: 5px;
+    }
+
+    .map-filter-card .form-control,
+    .map-filter-card .form-select {
+        min-height: 44px;
+        font-size: 14px;
+    }
+
+    .map-container-card {
+        padding: 10px !important;
+    }
+
+    .map-legend {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 10px !important;
+    }
+
+    .map-legend span {
+        min-width: 0;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    #map {
+        height: 420px;
+        min-height: 360px;
+        border-radius: 10px;
+    }
+
+    .leaflet-control-zoom a {
+        width: 32px !important;
+        height: 32px !important;
+        line-height: 32px !important;
+    }
+
+    .leaflet-control-attribution {
+        max-width: 75vw;
+        font-size: 9px !important;
+    }
+}
+
+/* =========================================================
+   EXTRA SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 380px) {
+    .main-content {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    .welcome h2 {
+        font-size: 1.18rem;
+    }
+
+    .welcome p {
+        font-size: 0.78rem;
+    }
+
+    .map-legend {
+        grid-template-columns: 1fr;
+    }
+
+    #map {
+        height: 390px;
+        min-height: 350px;
+    }
+}
+
+/* =========================================================
+   LANDSCAPE PHONE
+   ========================================================= */
+
+@media (max-height: 500px) and (orientation: landscape) {
+    #map {
+        height: 75vh;
+        min-height: 300px;
+    }
+}
