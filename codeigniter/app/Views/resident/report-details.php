@@ -34,6 +34,7 @@ if (!isset($report)) {
     <link
         rel="stylesheet"
         href="<?= base_url('assets/css/report-details.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/resident-sidebar.css') ?>">
 
 </head>
 
@@ -233,52 +234,52 @@ if (!isset($report)) {
 
 
                         <!-- PHOTOS -->
-<div class="col-md-6 mb-4">
+                        <div class="col-md-6 mb-4">
 
-    <label class="form-label">
-        Uploaded Photos
-    </label>
+                            <label class="form-label">
+                                Uploaded Photos
+                            </label>
 
-    <?php if (!empty($images)): ?>
+                            <?php if (!empty($images)): ?>
 
-        <div class="row g-2">
+                                <div class="row g-2">
 
-            <?php foreach ($images as $image): ?>
+                                    <?php foreach ($images as $image): ?>
 
-                <div class="col-12 <?= count($images) > 1 ? 'col-sm-6' : '' ?>">
+                                        <div class="col-12 <?= count($images) > 1 ? 'col-sm-6' : '' ?>">
 
-                    <div class="image-container">
+                                            <div class="image-container">
 
-                        <img
-                            src="<?= base_url($image['image_path']) ?>"
-                            alt="Report Photo"
-                            class="img-fluid rounded w-100"
-                            style="
+                                                <img
+                                                    src="<?= base_url($image['image_path']) ?>"
+                                                    alt="Report Photo"
+                                                    class="img-fluid rounded w-100"
+                                                    style="
                                 height: 220px;
                                 object-fit: cover;
                             ">
 
-                    </div>
+                                            </div>
 
-                </div>
+                                        </div>
 
-            <?php endforeach; ?>
+                                    <?php endforeach; ?>
 
-        </div>
+                                </div>
 
-        <small class="text-muted d-block mt-2">
-            <?= count($images) ?> photo(s) uploaded
-        </small>
+                                <small class="text-muted d-block mt-2">
+                                    <?= count($images) ?> photo(s) uploaded
+                                </small>
 
-    <?php else: ?>
+                            <?php else: ?>
 
-        <p class="text-muted mb-0">
-            No photos available.
-        </p>
+                                <p class="text-muted mb-0">
+                                    No photos available.
+                                </p>
 
-    <?php endif; ?>
+                            <?php endif; ?>
 
-</div>
+                        </div>
 
                         <!-- LOCATION -->
                         <div class="col-md-6 mb-4">

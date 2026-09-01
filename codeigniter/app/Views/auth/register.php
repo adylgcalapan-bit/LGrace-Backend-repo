@@ -431,6 +431,58 @@
 
                             </div>
 
+                            <div class="mt-2">
+                                <div class="d-flex gap-2">
+                                    <button
+                                        type="button"
+                                        id="sendVerificationCodeBtn"
+                                        class="btn btn-outline-success">
+                                        Send Code
+                                    </button>
+
+                                    <span
+                                        id="emailVerificationStatus"
+                                        class="align-self-center small text-muted">
+                                        Email not verified
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div
+                                id="verificationCodeSection"
+                                class="mt-3"
+                                style="display: none;">
+
+                                <label
+                                    for="verificationCode"
+                                    class="form-label">
+                                    Verification Code
+                                </label>
+
+                                <div class="d-flex gap-2">
+                                    <input
+                                        type="text"
+                                        id="verificationCode"
+                                        class="form-control"
+                                        maxlength="6"
+                                        inputmode="numeric"
+                                        autocomplete="one-time-code"
+                                        placeholder="Enter 6-digit code">
+
+                                    <button
+                                        type="button"
+                                        id="verifyEmailCodeBtn"
+                                        class="btn btn-success">
+                                        Verify
+                                    </button>
+                                </div>
+
+                                <div
+                                    id="verificationCodeMessage"
+                                    class="small mt-2">
+                                </div>
+                            </div>
+
                         </div>
 
 

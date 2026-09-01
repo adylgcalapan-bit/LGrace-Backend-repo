@@ -20,6 +20,8 @@ use Psr\Log\LoggerInterface;
  */
 abstract class BaseController extends Controller
 {
+
+    protected $helpers = ['system'];
     /**
      * Be sure to declare properties for any property fetch you initialized.
      * The creation of dynamic property is deprecated in PHP 8.2.
@@ -41,5 +43,47 @@ abstract class BaseController extends Controller
 
         // Preload any models, libraries, etc, here.
         // $this->session = service('session');
+    }
+
+    protected function getSystemSettings(): array
+    {
+        $defaults = [
+            'system_name' => 'Community Problems Visibility System',
+            'barangay_name' => 'Barangay Saguing',
+            'contact_email' => null,
+            'contact_number' => null,
+            'system_description' => null,
+
+            'email_notifications' => 1,
+            'report_notifications' => 1,
+            'registration_notifications' => 1,
+
+            'session_timeout' => 30,
+            'date_format' => 'MM/DD/YYYY',
+            'items_per_page' => 10,
+            'theme_preference' => 'Light',
+        ];
+
+        try {
+            $db = \Config\Database::connect();
+
+            $settings = $db->table('settings')
+                ->orderBy('setting_id', 'ASC')
+                ->get()
+                ->getRowArray();
+
+            if (! $settings) {
+                return $defaults;
+            }
+
+            return array_merge($defaults, $settings);
+        } catch (\Throwable $e) {
+            log_message(
+                'error',
+                'Unable to load system settings: ' . $e->getMessage()
+            );
+
+            return $defaults;
+        }
     }
 }

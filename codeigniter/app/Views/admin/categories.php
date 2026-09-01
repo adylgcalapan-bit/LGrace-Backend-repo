@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -8,9 +8,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="<?= base_url('assets/css/categories.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-theme.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css') ?>">
 </head>
 
-<body>
+<body class="<?= esc(system_theme_class()) ?>">
+    <button
+        type="button"
+        class="admin-mobile-toggle"
+        aria-label="Open admin menu">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div class="admin-sidebar-overlay"></div>
     <div class="wrapper">
         <aside class="sidebar">
             <div class="logo">
@@ -25,7 +35,7 @@
                 <li class="active"><a href="<?= base_url('admin/categories') ?>"><i class="bi bi-tags"></i>Categories</a></li>
                 <?= view('admin/notification_menu') ?>
                 <li><a href="<?= base_url('admin/settings') ?>"><i class="bi bi-gear"></i>Settings</a></li>
-                <li><a href="<?= base_url('admin/account') ?>"><i class="bi bi-person-circle"></i>Account / Profile</a></li>
+                <li><a href="<?= base_url('admin/account') ?>"><i class="bi bi-person-circle"></i>Account</a></li>
                 <li class="logout"><a href="<?= base_url('logout') ?>"><i class="bi bi-box-arrow-right"></i>Logout</a></li>
             </ul>
         </aside>
@@ -55,11 +65,57 @@
                     </div>
                     <div class="col-lg-3">
                         <label class="form-label">Status</label>
-                        <select class="form-select" id="filterStatus">
-                            <option value="all">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
+                        <input
+                            type="hidden"
+                            id="filterStatus"
+                            value="all">
+
+                        <div class="dropdown report-filter-dropdown">
+
+                            <button
+                                class="btn report-filter-dropdown-btn dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+
+                                <span id="categoryStatusLabel">
+                                    All Status
+                                </span>
+
+                            </button>
+
+                            <ul class="dropdown-menu report-filter-menu">
+
+                                <li>
+                                    <button
+                                        type="button"
+                                        class="dropdown-item category-status-option"
+                                        data-value="all">
+                                        All Status
+                                    </button>
+                                </li>
+
+                                <li>
+                                    <button
+                                        type="button"
+                                        class="dropdown-item category-status-option"
+                                        data-value="active">
+                                        Active
+                                    </button>
+                                </li>
+
+                                <li>
+                                    <button
+                                        type="button"
+                                        class="dropdown-item category-status-option"
+                                        data-value="inactive">
+                                        Inactive
+                                    </button>
+                                </li>
+
+                            </ul>
+
+                        </div>
                     </div>
                     <div class="col-lg-3">
 
@@ -463,6 +519,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?= base_url('assets/js/categories.js') ?>"></script>
+    <script src="<?= base_url('assets/js/admin-responsive.js') ?>"></script>
 </body>
 
 </html>

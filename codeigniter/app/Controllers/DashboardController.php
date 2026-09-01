@@ -11,6 +11,23 @@ class DashboardController extends BaseController
     {
         $db = \Config\Database::connect();
 
+        $settings = $this->getSystemSettings();
+
+        $userId = (int) session()->get('user_id');
+
+        $admin = $db->table('users')
+            ->select('
+        user_id,
+        full_name,
+        profile_image,
+        role,
+        is_active
+    ')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->get()
+            ->getRowArray();
+
         $totalReports = $db->table('reports')
             ->countAllResults();
 
@@ -26,9 +43,14 @@ class DashboardController extends BaseController
             ->where('status', 'Resolved')
             ->countAllResults();
 
+        $rejectedReports = $db->table('reports')
+            ->where('status', 'Rejected')
+            ->countAllResults();
+
         $recentReports = $db->table('reports r')
             ->select('
         r.report_id,
+        r.is_anonymous,
         r.address,
         r.status,
         r.date_reported,
@@ -41,11 +63,53 @@ class DashboardController extends BaseController
             ->limit(5)
             ->get()
             ->getResultArray();
+
+
         foreach ($recentReports as &$report) {
-            $report['display_resident_name'] = trim(
+
+            $isAnonymous =
+                (int) ($report['is_anonymous'] ?? 0) === 1;
+
+            $realResidentName = trim(
                 (string) ($report['full_name'] ?? 'Unknown Resident')
             );
+
+            $displayResidentName = $realResidentName;
+
+            if (
+                $isAnonymous &&
+                $realResidentName !== 'Unknown Resident'
+            ) {
+
+                $nameParts = preg_split(
+                    '/\s+/',
+                    $realResidentName
+                );
+
+                $maskedParts = array_map(
+                    function ($part) {
+
+                        if ($part === '') {
+                            return '';
+                        }
+
+                        return mb_strtoupper(
+                            mb_substr($part, 0, 1)
+                        ) . '***';
+                    },
+                    $nameParts
+                );
+
+                $displayResidentName = implode(
+                    ' ',
+                    $maskedParts
+                );
+            }
+
+            $report['display_resident_name'] =
+                $displayResidentName;
         }
+
         unset($report);
 
         $mapReports = $db->table('reports r')
@@ -68,21 +132,16 @@ class DashboardController extends BaseController
             ->get()
             ->getResultArray();
 
-        $dashboardAnnouncements = $db->table('announcements')
-            ->select('announcement_id, title, content, category, publish_date, status, created_at')
-            ->where('status', 'Published')
-            ->orderBy('publish_date', 'DESC')
-            ->orderBy('created_at', 'DESC')
-            ->limit(5)
-            ->get()
-            ->getResultArray();
+
 
         return view('admin/dashboard', [
-            'dashboardAnnouncements' => $dashboardAnnouncements,
+            'settings' => $settings,
+            'admin' => $admin,
             'totalReports' => $totalReports,
             'pendingReports' => $pendingReports,
             'progressReports' => $progressReports,
             'resolvedReports' => $resolvedReports,
+            'rejectedReports' => $rejectedReports,
             'recentReports' => $recentReports,
             'mapReports' => $mapReports
         ]);
@@ -118,16 +177,17 @@ class DashboardController extends BaseController
 
         $resident = $db->table('users')
             ->select('
-            user_id,
-            full_name,
-            email,
-          mobile_number,
-username,
-address,
-profile_image,
-is_active,
-created_at
-        ')
+    user_id,
+    full_name,
+    email,
+    mobile_number,
+    username,
+    address,
+    profile_image,
+    is_active,
+    email_verified_at,
+    created_at
+')
             ->where('user_id', $userId)
             ->where('role', 'resident')
             ->get()
@@ -194,10 +254,11 @@ created_at
 
         $resident['image_url'] = !empty($resident['profile_image'])
             ? base_url(ltrim($resident['profile_image'], '/\\'))
-            : base_url('assets/images/resident picture.jpg');
+            : base_url('assets/images/resident picture.png');
 
         return $this->response->setJSON([
             'success' => true,
+            'date_format' => $this->getSystemSettings()['date_format'] ?? 'MM/DD/YYYY',
 
             'resident' => [
                 'user_id' => $resident['user_id'],
@@ -214,6 +275,7 @@ created_at
                 'address' => $resident['address'],
                 'image_url' => $resident['image_url'],
                 'is_active' => (int) $resident['is_active'],
+                'email_verified_at' => $resident['email_verified_at'],
                 'created_at' => $resident['created_at']
             ],
 
@@ -248,8 +310,6 @@ created_at
                 ]);
         }
 
-
-
         $totalReports = $db->table('reports')
             ->where('user_id', $userId)
             ->countAllResults();
@@ -267,6 +327,11 @@ created_at
         $resolvedReports = $db->table('reports')
             ->where('user_id', $userId)
             ->where('status', 'Resolved')
+            ->countAllResults();
+
+        $rejectedReports = $db->table('reports')
+            ->where('user_id', $userId)
+            ->where('status', 'Rejected')
             ->countAllResults();
 
         $recentReports = $db->table('reports r')
@@ -290,7 +355,7 @@ created_at
 
         $imageUrl = !empty($resident['profile_image'])
             ? base_url(ltrim($resident['profile_image'], '/\\'))
-            : base_url('assets/images/resident picture.jpg');
+            : base_url('assets/images/resident picture.png');
 
         return view('resident/dashboard', [
             'resident' => [
@@ -307,7 +372,7 @@ created_at
                 'mobile_number' => $resident['mobile_number'] ?? '',
                 'address'       => $resident['address'] ?? '',
                 'image_url'     => $imageUrl,
-                'is_active' => (int) $resident['is_active'],
+                'is_active'     => (int) $resident['is_active'],
                 'created_at'    => $resident['created_at'] ?? null,
             ],
 
@@ -316,12 +381,12 @@ created_at
                 'pending'     => $pendingReports,
                 'in_progress' => $progressReports,
                 'resolved'    => $resolvedReports,
+                'rejected'    => $rejectedReports,
             ],
 
             'recent_reports' => $recentReports,
         ]);
     }
-
     public function createResident()
     {
         $db = \Config\Database::connect();
@@ -339,9 +404,7 @@ created_at
             (string) $this->request->getPost('mobile_number')
         );
 
-        $username = trim(
-            (string) $this->request->getPost('username')
-        );
+        $username = 'resident_' . bin2hex(random_bytes(4));
 
         $purokId = (int) $this->request->getPost('purok_id');
 
@@ -360,7 +423,7 @@ created_at
         if (
             $fullName === '' ||
             $email === '' ||
-            $username === '' ||
+
             $purokId <= 0 ||
             $address === '' ||
             $password === '' ||
@@ -438,17 +501,6 @@ created_at
                 );
         }
 
-        // =========================
-        // DUPLICATE USERNAME
-        // =========================
-        if ($userModel->where('username', $username)->first()) {
-            return redirect()->back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Username is already taken.'
-                );
-        }
 
 
 
@@ -518,37 +570,524 @@ created_at
         // =========================
         // CREATE RESIDENT
         // =========================
-        $userModel->insert([
-            'full_name'     => $fullName,
-            'email'         => $email,
-            'mobile_number' => $mobileNumber !== ''
+        $normalizedEmail = strtolower($email);
+
+        $residentId = $userModel->insert([
+            'full_name'         => $fullName,
+            'email'             => $normalizedEmail,
+            'mobile_number'     => $mobileNumber !== ''
                 ? $mobileNumber
                 : null,
-            'username'      => $username,
-            'address'       => $address,
-            'purok_id'      => $purokId,
-            'profile_image' => $profileImagePath,
-            'password'      => password_hash(
+            'username'          => $username,
+            'address'           => $address,
+            'purok_id'          => $purokId,
+            'profile_image'     => $profileImagePath,
+            'password'          => password_hash(
                 $password,
                 PASSWORD_DEFAULT
             ),
-            'role'          => 'resident',
-            'is_active'     => 1,
+            'role'              => 'resident',
+
+            // Admin-created resident must verify email first
+            'is_active'         => 0,
+            'email_verified_at' => null,
         ]);
+
+        if (!$residentId) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Unable to create the resident account.'
+                );
+        }
+
+
+        // =========================
+        // CREATE EMAIL OTP
+        // =========================
+        $existingVerification = $db->table('email_verifications')
+            ->where('email', $normalizedEmail)
+            ->get()
+            ->getRowArray();
+
+        $verificationCode =
+            (string) random_int(100000, 999999);
+
+        $codeHash =
+            hash('sha256', $verificationCode);
+
+        $now =
+            date('Y-m-d H:i:s');
+
+        $expiresAt =
+            date(
+                'Y-m-d H:i:s',
+                time() + (10 * 60)
+            );
+
+        $verificationData = [
+            'code_hash'   => $codeHash,
+            'expires_at'  => $expiresAt,
+            'attempts'    => 0,
+            'verified_at' => null,
+            'updated_at'  => $now,
+        ];
+
+        if ($existingVerification) {
+
+            $verificationSaved =
+                $db->table('email_verifications')
+                ->where('email', $normalizedEmail)
+                ->update($verificationData);
+        } else {
+
+            $verificationData['email'] =
+                $normalizedEmail;
+
+            $verificationData['created_at'] =
+                $now;
+
+            $verificationSaved =
+                $db->table('email_verifications')
+                ->insert($verificationData);
+        }
+
+
+        // =========================
+        // OTP SAVE FAILED
+        // =========================
+        if (!$verificationSaved) {
+
+            $userModel->delete($residentId);
+
+            if (
+                $profileImagePath !== null &&
+                is_file(FCPATH . $profileImagePath)
+            ) {
+                @unlink(FCPATH . $profileImagePath);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Unable to create the email verification code. Please try again.'
+                );
+        }
+
+
+        // =========================
+        // SEND VERIFICATION EMAIL
+        // =========================
+        try {
+
+            $emailService = service('email');
+
+            $emailService->clear(true);
+
+            $emailConfig = config('Email');
+
+            $emailService->setFrom(
+                $emailConfig->fromEmail,
+                $emailConfig->fromName
+            );
+
+            $emailService->setTo(
+                $normalizedEmail
+            );
+
+            $emailService->setSubject(
+                'Verify Your Resident Account - Community Visibility System'
+            );
+
+            $message = '
+        <div style="
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        ">
+
+            <h2>Resident Account Verification</h2>
+
+            <p>
+                An administrator of Barangay Saguing
+                created a resident account for you in the
+                Community Visibility System.
+            </p>
+
+            <p>
+                Your verification code is:
+            </p>
+
+            <div style="
+                font-size: 30px;
+                font-weight: bold;
+                letter-spacing: 8px;
+                margin: 24px 0;
+            ">
+                ' . esc($verificationCode) . '
+            </div>
+
+            <p>
+                This verification code will expire in
+                <strong>10 minutes</strong>.
+            </p>
+
+            <p>
+                To activate your account, open the
+                Community Visibility System and log in
+                using the account credentials provided
+                by the administrator.
+            </p>
+
+            <p>
+                After entering the correct username/email
+                and password, you will be asked to enter
+                this verification code.
+            </p>
+
+           <p>
+    If you were not expecting this account,
+    please contact the Barangay administrator.
+</p>
+
+<hr>
+
+<small>
+    Barangay Saguing Community Visibility System
+</small>
+
+<p style="
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 20px;
+">
+    This is an automated message from the Community Visibility System.
+    Please do not reply to this email.
+</p>
+
+</div>
+';
+
+            $emailService->setMessage($message);
+
+            if (!$emailService->send()) {
+                throw new \RuntimeException(
+                    'Unable to send verification email.'
+                );
+            }
+        } catch (\Throwable $e) {
+
+            // Delete unused OTP
+            $db->table('email_verifications')
+                ->where('email', $normalizedEmail)
+                ->delete();
+
+            // Delete incomplete resident account
+            $userModel->delete($residentId);
+
+            // Delete uploaded profile picture
+            if (
+                $profileImagePath !== null &&
+                is_file(FCPATH . $profileImagePath)
+            ) {
+                @unlink(FCPATH . $profileImagePath);
+            }
+
+            log_message(
+                'error',
+                'Admin-created resident verification email failed: {message}',
+                [
+                    'message' => $e->getMessage()
+                ]
+            );
+
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Resident account was not created because the verification email could not be sent. Please try again.'
+                );
+        }
+
+
+        // =========================
+        // SUCCESS
+        // =========================
+        return redirect()->to('/admin/residents')
+            ->with(
+                'success',
+                'Resident account created successfully. A verification code was sent to the resident email. The account will remain inactive until email verification is completed.'
+            );
+    }
+
+    public function resendResidentVerificationCode($userId = null)
+    {
+        $db = \Config\Database::connect();
+
+        $userId = (int) $userId;
+
+        if ($userId <= 0) {
+            return redirect()->to('/admin/residents')
+                ->with(
+                    'error',
+                    'Invalid resident account.'
+                );
+        }
+
+        // ==========================================
+        // FIND RESIDENT
+        // ==========================================
+
+        $resident = $db->table('users')
+            ->select(
+                'user_id, full_name, email, role, is_active, email_verified_at'
+            )
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->get()
+            ->getRowArray();
+
+        if (!$resident) {
+            return redirect()->to('/admin/residents')
+                ->with(
+                    'error',
+                    'Resident account not found.'
+                );
+        }
+
+        // Only pending verification residents
+        if (
+            (int) ($resident['is_active'] ?? 0) === 1 ||
+            !empty($resident['email_verified_at'])
+        ) {
+            return redirect()->to('/admin/residents')
+                ->with(
+                    'error',
+                    'A verification code can only be resent to a resident who is still pending verification.'
+                );
+        }
+
+        $email = strtolower(
+            trim((string) ($resident['email'] ?? ''))
+        );
+
+        if ($email === '') {
+            return redirect()->to('/admin/residents')
+                ->with(
+                    'error',
+                    'This resident does not have a valid email address.'
+                );
+        }
+
+        // ==========================================
+        // EXISTING OTP
+        // ==========================================
+
+        $existingVerification = $db->table('email_verifications')
+            ->where('email', $email)
+            ->get()
+            ->getRowArray();
+
+        // 60-second cooldown
+        if (!empty($existingVerification['updated_at'])) {
+            $lastSent = strtotime(
+                (string) $existingVerification['updated_at']
+            );
+
+            if (
+                $lastSent !== false &&
+                (time() - $lastSent) < 60
+            ) {
+                $remaining =
+                    60 - (time() - $lastSent);
+
+                return redirect()->to('/admin/residents')
+                    ->with(
+                        'error',
+                        'Please wait ' . $remaining .
+                            ' seconds before resending another verification code.'
+                    );
+            }
+        }
+
+        // ==========================================
+        // CREATE NEW OTP
+        // ==========================================
+
+        $verificationCode =
+            (string) random_int(100000, 999999);
+
+        $codeHash =
+            hash('sha256', $verificationCode);
+
+        $now =
+            date('Y-m-d H:i:s');
+
+        $expiresAt =
+            date(
+                'Y-m-d H:i:s',
+                time() + (10 * 60)
+            );
+
+        $verificationData = [
+            'code_hash'   => $codeHash,
+            'expires_at'  => $expiresAt,
+            'attempts'    => 0,
+            'verified_at' => null,
+            'updated_at'  => $now,
+        ];
+
+        if ($existingVerification) {
+            $saved = $db->table('email_verifications')
+                ->where('email', $email)
+                ->update($verificationData);
+        } else {
+            $verificationData['email'] =
+                $email;
+
+            $verificationData['created_at'] =
+                $now;
+
+            $saved = $db->table('email_verifications')
+                ->insert($verificationData);
+        }
+
+        if (!$saved) {
+            return redirect()->to('/admin/residents')
+                ->with(
+                    'error',
+                    'Unable to create a new verification code.'
+                );
+        }
+
+        // ==========================================
+        // SEND OTP EMAIL
+        // ==========================================
+
+        try {
+            $emailService = service('email');
+
+            $emailService->clear(true);
+
+            $emailConfig = config('Email');
+
+            $emailService->setFrom(
+                $emailConfig->fromEmail,
+                $emailConfig->fromName
+            );
+
+            $emailService->setTo($email);
+
+            $emailService->setSubject(
+                'New Resident Verification Code - Community Visibility System'
+            );
+
+            $message = '
+            <div style="
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+            ">
+
+                <h2>Resident Account Verification</h2>
+
+                <p>Hello ' .
+                esc((string) ($resident['full_name'] ?? 'Resident')) .
+                ',</p>
+
+                <p>
+                    The administrator requested a new
+                    verification code for your resident account.
+                </p>
+
+                <p>
+                    Your new verification code is:
+                </p>
+
+                <div style="
+                    font-size: 30px;
+                    font-weight: bold;
+                    letter-spacing: 8px;
+                    margin: 24px 0;
+                ">
+                    ' . esc($verificationCode) . '
+                </div>
+
+                <p>
+                    This code will expire in
+                    <strong>10 minutes</strong>.
+                </p>
+
+                <p>
+                    Log in using your resident credentials
+                    and enter this code on the verification
+                    page to activate your account.
+                </p>
+
+              <hr>
+
+<small>
+    Barangay Saguing Community Visibility System
+</small>
+
+<p style="
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 20px;
+">
+    This is an automated message from the Community Visibility System.
+    Please do not reply to this email.
+</p>
+
+            </div>
+        ';
+
+            $emailService->setMessage($message);
+
+            if (!$emailService->send()) {
+                throw new \RuntimeException(
+                    'Unable to send verification email.'
+                );
+            }
+        } catch (\Throwable $e) {
+            log_message(
+                'error',
+                'Admin resident OTP resend failed: {message}',
+                [
+                    'message' => $e->getMessage()
+                ]
+            );
+
+            return redirect()->to('/admin/residents')
+                ->with(
+                    'error',
+                    'Unable to send the verification code. Please try again.'
+                );
+        }
 
         return redirect()->to('/admin/residents')
             ->with(
                 'success',
-                'Resident account created successfully.'
+                'A new verification code was sent to ' .
+                    $email . '.'
             );
     }
 
-    public function updateResidentStatus($userId)
+    public function deletePendingResident($userId = null)
     {
         $db = \Config\Database::connect();
 
+        $userId = (int) $userId;
+
+        if ($userId <= 0) {
+            return redirect()->to('/admin/residents')
+                ->with('error', 'Invalid resident account.');
+        }
+
         $resident = $db->table('users')
-            ->select('user_id, full_name, is_active')
+            ->select(
+                'user_id, full_name, email, profile_image, is_active, email_verified_at'
+            )
             ->where('user_id', $userId)
             ->where('role', 'resident')
             ->get()
@@ -557,6 +1096,102 @@ created_at
         if (!$resident) {
             return redirect()->to('/admin/residents')
                 ->with('error', 'Resident account not found.');
+        }
+
+        $isPendingVerification =
+            (int) ($resident['is_active'] ?? 0) === 0 &&
+            empty($resident['email_verified_at']);
+
+        if (!$isPendingVerification) {
+            return redirect()->to('/admin/residents')
+                ->with(
+                    'error',
+                    'Only residents with Pending Verification status can be deleted here.'
+                );
+        }
+
+        $db->transStart();
+
+        // Remove unused verification code
+        $db->table('email_verifications')
+            ->where('email', $resident['email'])
+            ->delete();
+
+        // Remove notifications connected to this pending resident
+        $db->table('notifications')
+            ->groupStart()
+            ->where('related_user_id', $userId)
+            ->orWhere('user_id', $userId)
+            ->groupEnd()
+            ->delete();
+
+        // Delete pending resident account
+        $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->delete();
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->to('/admin/residents')
+                ->with(
+                    'error',
+                    'Unable to delete the pending resident account.'
+                );
+        }
+
+        // Remove uploaded profile picture if one exists
+        $profileImage = trim(
+            (string) ($resident['profile_image'] ?? '')
+        );
+
+        $profileImage = ltrim($profileImage, '/\\');
+
+        if (
+            $profileImage !== '' &&
+            strpos($profileImage, 'uploads/profiles/') === 0
+        ) {
+            $profilePath = FCPATH . $profileImage;
+
+            if (is_file($profilePath)) {
+                @unlink($profilePath);
+            }
+        }
+
+        return redirect()->to('/admin/residents')
+            ->with(
+                'success',
+                'Pending resident account deleted successfully.'
+            );
+    }
+
+    public function updateResidentStatus($userId)
+    {
+        $db = \Config\Database::connect();
+
+        $resident = $db->table('users')
+            ->select('user_id, full_name, is_active, email_verified_at')
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->get()
+            ->getRowArray();
+
+        if (!$resident) {
+            return redirect()->to('/admin/residents')
+                ->with('error', 'Resident account not found.');
+        }
+
+        // Prevent activating an unverified resident account
+        if (
+            (int) $resident['is_active'] !== 1 &&
+            empty($resident['email_verified_at'])
+        ) {
+            return redirect()->to('/admin/residents')
+                ->with(
+                    'error',
+                    'This resident cannot be activated yet because the email address has not been verified.'
+                );
         }
 
         $newStatus = (int) $resident['is_active'] === 1 ? 0 : 1;
@@ -612,17 +1247,17 @@ created_at
     // RESIDENT - MY REPORTS
     // =========================
     public function myReports()
-{
-    $db = \Config\Database::connect();
+    {
+        $db = \Config\Database::connect();
 
-    $userId = (int) session()->get('user_id');
+        $userId = (int) session()->get('user_id');
 
-    if ($userId <= 0) {
-        return redirect()->to('/login');
-    }
+        if ($userId <= 0) {
+            return redirect()->to('/login');
+        }
 
-    $reports = $db->table('reports')
-        ->select('
+        $reports = $db->table('reports')
+            ->select('
             reports.*,
             categories.category_name,
             (
@@ -633,20 +1268,20 @@ created_at
                 LIMIT 1
             ) AS image_path
         ')
-        ->join(
-            'categories',
-            'categories.category_id = reports.category_id',
-            'left'
-        )
-        ->where('reports.user_id', $userId)
-        ->orderBy('reports.report_id', 'DESC')
-        ->get()
-        ->getResultArray();
+            ->join(
+                'categories',
+                'categories.category_id = reports.category_id',
+                'left'
+            )
+            ->where('reports.user_id', $userId)
+            ->orderBy('reports.report_id', 'DESC')
+            ->get()
+            ->getResultArray();
 
-    return view('resident/myreports', [
-        'reports' => $reports
-    ]);
-}
+        return view('resident/myreports', [
+            'reports' => $reports
+        ]);
+    }
 
     // =========================
     // RESIDENT NOTIFICATIONS
@@ -748,12 +1383,37 @@ created_at
             ]);
 
         // If notification is connected to a report
+        // If notification is connected to a report
         if (!empty($notification['report_id'])) {
             return redirect()->to(
                 '/admin/reports?report_id=' . $notification['report_id']
             );
         }
 
+        // If notification is connected to a resident
+        $relatedUserId = (int) ($notification['related_user_id'] ?? 0);
+
+        if ($relatedUserId > 0) {
+            return redirect()->to('/admin/residents?resident_id=' . $relatedUserId);
+        }
+
+        // Fallback for old registration notifications without related_user_id
+        $message = (string) ($notification['message'] ?? '');
+
+        if (str_starts_with($message, 'New resident registered:')) {
+            return redirect()->to('/admin/residents');
+        }
+
+        return redirect()->to('/admin/notifications');
+
+        // Registration notification
+        $relatedUserId = (int) ($notification['related_user_id'] ?? 0);
+
+        if ($relatedUserId > 0) {
+            return redirect()->to(
+                '/admin/residents?resident_id=' . $relatedUserId
+            );
+        }
         return redirect()->to('/admin/notifications');
     }
 
@@ -763,36 +1423,509 @@ created_at
     // RESIDENT PROFILE
     // =========================
     public function profile()
-{
-    $db = \Config\Database::connect();
+    {
+        $db = \Config\Database::connect();
 
-    $userId = (int) session()->get('user_id');
+        $userId = (int) session()->get('user_id');
 
-    if ($userId <= 0) {
-        return redirect()->to('/login');
+        if ($userId <= 0) {
+            return redirect()->to('/login');
+        }
+
+        $resident = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->get()
+            ->getRowArray();
+
+        if (!$resident) {
+            return redirect()->to('/resident/dashboard')
+                ->with('error', 'Resident account not found.');
+        }
+
+        $settings = $db->table('settings')
+            ->orderBy('setting_id', 'ASC')
+            ->get()
+            ->getRowArray();
+
+        $puroks = $db->table('puroks')
+            ->where('is_active', 1)
+            ->orderBy('purok_name', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        return view('resident/profile', [
+            'resident' => $resident,
+            'settings' => $settings,
+            'puroks'   => $puroks
+        ]);
     }
 
-    $resident = $db->table('users')
-        ->where('user_id', $userId)
-        ->where('role', 'resident')
-        ->get()
-        ->getRowArray();
+    public function sendProfileEmailCode()
+    {
+        $db = \Config\Database::connect();
 
-    if (!$resident) {
-        return redirect()->to('/resident/dashboard')
-            ->with('error', 'Resident account not found.');
+        $userId = (int) session()->get('user_id');
+
+        if ($userId <= 0) {
+            return $this->response
+                ->setStatusCode(401)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Your session has expired. Please log in again.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $resident = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->get()
+            ->getRowArray();
+
+        if (!$resident) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Resident account not found.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $newEmail = strtolower(trim(
+            (string) $this->request->getPost('email')
+        ));
+
+        if (
+            $newEmail === '' ||
+            !filter_var($newEmail, FILTER_VALIDATE_EMAIL)
+        ) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Please enter a valid email address.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $currentEmail = strtolower(trim(
+            (string) ($resident['email'] ?? '')
+        ));
+
+        if ($newEmail === $currentEmail) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'This is already your current email address.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        // Prevent using another user's email
+        $existingUser = $db->table('users')
+            ->where('email', $newEmail)
+            ->where('user_id !=', $userId)
+            ->get()
+            ->getRowArray();
+
+        if ($existingUser) {
+            return $this->response
+                ->setStatusCode(409)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Email address is already being used.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $existingVerification = $db->table('email_verifications')
+            ->where('email', $newEmail)
+            ->get()
+            ->getRowArray();
+
+        // 60-second resend cooldown
+        if (!empty($existingVerification['updated_at'])) {
+            $lastSent = strtotime(
+                (string) $existingVerification['updated_at']
+            );
+
+            if (
+                $lastSent !== false &&
+                (time() - $lastSent) < 60
+            ) {
+                $remaining =
+                    60 - (time() - $lastSent);
+
+                return $this->response
+                    ->setStatusCode(429)
+                    ->setJSON([
+                        'success' => false,
+                        'message' =>
+                        'Please wait ' . $remaining .
+                            ' seconds before requesting another code.',
+                        'csrfHash' => csrf_hash(),
+                    ]);
+            }
+        }
+
+        $verificationCode =
+            (string) random_int(100000, 999999);
+
+        $codeHash =
+            hash('sha256', $verificationCode);
+
+        $now =
+            date('Y-m-d H:i:s');
+
+        $expiresAt =
+            date(
+                'Y-m-d H:i:s',
+                time() + (10 * 60)
+            );
+
+        $verificationData = [
+            'code_hash'   => $codeHash,
+            'expires_at'  => $expiresAt,
+            'attempts'    => 0,
+            'verified_at' => null,
+            'updated_at'  => $now,
+        ];
+
+        if ($existingVerification) {
+            $saved = $db->table('email_verifications')
+                ->where('email', $newEmail)
+                ->update($verificationData);
+        } else {
+            $verificationData['email'] =
+                $newEmail;
+
+            $verificationData['created_at'] =
+                $now;
+
+            $saved = $db->table('email_verifications')
+                ->insert($verificationData);
+        }
+
+        if (!$saved) {
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Unable to create verification code.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        try {
+            $emailService =
+                service('email');
+
+            $emailService->clear(true);
+
+            $emailConfig =
+                config('Email');
+
+            $emailService->setFrom(
+                $emailConfig->fromEmail,
+                $emailConfig->fromName
+            );
+
+            $emailService->setTo(
+                $newEmail
+            );
+
+            $emailService->setSubject(
+                'Verify Your New Email - Community Visibility System'
+            );
+
+            $message = '
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h2>Email Change Verification</h2>
+
+                <p>
+                    You requested to change the email address
+                    connected to your Community Visibility System account.
+                </p>
+
+                <p>Your verification code is:</p>
+
+                <div style="
+                    font-size: 30px;
+                    font-weight: bold;
+                    letter-spacing: 8px;
+                    margin: 24px 0;
+                ">
+                    ' . esc($verificationCode) . '
+                </div>
+
+                <p>
+                    This code will expire in
+                    <strong>10 minutes</strong>.
+                </p>
+
+              <p>
+    If you did not request this change,
+    you can safely ignore this email.
+</p>
+
+<hr>
+
+<small>
+    Barangay Saguing Community Visibility System
+</small>
+
+<p style="
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 20px;
+">
+    This is an automated message from the Community Visibility System.
+    Please do not reply to this email.
+</p>
+
+</div>
+';
+            $emailService->setMessage(
+                $message
+            );
+
+            if (!$emailService->send()) {
+                $db->table('email_verifications')
+                    ->where('email', $newEmail)
+                    ->delete();
+
+                return $this->response
+                    ->setStatusCode(500)
+                    ->setJSON([
+                        'success' => false,
+                        'message' =>
+                        'Unable to send the verification email. Please try again.',
+                        'csrfHash' => csrf_hash(),
+                    ]);
+            }
+        } catch (\Throwable $e) {
+
+            $db->table('email_verifications')
+                ->where('email', $newEmail)
+                ->delete();
+
+            log_message(
+                'error',
+                'Profile email verification error: {message}',
+                ['message' => $e->getMessage()]
+            );
+
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'success' => false,
+                    'message' =>
+                    'Unable to send the verification email. Please try again.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        // New code means any previous profile verification is no longer valid
+        session()->remove(
+            'verified_profile_email'
+        );
+
+        return $this->response
+            ->setJSON([
+                'success' => true,
+                'message' =>
+                'Verification code sent to your new email address.',
+                'csrfHash' => csrf_hash(),
+            ]);
     }
 
-    $settings = $db->table('settings')
-        ->orderBy('setting_id', 'ASC')
-        ->get()
-        ->getRowArray();
+    public function verifyProfileEmailCode()
+    {
+        $db = \Config\Database::connect();
 
-    return view('resident/profile', [
-        'resident' => $resident,
-        'settings' => $settings
-    ]);
-}
+        $userId = (int) session()->get('user_id');
+
+        if ($userId <= 0) {
+            return $this->response
+                ->setStatusCode(401)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Your session has expired. Please log in again.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $resident = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->get()
+            ->getRowArray();
+
+        if (!$resident) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Resident account not found.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $newEmail = strtolower(trim(
+            (string) $this->request->getPost('email')
+        ));
+
+        $code = trim(
+            (string) $this->request->getPost('code')
+        );
+
+        if (
+            $newEmail === '' ||
+            !filter_var($newEmail, FILTER_VALIDATE_EMAIL)
+        ) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Please enter a valid email address.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        if (!preg_match('/^\d{6}$/', $code)) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Please enter the 6-digit verification code.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $currentEmail = strtolower(trim(
+            (string) ($resident['email'] ?? '')
+        ));
+
+        if ($newEmail === $currentEmail) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'This is already your current email address.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $existingUser = $db->table('users')
+            ->where('email', $newEmail)
+            ->where('user_id !=', $userId)
+            ->get()
+            ->getRowArray();
+
+        if ($existingUser) {
+            return $this->response
+                ->setStatusCode(409)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Email address is already being used.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $verification = $db->table('email_verifications')
+            ->where('email', $newEmail)
+            ->get()
+            ->getRowArray();
+
+        if (!$verification) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'No verification request was found for this email.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        if ((int) $verification['attempts'] >= 5) {
+            return $this->response
+                ->setStatusCode(429)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Too many incorrect attempts. Please request a new code.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $expiresAt = strtotime(
+            (string) $verification['expires_at']
+        );
+
+        if ($expiresAt === false || time() > $expiresAt) {
+            return $this->response
+                ->setStatusCode(410)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Verification code has expired. Please request a new code.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $submittedHash = hash('sha256', $code);
+
+        if (!hash_equals(
+            (string) $verification['code_hash'],
+            $submittedHash
+        )) {
+            $newAttempts =
+                (int) $verification['attempts'] + 1;
+
+            $db->table('email_verifications')
+                ->where(
+                    'verification_id',
+                    $verification['verification_id']
+                )
+                ->update([
+                    'attempts'   => $newAttempts,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Incorrect verification code.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $verifiedAt = date('Y-m-d H:i:s');
+
+        $db->table('email_verifications')
+            ->where(
+                'verification_id',
+                $verification['verification_id']
+            )
+            ->update([
+                'verified_at' => $verifiedAt,
+                'updated_at'  => $verifiedAt,
+            ]);
+
+        session()->set(
+            'verified_profile_email',
+            $newEmail
+        );
+
+        return $this->response
+            ->setJSON([
+                'success'  => true,
+                'message'  => 'New email verified successfully.',
+                'csrfHash' => csrf_hash(),
+            ]);
+    }
 
     public function updateProfile()
     {
@@ -812,9 +1945,11 @@ created_at
         }
 
         $fullName = trim((string) $this->request->getPost('full_name'));
+        $username = trim((string) $this->request->getPost('username'));
         $email = trim((string) $this->request->getPost('email'));
         $mobileNumber = trim((string) $this->request->getPost('mobile_number'));
         $address = trim((string) $this->request->getPost('address'));
+        $purokId = (int) $this->request->getPost('purok_id');
 
         $currentPassword = (string) $this->request->getPost('current_password');
         $newPassword = (string) $this->request->getPost('new_password');
@@ -832,6 +1967,41 @@ created_at
                 ->with('error', 'Please enter a valid email address.');
         }
 
+        if ($username === '') {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Username is required.');
+        }
+
+        if (
+            strlen($username) < 4 ||
+            strlen($username) > 30 ||
+            preg_match('/\s/', $username)
+        ) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Username must be 4 to 30 characters and must not contain spaces.'
+                );
+        }
+
+        // Check if username is already used by another account
+        $existingUsername = $db->table('users')
+            ->where('username', $username)
+            ->where('user_id !=', $userId)
+            ->get()
+            ->getRowArray();
+
+        if ($existingUsername) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Username is already being used.'
+                );
+        }
+
         // Check if email is already used by another account
         $existingEmail = $db->table('users')
             ->where('email', $email)
@@ -845,12 +2015,72 @@ created_at
                 ->with('error', 'Email address is already being used.');
         }
 
+        $currentEmail = strtolower(trim(
+            (string) ($resident['email'] ?? '')
+        ));
+
+        $normalizedEmail = strtolower(trim($email));
+
+        $emailChanged = $normalizedEmail !== $currentEmail;
+
+        if ($emailChanged) {
+            $verifiedProfileEmail = strtolower(trim(
+                (string) session()->get('verified_profile_email')
+            ));
+
+            if (
+                $verifiedProfileEmail === '' ||
+                !hash_equals($verifiedProfileEmail, $normalizedEmail)
+            ) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Please verify your new email address before saving your profile.'
+                    );
+            }
+
+            $verificationRecord = $db->table('email_verifications')
+                ->where('email', $normalizedEmail)
+                ->where('verified_at IS NOT NULL', null, false)
+                ->get()
+                ->getRowArray();
+
+            if (!$verificationRecord) {
+                session()->remove('verified_profile_email');
+
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Your email verification is no longer valid. Please verify your new email again.'
+                    );
+            }
+        }
+
+        if ($purokId > 0) {
+            $validPurok = $db->table('puroks')
+                ->where('purok_id', $purokId)
+                ->where('is_active', 1)
+                ->get()
+                ->getRowArray();
+
+            if (! $validPurok) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Please select a valid Purok.');
+            }
+        }
+
         $updateData = [
-            'full_name' => $fullName,
-            'email' => $email,
+            'full_name'     => $fullName,
+            'username'      => $username,
+            'email'         => $email,
             'mobile_number' => $mobileNumber !== '' ? $mobileNumber : null,
-            'address' => $address !== '' ? $address : null
+            'address'       => $address !== '' ? $address : null,
+            'purok_id'      => $purokId > 0 ? $purokId : null,
         ];
+
 
         // =====================================
         // Optional Password Change
@@ -1007,55 +2237,55 @@ created_at
     // =========================
     // REPORT DETAILS
     // =========================
-public function reportDetails($id = null)
-{
-    if (!$id) {
-        return redirect()->to('/resident/my-reports');
-    }
+    public function reportDetails($id = null)
+    {
+        if (!$id) {
+            return redirect()->to('/resident/my-reports');
+        }
 
-    $db = \Config\Database::connect();
+        $db = \Config\Database::connect();
 
-    $userId = (int) session()->get('user_id');
-    $reportId = (int) $id;
+        $userId = (int) session()->get('user_id');
+        $reportId = (int) $id;
 
-    if ($userId <= 0) {
-        return redirect()->to('/login');
-    }
+        if ($userId <= 0) {
+            return redirect()->to('/login');
+        }
 
-    // Get resident's report
-    $report = $db->table('reports')
-        ->select('
+        // Get resident's report
+        $report = $db->table('reports')
+            ->select('
             reports.*,
             categories.category_name
         ')
-        ->join(
-            'categories',
-            'categories.category_id = reports.category_id',
-            'left'
-        )
-        ->where('reports.report_id', $reportId)
-        ->where('reports.user_id', $userId)
-        ->get()
-        ->getRowArray();
+            ->join(
+                'categories',
+                'categories.category_id = reports.category_id',
+                'left'
+            )
+            ->where('reports.report_id', $reportId)
+            ->where('reports.user_id', $userId)
+            ->get()
+            ->getRowArray();
 
-    if (!$report) {
-        return redirect()->to('/resident/my-reports')
-            ->with('error', 'Report not found.');
+        if (!$report) {
+            return redirect()->to('/resident/my-reports')
+                ->with('error', 'Report not found.');
+        }
+
+        // Get all photos belonging to this report
+        $images = $db->table('images')
+            ->select('image_id, image_path')
+            ->where('report_id', $reportId)
+            ->orderBy('image_id', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        return view('resident/report-details', [
+            'report' => $report,
+            'images' => $images
+        ]);
     }
-
-    // Get all photos belonging to this report
-    $images = $db->table('images')
-        ->select('image_id, image_path')
-        ->where('report_id', $reportId)
-        ->orderBy('image_id', 'ASC')
-        ->get()
-        ->getResultArray();
-
-    return view('resident/report-details', [
-        'report' => $report,
-        'images' => $images
-    ]);
-}
     // =========================
     // ADMIN - REPORTS
     // =========================
@@ -1080,7 +2310,8 @@ public function reportDetails($id = null)
         // =========================
         // PAGINATION
         // =========================
-        $perPage = 20;
+        $settings = $this->getSystemSettings();
+        $perPage = max(5, min(100, (int) ($settings['items_per_page'] ?? 10)));
         $page = max(1, (int) $this->request->getGet('page'));
         $offset = ($page - 1) * $perPage;
 
@@ -1100,7 +2331,12 @@ public function reportDetails($id = null)
                     ->orLike('reports.description', $search)
                     ->orLike('reports.address', $search)
                     ->orLike('category.category_name', $search)
-                    ->orLike('users.full_name', $search);
+
+                    // Resident name is searchable ONLY for non-anonymous reports
+                    ->orGroupStart()
+                    ->where('reports.is_anonymous', 0)
+                    ->like('users.full_name', $search)
+                    ->groupEnd();
 
                 // Allow searching exact report ID
                 if (preg_match('/^(?:RPT-)?0*(\d+)$/i', $search, $matches)) {
@@ -1178,21 +2414,23 @@ public function reportDetails($id = null)
         // =========================
         $builder = $db->table('reports')
             ->select('
-            reports.*,
-            category.category_name,
-            image.image_path,
-            users.full_name
-        ')
+    reports.*,
+    category.category_name,
+    (
+        SELECT images.image_path
+        FROM images
+        WHERE images.report_id = reports.report_id
+        ORDER BY images.image_id ASC
+        LIMIT 1
+    ) AS image_path,
+    users.full_name
+')
             ->join(
                 'categories category',
                 'category.category_id = reports.category_id',
                 'left'
             )
-            ->join(
-                'images image',
-                'image.report_id = reports.report_id',
-                'left'
-            )
+
             ->join(
                 'users',
                 'users.user_id = reports.user_id',
@@ -1253,41 +2491,212 @@ public function reportDetails($id = null)
     {
         $db = \Config\Database::connect();
 
-        $residents = $db->table('users u')
-            ->select('
-            u.user_id,
-            u.full_name,
-            u.email,
-            u.mobile_number,
-            u.username,
-            u.address,
-           u.purok_id,
-u.profile_image,
-u.is_active,
-u.created_at,
-p.purok_name
-        ')
+        $settings = $this->getSystemSettings();
+
+        $perPage = max(
+            5,
+            min(
+                100,
+                (int) ($settings['items_per_page'] ?? 10)
+            )
+        );
+
+        // ==========================================
+        // FILTER VALUES
+        // ==========================================
+
+        $search = trim(
+            (string) $this->request->getGet('search')
+        );
+
+        $status = strtolower(trim(
+            (string) $this->request->getGet('status')
+        ));
+
+        $purok = trim(
+            (string) $this->request->getGet('purok')
+        );
+
+        if (!in_array($status, ['active', 'inactive'], true)) {
+            $status = 'all';
+        }
+
+        // ==========================================
+        // FILTER HELPER
+        // Apply SAME filters to count + actual rows
+        // ==========================================
+
+        $applyFilters = static function (
+            $builder
+        ) use (
+            $search,
+            $status,
+            $purok
+        ) {
+            $builder->where('u.role', 'resident');
+
+            // SEARCH ALL RESIDENTS
+            if ($search !== '') {
+                $builder
+                    ->groupStart()
+                    ->like('u.full_name', $search)
+                    ->orLike('u.email', $search)
+                    ->orLike('u.mobile_number', $search)
+                    ->orLike('u.username', $search)
+                    ->orLike('u.address', $search)
+                    ->orLike('p.purok_name', $search)
+                    ->groupEnd();
+            }
+
+            // STATUS
+            if ($status === 'active') {
+                $builder->where('u.is_active', 1);
+            } elseif ($status === 'inactive') {
+                $builder->where('u.is_active', 0);
+            }
+
+            // PUROK
+            if ($purok === 'unassigned') {
+                $builder
+                    ->groupStart()
+                    ->where('u.purok_id IS NULL', null, false)
+                    ->orWhere('u.purok_id', 0)
+                    ->groupEnd();
+            } elseif (
+                $purok !== '' &&
+                ctype_digit($purok)
+            ) {
+                $builder->where(
+                    'u.purok_id',
+                    (int) $purok
+                );
+            }
+
+            return $builder;
+        };
+
+        // ==========================================
+        // COUNT FILTERED RESIDENTS
+        // ==========================================
+
+        $countBuilder = $db->table('users u')
             ->join(
                 'puroks p',
                 'p.purok_id = u.purok_id',
                 'left'
+            );
+
+        $applyFilters($countBuilder);
+
+        $totalResidents =
+            $countBuilder->countAllResults();
+
+        // ==========================================
+        // PAGINATION
+        // ==========================================
+
+        $totalPages = max(
+            1,
+            (int) ceil(
+                $totalResidents / $perPage
             )
-            ->where('u.role', 'resident')
-            ->orderBy('u.created_at', 'DESC')
+        );
+
+        $page = max(
+            1,
+            (int) $this->request->getGet('page')
+        );
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
+        $offset =
+            ($page - 1) * $perPage;
+
+        // ==========================================
+        // GET FILTERED RESIDENTS
+        // ==========================================
+
+        $residentBuilder =
+            $db->table('users u')
+            ->select('
+                u.user_id,
+                u.full_name,
+                u.email,
+                u.mobile_number,
+                u.username,
+                u.address,
+                u.purok_id,
+                u.profile_image,
+                u.is_active,
+                u.created_at,
+                p.purok_name
+            ')
+            ->join(
+                'puroks p',
+                'p.purok_id = u.purok_id',
+                'left'
+            );
+
+        $applyFilters($residentBuilder);
+
+        $residents = $residentBuilder
+            ->orderBy(
+                'u.created_at',
+                'DESC'
+            )
+            ->limit(
+                $perPage,
+                $offset
+            )
             ->get()
             ->getResultArray();
+
+        // ==========================================
+        // PUROK OPTIONS
+        // ==========================================
 
         $puroks = $db->table('puroks')
-            ->select('purok_id, purok_name')
+            ->select(
+                'purok_id, purok_name'
+            )
             ->where('is_active', 1)
-            ->orderBy('purok_name', 'ASC')
+            ->orderBy(
+                'purok_name',
+                'ASC'
+            )
             ->get()
             ->getResultArray();
 
-        return view('admin/residents', [
-            'residents' => $residents,
-            'puroks'    => $puroks,
-        ]);
+        return view(
+            'admin/residents',
+            [
+                'residents' => $residents,
+
+                'puroks' => $puroks,
+
+                'filters' => [
+                    'search' => $search,
+                    'status' => $status,
+                    'purok'  => $purok,
+                ],
+
+                'pagination' => [
+                    'current_page' =>
+                    $page,
+
+                    'total_pages' =>
+                    $totalPages,
+
+                    'total_residents' =>
+                    $totalResidents,
+
+                    'per_page' =>
+                    $perPage,
+                ],
+            ]
+        );
     }
 
 
@@ -1541,189 +2950,980 @@ p.purok_name
     // =========================
     // ADMIN SETTINGS
     // =========================
-public function settings()
-{
-    $db = \Config\Database::connect();
+    public function settings()
+    {
+        $db = \Config\Database::connect();
 
-    $settings = $db->table('settings')
-        ->orderBy('setting_id', 'ASC')
-        ->get()
-        ->getRowArray();
+        $userId = (int) session()->get('user_id');
 
-    return view('admin/settings', [
-        'settings' => $settings
-    ]);
-}
+        $settings = $db->table('settings')
+            ->orderBy('setting_id', 'ASC')
+            ->get()
+            ->getRowArray();
+
+        $admin = $db->table('users')
+            ->select('user_id, full_name, profile_image')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->get()
+            ->getRowArray();
+
+        return view('admin/settings', [
+            'settings' => $settings,
+            'admin'    => $admin
+        ]);
+    }
+
+    public function account()
+    {
+        $db = \Config\Database::connect();
+
+        $userId = (int) session()->get('user_id');
+
+        if ($userId <= 0) {
+            return redirect()->to('/login');
+        }
+
+        $admin = $db->table('users')
+            ->select('
+            user_id,
+            full_name,
+            email,
+            mobile_number,
+            username,
+            address,
+            profile_image,
+            role,
+            is_active,
+            created_at,
+            updated_at
+        ')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->get()
+            ->getRowArray();
+
+        if (! $admin) {
+            return redirect()->to('/admin/dashboard')
+                ->with('error', 'Administrator account not found.');
+        }
+
+        return view('admin/account', [
+            'admin' => $admin
+        ]);
+    }
+
+
+    public function sendAdminEmailCode()
+    {
+        $db = \Config\Database::connect();
+
+        $userId = (int) session()->get('user_id');
+
+        if ($userId <= 0) {
+            return $this->response
+                ->setStatusCode(401)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Your session has expired. Please log in again.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $admin = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->get()
+            ->getRowArray();
+
+        if (!$admin) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Administrator account not found.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $newEmail = strtolower(trim(
+            (string) $this->request->getPost('email')
+        ));
+
+        if (
+            $newEmail === '' ||
+            !filter_var($newEmail, FILTER_VALIDATE_EMAIL)
+        ) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Please enter a valid email address.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $currentEmail = strtolower(trim(
+            (string) ($admin['email'] ?? '')
+        ));
+
+        if ($newEmail === $currentEmail) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'This is already your current email address.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $existingUser = $db->table('users')
+            ->where('email', $newEmail)
+            ->where('user_id !=', $userId)
+            ->get()
+            ->getRowArray();
+
+        if ($existingUser) {
+            return $this->response
+                ->setStatusCode(409)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Email address is already being used.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $existingVerification = $db->table('email_verifications')
+            ->where('email', $newEmail)
+            ->get()
+            ->getRowArray();
+
+        if (!empty($existingVerification['updated_at'])) {
+            $lastSent = strtotime(
+                (string) $existingVerification['updated_at']
+            );
+
+            if (
+                $lastSent !== false &&
+                (time() - $lastSent) < 60
+            ) {
+                $remaining =
+                    60 - (time() - $lastSent);
+
+                return $this->response
+                    ->setStatusCode(429)
+                    ->setJSON([
+                        'success' => false,
+                        'message' =>
+                        'Please wait ' . $remaining .
+                            ' seconds before requesting another code.',
+                        'csrfHash' => csrf_hash(),
+                    ]);
+            }
+        }
+
+        $verificationCode =
+            (string) random_int(100000, 999999);
+
+        $codeHash =
+            hash('sha256', $verificationCode);
+
+        $now =
+            date('Y-m-d H:i:s');
+
+        $expiresAt =
+            date(
+                'Y-m-d H:i:s',
+                time() + (10 * 60)
+            );
+
+        $verificationData = [
+            'code_hash'   => $codeHash,
+            'expires_at'  => $expiresAt,
+            'attempts'    => 0,
+            'verified_at' => null,
+            'updated_at'  => $now,
+        ];
+
+        if ($existingVerification) {
+            $saved = $db->table('email_verifications')
+                ->where('email', $newEmail)
+                ->update($verificationData);
+        } else {
+            $verificationData['email'] =
+                $newEmail;
+
+            $verificationData['created_at'] =
+                $now;
+
+            $saved = $db->table('email_verifications')
+                ->insert($verificationData);
+        }
+
+        if (!$saved) {
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Unable to create verification code.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        try {
+            $emailService = service('email');
+            $emailService->clear(true);
+
+            $emailConfig = config('Email');
+
+            $emailService->setFrom(
+                $emailConfig->fromEmail,
+                $emailConfig->fromName
+            );
+
+            $emailService->setTo($newEmail);
+
+            $emailService->setSubject(
+                'Verify Administrator Email - Community Visibility System'
+            );
+
+            $message = '
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2>Administrator Email Verification</h2>
+
+            <p>
+                You requested to change the email address
+                connected to the administrator account.
+            </p>
+
+            <p>Your verification code is:</p>
+
+            <div style="
+                font-size: 30px;
+                font-weight: bold;
+                letter-spacing: 8px;
+                margin: 24px 0;
+            ">
+                ' . esc($verificationCode) . '
+            </div>
+
+            <p>
+                This code will expire in
+                <strong>10 minutes</strong>.
+            </p>
+
+            <p>
+                If you did not request this change,
+                you can safely ignore this email.
+            </p>
+
+          <hr>
+
+<small>
+    Barangay Saguing Community Visibility System
+</small>
+
+<p style="
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 20px;
+">
+    This is an automated message from the Community Visibility System.
+    Please do not reply to this email.
+</p>
+        </div>
+        ';
+
+            $emailService->setMessage($message);
+
+            if (!$emailService->send()) {
+                $db->table('email_verifications')
+                    ->where('email', $newEmail)
+                    ->delete();
+
+                return $this->response
+                    ->setStatusCode(500)
+                    ->setJSON([
+                        'success' => false,
+                        'message' =>
+                        'Unable to send the verification email. Please try again.',
+                        'csrfHash' => csrf_hash(),
+                    ]);
+            }
+        } catch (\Throwable $e) {
+            $db->table('email_verifications')
+                ->where('email', $newEmail)
+                ->delete();
+
+            log_message(
+                'error',
+                'Admin email verification error: {message}',
+                ['message' => $e->getMessage()]
+            );
+
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'success' => false,
+                    'message' =>
+                    'Unable to send the verification email. Please try again.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        session()->remove('verified_admin_email');
+
+        return $this->response
+            ->setJSON([
+                'success' => true,
+                'message' =>
+                'Verification code sent to your new email address.',
+                'csrfHash' => csrf_hash(),
+            ]);
+    }
+
+
+    public function verifyAdminEmailCode()
+    {
+        $db = \Config\Database::connect();
+
+        $userId = (int) session()->get('user_id');
+
+        if ($userId <= 0) {
+            return $this->response
+                ->setStatusCode(401)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Your session has expired. Please log in again.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $admin = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->get()
+            ->getRowArray();
+
+        if (!$admin) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Administrator account not found.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $newEmail = strtolower(trim(
+            (string) $this->request->getPost('email')
+        ));
+
+        $code = trim(
+            (string) $this->request->getPost('code')
+        );
+
+        if (
+            $newEmail === '' ||
+            !filter_var($newEmail, FILTER_VALIDATE_EMAIL)
+        ) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Please enter a valid email address.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        if (!preg_match('/^\d{6}$/', $code)) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Please enter the 6-digit verification code.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $currentEmail = strtolower(trim(
+            (string) ($admin['email'] ?? '')
+        ));
+
+        if ($newEmail === $currentEmail) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'This is already your current email address.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $existingUser = $db->table('users')
+            ->where('email', $newEmail)
+            ->where('user_id !=', $userId)
+            ->get()
+            ->getRowArray();
+
+        if ($existingUser) {
+            return $this->response
+                ->setStatusCode(409)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Email address is already being used.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $verification = $db->table('email_verifications')
+            ->where('email', $newEmail)
+            ->get()
+            ->getRowArray();
+
+        if (!$verification) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'No verification request was found for this email.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        if ((int) $verification['attempts'] >= 5) {
+            return $this->response
+                ->setStatusCode(429)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Too many incorrect attempts. Please request a new code.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $expiresAt = strtotime(
+            (string) $verification['expires_at']
+        );
+
+        if ($expiresAt === false || time() > $expiresAt) {
+            return $this->response
+                ->setStatusCode(410)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Verification code has expired. Please request a new code.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $submittedHash = hash('sha256', $code);
+
+        if (!hash_equals(
+            (string) $verification['code_hash'],
+            $submittedHash
+        )) {
+            $newAttempts =
+                (int) $verification['attempts'] + 1;
+
+            $db->table('email_verifications')
+                ->where(
+                    'verification_id',
+                    $verification['verification_id']
+                )
+                ->update([
+                    'attempts'   => $newAttempts,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Incorrect verification code.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $verifiedAt = date('Y-m-d H:i:s');
+
+        $db->table('email_verifications')
+            ->where(
+                'verification_id',
+                $verification['verification_id']
+            )
+            ->update([
+                'verified_at' => $verifiedAt,
+                'updated_at'  => $verifiedAt,
+            ]);
+
+        session()->set(
+            'verified_admin_email',
+            $newEmail
+        );
+
+        return $this->response
+            ->setJSON([
+                'success'  => true,
+                'message'  => 'New administrator email verified successfully.',
+                'csrfHash' => csrf_hash(),
+            ]);
+    }
 
     // =========================
     // ADMIN ACCOUNT
     // =========================
-    public function account()
-    {
-        return view('admin/account');
-    }
-
-
-
-    // =========================
-    // ADMIN ANNOUNCEMENTS
-    // =========================
-    public function announcements()
+    public function updateAdminAccount()
     {
         $db = \Config\Database::connect();
 
-        $announcements = $db->table('announcements a')
-            ->select('
-            a.announcement_id,
-            a.user_id,
-            a.title,
-            a.content,
-            a.category,
-            a.publish_date,
-            a.status,
-            a.created_at,
-            a.updated_at,
-            u.full_name AS author_name
-        ')
-            ->join('users u', 'u.user_id = a.user_id', 'left')
-            ->orderBy('a.created_at', 'DESC')
+        $userId = (int) session()->get('user_id');
+
+        if ($userId <= 0) {
+            return $this->response
+                ->setStatusCode(401)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Your session has expired. Please log in again.'
+                ]);
+        }
+
+        // Confirm that the logged-in user is an active admin account
+        $admin = $db->table('users')
+            ->select('user_id, role')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
             ->get()
-            ->getResultArray();
+            ->getRowArray();
 
-        $totalAnnouncements = $db->table('announcements')
-            ->countAllResults();
+        if (! $admin) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Administrator account not found.'
+                ]);
+        }
 
-        $publishedAnnouncements = $db->table('announcements')
-            ->where('status', 'Published')
-            ->countAllResults();
+        // Get submitted values
+        $fullName = trim((string) $this->request->getPost('full_name'));
+        $username = trim((string) $this->request->getPost('username'));
+        $email = trim((string) $this->request->getPost('email'));
+        $normalizedEmail = strtolower($email);
+        $mobileNumber = trim((string) $this->request->getPost('mobile_number'));
+        $address = trim((string) $this->request->getPost('address'));
 
-        $draftAnnouncements = $db->table('announcements')
-            ->where('status', 'Draft')
-            ->countAllResults();
+        $currentAdmin = $db->table('users')
+            ->select('email')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->get()
+            ->getRowArray();
 
-        return view('admin/announcements', [
-            'announcements' => $announcements,
-            'totalAnnouncements' => $totalAnnouncements,
-            'publishedAnnouncements' => $publishedAnnouncements,
-            'draftAnnouncements' => $draftAnnouncements
+        $emailChanged = $currentAdmin && strtolower((string) $currentAdmin['email']) !== $normalizedEmail;
+
+        if ($emailChanged) {
+            $verifiedAdminEmail = strtolower(trim(
+                (string) session()->get('verified_admin_email')
+            ));
+
+            if (
+                $verifiedAdminEmail === '' ||
+                !hash_equals($verifiedAdminEmail, $normalizedEmail)
+            ) {
+                return $this->response
+                    ->setStatusCode(422)
+                    ->setJSON([
+                        'success' => false,
+                        'message' => 'Please verify your new administrator email before saving changes.',
+                        'csrfHash' => csrf_hash(),
+                    ]);
+            }
+
+            $verificationRecord = $db->table('email_verifications')
+                ->where('email', $normalizedEmail)
+                ->where('verified_at IS NOT NULL', null, false)
+                ->get()
+                ->getRowArray();
+
+            if (!$verificationRecord) {
+                session()->remove('verified_admin_email');
+
+                return $this->response
+                    ->setStatusCode(422)
+                    ->setJSON([
+                        'success' => false,
+                        'message' => 'Your email verification is no longer valid. Please verify your new email again.',
+                        'csrfHash' => csrf_hash(),
+                    ]);
+            }
+        }
+
+        // =====================================
+        // BASIC VALIDATION
+        // =====================================
+
+        if ($fullName === '') {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Full name is required.'
+                ]);
+        }
+
+        if ($username === '') {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Username is required.'
+                ]);
+        }
+
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Please enter a valid email address.'
+                ]);
+        }
+
+
+        // =====================================
+        // CHECK DUPLICATE USERNAME
+        // =====================================
+
+        $usernameExists = $db->table('users')
+            ->select('user_id')
+            ->where('username', $username)
+            ->where('user_id !=', $userId)
+            ->get()
+            ->getRowArray();
+
+        if ($usernameExists) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Username is already being used by another account.'
+                ]);
+        }
+
+
+        // =====================================
+        // CHECK DUPLICATE EMAIL
+        // =====================================
+
+        $emailExists = $db->table('users')
+            ->select('user_id')
+            ->where('email', $email)
+            ->where('user_id !=', $userId)
+            ->get()
+            ->getRowArray();
+
+        if ($emailExists) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Email address is already being used by another account.'
+                ]);
+        }
+
+
+        // =====================================
+        // UPDATE ADMIN ACCOUNT
+        // =====================================
+
+        $updateData = [
+            'full_name'     => $fullName,
+            'username'      => $username,
+            'email'         => $normalizedEmail,
+            'mobile_number' => $mobileNumber !== '' ? $mobileNumber : null,
+            'address'       => $address !== '' ? $address : null,
+            'updated_at'    => date('Y-m-d H:i:s')
+        ];
+
+        $updated = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->update($updateData);
+
+        if (! $updated) {
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Unable to update the administrator account.'
+                ]);
+        }
+
+
+        // Keep displayed admin name synchronized
+        session()->set('full_name', $fullName);
+        session()->set('email', $normalizedEmail);
+
+        if ($emailChanged) {
+            $db->table('email_verifications')
+                ->where('email', $normalizedEmail)
+                ->delete();
+
+            session()->remove('verified_admin_email');
+        }
+
+
+        // Return latest account data
+        $updatedAdmin = $db->table('users')
+            ->select('
+            user_id,
+            full_name,
+            email,
+            mobile_number,
+            username,
+            address,
+            profile_image,
+            role,
+            is_active,
+            created_at,
+            updated_at
+        ')
+            ->where('user_id', $userId)
+            ->get()
+            ->getRowArray();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Profile information updated successfully.',
+            'data'    => $updatedAdmin
         ]);
     }
 
 
-
-
-    public function createAnnouncement()
+    public function changeAdminPassword()
     {
-        $announcementModel = new \App\Models\AnnouncementModel();
+        $db = \Config\Database::connect();
 
         $userId = (int) session()->get('user_id');
 
-        $title = trim((string) $this->request->getPost('title'));
-        $content = trim((string) $this->request->getPost('content'));
-        $category = trim((string) $this->request->getPost('category'));
-        $publishDate = trim((string) $this->request->getPost('publishDate'));
-        $status = trim((string) $this->request->getPost('status'));
-
-        // Required fields
-        if ($title === '' || $content === '') {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Title and content are required.');
+        if ($userId <= 0) {
+            return $this->response
+                ->setStatusCode(401)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Your session has expired. Please log in again.'
+                ]);
         }
 
-        // Allowed statuses
-        $allowedStatuses = [
-            'Published',
-            'Draft',
-            'Archived'
-        ];
+        $currentPassword = (string) $this->request->getPost('current_password');
+        $newPassword     = (string) $this->request->getPost('new_password');
+        $confirmPassword = (string) $this->request->getPost('confirm_password');
 
-        if (!in_array($status, $allowedStatuses, true)) {
-            $status = 'Draft';
+        // Check required fields
+        if (
+            $currentPassword === '' ||
+            $newPassword === '' ||
+            $confirmPassword === ''
+        ) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Please fill in all password fields.'
+                ]);
         }
 
-        // Default category
-        if ($category === '') {
-            $category = 'General';
+        // Confirm new passwords match
+        if ($newPassword !== $confirmPassword) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'New passwords do not match.'
+                ]);
         }
 
-        $data = [
-            'user_id' => $userId,
-            'title' => $title,
-            'content' => $content,
-            'category' => $category,
-            'publish_date' => $publishDate !== ''
-                ? $publishDate
-                : null,
-            'status' => $status
-        ];
-
-        $announcementId = $announcementModel->insert($data);
-
-        if ($announcementId === false) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Unable to create announcement.');
+        // Password strength
+        if (
+            strlen($newPassword) < 8 ||
+            ! preg_match('/[A-Za-z]/', $newPassword) ||
+            ! preg_match('/[0-9]/', $newPassword) ||
+            ! preg_match('/[^A-Za-z0-9]/', $newPassword)
+        ) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'New password must be at least 8 characters and contain letters, numbers, and symbols.'
+                ]);
         }
 
-        return redirect()->to('/admin/announcements')
-            ->with('success', 'Announcement created successfully.');
-    }
+        // Get actual admin password hash
+        $admin = $db->table('users')
+            ->select('user_id, password, role, is_active')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->get()
+            ->getRowArray();
 
-    public function deleteAnnouncement($announcementId)
-    {
-        $announcementModel = new \App\Models\AnnouncementModel();
-
-        $announcement = $announcementModel->find($announcementId);
-
-        if (!$announcement) {
-            return redirect()->to('/admin/announcements')
-                ->with('error', 'Announcement not found.');
+        if (! $admin) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Administrator account not found.'
+                ]);
         }
 
-        $announcementModel->delete($announcementId);
-
-        return redirect()->to('/admin/announcements')
-            ->with('success', 'Announcement deleted successfully.');
-    }
-
-    public function updateAnnouncement($announcementId)
-    {
-        $announcementModel = new \App\Models\AnnouncementModel();
-
-        $announcement = $announcementModel->find($announcementId);
-
-        if (!$announcement) {
-            return redirect()->to('/admin/announcements')
-                ->with('error', 'Announcement not found.');
+        // Verify current password
+        if (! password_verify($currentPassword, $admin['password'])) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Current password is incorrect.'
+                ]);
         }
 
-        $title = trim((string) $this->request->getPost('title'));
-        $content = trim((string) $this->request->getPost('content'));
-        $category = trim((string) $this->request->getPost('category'));
-        $publishDate = trim((string) $this->request->getPost('publishDate'));
-
-        if ($title === '' || $content === '') {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Title and content are required.');
+        // Prevent reusing the same password
+        if (password_verify($newPassword, $admin['password'])) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'New password must be different from your current password.'
+                ]);
         }
 
-        if ($category === '') {
-            $category = 'General';
+        // Hash and save new password
+        $updated = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->update([
+                'password'   => password_hash($newPassword, PASSWORD_DEFAULT),
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+
+        if (! $updated) {
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Unable to change password.'
+                ]);
         }
 
-        $announcementModel->update($announcementId, [
-            'title'        => $title,
-            'content'      => $content,
-            'category'     => $category,
-            'publish_date' => $publishDate !== '' ? $publishDate : null,
-            'status'       => 'Published'
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Password changed successfully.'
         ]);
-
-        return redirect()->to('/admin/announcements')
-            ->with('success', 'Announcement updated successfully.');
     }
+
+    public function uploadAdminPhoto()
+    {
+        $db = \Config\Database::connect();
+
+        $userId = (int) session()->get('user_id');
+
+        if ($userId <= 0) {
+            return $this->response
+                ->setStatusCode(401)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Your session has expired. Please log in again.'
+                ]);
+        }
+
+        // Confirm logged-in admin
+        $admin = $db->table('users')
+            ->select('user_id, profile_image, role')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->get()
+            ->getRowArray();
+
+        if (! $admin) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Administrator account not found.'
+                ]);
+        }
+
+        $file = $this->request->getFile('profile_image');
+
+        if (! $file || ! $file->isValid() || $file->hasMoved()) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Please choose a valid profile image.'
+                ]);
+        }
+
+        // Maximum 2 MB
+        if ($file->getSize() > (2 * 1024 * 1024)) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Profile image must not exceed 2 MB.'
+                ]);
+        }
+
+        // Accept only JPG, PNG, WebP
+        $allowedMimeTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/webp'
+        ];
+
+        if (! in_array($file->getMimeType(), $allowedMimeTypes, true)) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Only JPG, PNG, and WebP images are allowed.'
+                ]);
+        }
+
+        // Create upload folder if it does not exist
+        $uploadPath = FCPATH . 'uploads/admin';
+
+        if (! is_dir($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
+
+        $newName = $file->getRandomName();
+
+        $file->move($uploadPath, $newName);
+
+        $relativePath = 'uploads/admin/' . $newName;
+
+        $updated = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->update([
+                'profile_image' => $relativePath,
+                'updated_at'    => date('Y-m-d H:i:s')
+            ]);
+
+        if (! $updated) {
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Unable to save the profile image.'
+                ]);
+        }
+
+        return $this->response->setJSON([
+            'success'   => true,
+            'message'   => 'Profile photo updated successfully.',
+            'image_url' => base_url($relativePath)
+        ]);
+    }
+
 
     // =========================
     // MAP
@@ -1734,16 +3934,18 @@ public function settings()
 
         $reports = $db->table('reports')
             ->select('
-                reports.report_id,
-                reports.title,
-                reports.description,
-                reports.latitude,
-                reports.longtitude,
-                reports.address,
-                reports.status,
-                category.category_name,
-                image.image_path
-            ')
+    reports.report_id,
+    reports.title,
+    reports.description,
+    reports.category_id,
+    reports.latitude,
+    reports.longtitude AS longitude,
+    reports.address,
+    reports.status,
+    reports.resolved_at,
+    category.category_name,
+    image.image_path
+')
             ->join(
                 'categories category',
                 'category.category_id = reports.category_id',
@@ -1767,14 +3969,206 @@ public function settings()
 
         unset($report);
 
+        // =========================================================
+        // MAP DATA
+        // =========================================================
+        $puroks = $db->table('puroks')
+            ->select('purok_id, purok_name, latitude, longitude')
+            ->where('is_active', 1)
+            ->orderBy('purok_name', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $saguingLocations = $db->table('saguing_locations')
+            ->select('location_id, location_name, location_type, latitude, longitude, address, search_keywords')
+            ->where('is_active', 1)
+            ->orderBy('location_name', 'ASC')
+            ->get()
+            ->getResultArray();
+
         return view('map/index', [
-            'reports' => $reports
+            'reports'          => $reports,
+            'puroks'           => $puroks,
+            'saguingLocations' => $saguingLocations,
         ]);
     }
 
+    // =========================================================
+    // ADMIN - PUROK MAP SETUP
+    // =========================================================
+
+    public function purokMapSetup()
+    {
+        $db = \Config\Database::connect();
+
+        $puroks = $db->table('puroks')
+            ->select('
+            purok_id,
+            purok_name,
+            latitude,
+            longitude
+        ')
+            ->where('is_active', 1)
+            ->orderBy('purok_name', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $completed = 0;
+
+        foreach ($puroks as $purok) {
+            if (
+                $purok['latitude'] !== null &&
+                $purok['latitude'] !== '' &&
+                $purok['longitude'] !== null &&
+                $purok['longitude'] !== ''
+            ) {
+                $completed++;
+            }
+        }
+
+        return view('admin/purok-map-setup', [
+            'puroks'   => $puroks,
+            'completed' => $completed,
+            'total'     => count($puroks),
+        ]);
+    }
+
+
+    // =========================================================
+    // ADMIN - SAVE PUROK MAP COORDINATES
+    // =========================================================
+
+    public function savePurokMapCoordinates()
+    {
+        $db = \Config\Database::connect();
+
+        $purokId = (int) $this->request->getPost('purok_id');
+
+        $latitudeRaw = trim(
+            (string) $this->request->getPost('latitude')
+        );
+
+        $longitudeRaw = trim(
+            (string) $this->request->getPost('longitude')
+        );
+
+
+        // Validate required values
+        if (
+            $purokId <= 0 ||
+            $latitudeRaw === '' ||
+            $longitudeRaw === ''
+        ) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Purok and coordinates are required.',
+                ]);
+        }
+
+
+        // Validate numeric coordinates
+        if (
+            !is_numeric($latitudeRaw) ||
+            !is_numeric($longitudeRaw)
+        ) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Invalid latitude or longitude.',
+                ]);
+        }
+
+
+        $latitude = (float) $latitudeRaw;
+        $longitude = (float) $longitudeRaw;
+
+
+        // Valid worldwide coordinate ranges
+        if (
+            $latitude < -90 ||
+            $latitude > 90 ||
+            $longitude < -180 ||
+            $longitude > 180
+        ) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Coordinates are outside the valid range.',
+                ]);
+        }
+
+
+        // Check if Purok exists
+        $purok = $db->table('puroks')
+            ->where('purok_id', $purokId)
+            ->where('is_active', 1)
+            ->get()
+            ->getRowArray();
+
+        if (!$purok) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Purok not found.',
+                ]);
+        }
+
+
+        // Save coordinates
+        $updated = $db->table('puroks')
+            ->where('purok_id', $purokId)
+            ->update([
+                'latitude'   => number_format(
+                    $latitude,
+                    8,
+                    '.',
+                    ''
+                ),
+                'longitude'  => number_format(
+                    $longitude,
+                    8,
+                    '.',
+                    ''
+                ),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+
+        if (!$updated) {
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Unable to save Purok coordinates.',
+                ]);
+        }
+
+
+        return $this->response->setJSON([
+            'success' => true,
+
+            'message' =>
+            $purok['purok_name'] .
+                ' map location saved successfully.',
+
+            'data' => [
+                'purok_id'   => $purokId,
+                'purok_name' => $purok['purok_name'],
+                'latitude'   => $latitude,
+                'longitude'  => $longitude,
+            ],
+        ]);
+    }
+
+
     // ===== Integrated backend functions =====
 
-public function deleteResidentAccount()
+    public function deleteResidentAccount()
     {
         $db = \Config\Database::connect();
 
@@ -1838,114 +4232,112 @@ public function deleteResidentAccount()
             ->with('success', 'Your account has been permanently deleted.');
     }
 
-public function saveSettings()
-{
-    $db = \Config\Database::connect();
+    public function saveSettings()
+    {
+        $db = \Config\Database::connect();
 
-    $systemName = trim((string) $this->request->getPost('system_name'));
-    $barangayName = trim((string) $this->request->getPost('barangay_name'));
-    $contactEmail = trim((string) $this->request->getPost('contact_email'));
-    $contactNumber = trim((string) $this->request->getPost('contact_number'));
-    $systemDescription = trim((string) $this->request->getPost('system_description'));
+        $systemName = trim((string) $this->request->getPost('system_name'));
+        $barangayName = trim((string) $this->request->getPost('barangay_name'));
+        $contactEmail = trim((string) $this->request->getPost('contact_email'));
+        $contactNumber = trim((string) $this->request->getPost('contact_number'));
+        $systemDescription = trim((string) $this->request->getPost('system_description'));
 
-    $sessionTimeout = (int) $this->request->getPost('session_timeout');
-    $dateFormat = trim((string) $this->request->getPost('date_format'));
-    $itemsPerPage = (int) $this->request->getPost('items_per_page');
-    $themePreference = trim((string) $this->request->getPost('theme_preference'));
+        $sessionTimeout = (int) $this->request->getPost('session_timeout');
+        $dateFormat = trim((string) $this->request->getPost('date_format'));
+        $itemsPerPage = (int) $this->request->getPost('items_per_page');
+        $themePreference = trim((string) $this->request->getPost('theme_preference'));
 
-    if ($systemName === '' || $barangayName === '') {
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'System Name and Barangay Name are required.');
-    }
+        if ($systemName === '' || $barangayName === '') {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'System Name and Barangay Name are required.');
+        }
 
-    if (
-        $contactEmail !== '' &&
-        !filter_var($contactEmail, FILTER_VALIDATE_EMAIL)
-    ) {
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'Please enter a valid contact email.');
-    }
+        if (
+            $contactEmail !== '' &&
+            !filter_var($contactEmail, FILTER_VALIDATE_EMAIL)
+        ) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Please enter a valid contact email.');
+        }
 
-    if ($sessionTimeout < 5 || $sessionTimeout > 240) {
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'Session timeout must be between 5 and 240 minutes.');
-    }
+        if ($sessionTimeout < 5 || $sessionTimeout > 240) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Session timeout must be between 5 and 240 minutes.');
+        }
 
-    if ($itemsPerPage < 5 || $itemsPerPage > 100) {
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'Items per page must be between 5 and 100.');
-    }
+        if ($itemsPerPage < 5 || $itemsPerPage > 100) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Items per page must be between 5 and 100.');
+        }
 
-    $allowedDateFormats = [
-        'MM/DD/YYYY',
-        'DD/MM/YYYY'
-    ];
+        $allowedDateFormats = [
+            'MM/DD/YYYY',
+            'DD/MM/YYYY',
+            'YYYY/MM/DD'
+        ];
 
-    if (!in_array($dateFormat, $allowedDateFormats, true)) {
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'Invalid date format selected.');
-    }
+        if (!in_array($dateFormat, $allowedDateFormats, true)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Invalid date format selected.');
+        }
 
-    $allowedThemes = [
-        'Light',
-        'Dark'
-    ];
+        $allowedThemes = [
+            'Light',
+            'Dark'
+        ];
 
-    if (!in_array($themePreference, $allowedThemes, true)) {
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'Invalid theme preference selected.');
-    }
+        if (!in_array($themePreference, $allowedThemes, true)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Invalid theme preference selected.');
+        }
 
-    $data = [
-        'system_name' => $systemName,
-        'barangay_name' => $barangayName,
-        'contact_email' => $contactEmail !== '' ? $contactEmail : null,
-        'contact_number' => $contactNumber !== '' ? $contactNumber : null,
-        'system_description' => $systemDescription !== ''
-            ? $systemDescription
-            : null,
+        $data = [
+            'system_name' => $systemName,
+            'barangay_name' => $barangayName,
+            'contact_email' => $contactEmail !== '' ? $contactEmail : null,
+            'contact_number' => $contactNumber !== '' ? $contactNumber : null,
+            'system_description' => $systemDescription !== ''
+                ? $systemDescription
+                : null,
 
-        'email_notifications' =>
+            'email_notifications' =>
             $this->request->getPost('email_notifications') ? 1 : 0,
 
-        'report_notifications' =>
+            'report_notifications' =>
             $this->request->getPost('report_notifications') ? 1 : 0,
 
-        'registration_notifications' =>
+            'registration_notifications' =>
             $this->request->getPost('registration_notifications') ? 1 : 0,
 
-        'announcement_notifications' =>
-            $this->request->getPost('announcement_notifications') ? 1 : 0,
+            'session_timeout' => $sessionTimeout,
+            'date_format' => $dateFormat,
+            'items_per_page' => $itemsPerPage,
+            'theme_preference' => $themePreference,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
 
-        'session_timeout' => $sessionTimeout,
-        'date_format' => $dateFormat,
-        'items_per_page' => $itemsPerPage,
-        'theme_preference' => $themePreference,
-        'updated_at' => date('Y-m-d H:i:s'),
-    ];
+        $settings = $db->table('settings')
+            ->orderBy('setting_id', 'ASC')
+            ->get()
+            ->getRowArray();
 
-    $settings = $db->table('settings')
-        ->orderBy('setting_id', 'ASC')
-        ->get()
-        ->getRowArray();
+        if ($settings) {
+            $db->table('settings')
+                ->where('setting_id', $settings['setting_id'])
+                ->update($data);
+        } else {
+            $data['created_at'] = date('Y-m-d H:i:s');
 
-    if ($settings) {
-        $db->table('settings')
-            ->where('setting_id', $settings['setting_id'])
-            ->update($data);
-    } else {
-        $data['created_at'] = date('Y-m-d H:i:s');
+            $db->table('settings')->insert($data);
+        }
 
-        $db->table('settings')->insert($data);
+        return redirect()->to('/admin/settings')
+            ->with('success', 'Settings saved successfully.');
     }
-
-    return redirect()->to('/admin/settings')
-        ->with('success', 'Settings saved successfully.');
-}
 }

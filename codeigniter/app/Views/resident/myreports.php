@@ -18,6 +18,7 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?= base_url('assets/css/myreport.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/resident-sidebar.css') ?>">
 
 </head>
 
@@ -160,19 +161,18 @@
                             <input
                                 type="text"
                                 class="form-control"
+                                id="reportSearch"
                                 placeholder="Search report title...">
-
                         </div>
 
                         <div class="col-md-4">
+                            <select class="form-select" id="statusFilter">
 
-                            <select class="form-select">
-
-                                <option selected>All Status</option>
-                                <option>Pending</option>
-                                <option>In Progress</option>
-                                <option>Resolved</option>
-                                <option>Rejected</option>
+                                <option value="">All Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Resolved">Resolved</option>
+                                <option value="Rejected">Rejected</option>
 
                             </select>
 
@@ -201,6 +201,176 @@
                 </div>
 
                 <div class="card-body">
+
+                    <!-- Mobile Report History -->
+                    <div class="mobile-report-list">
+
+                        <?php if (!empty($reports)): ?>
+
+                            <?php foreach ($reports as $report): ?>
+
+                                <?php
+                                $status = $report['status'] ?? 'Unknown';
+
+                                $badgeClass = match ($status) {
+                                    'Pending'     => 'bg-warning text-dark',
+                                    'In Progress' => 'bg-primary',
+                                    'Resolved'    => 'bg-success',
+                                    'Rejected'    => 'bg-danger',
+                                    default       => 'bg-secondary',
+                                };
+                                ?>
+
+                                <article
+                                    class="mobile-report-item"
+                                    data-status="<?= esc($status) ?>"
+                                    data-title="<?= esc(strtolower($report['title'] ?? '')) ?>">
+
+                                    <!-- Title + Status -->
+                                    <div class="mobile-report-top">
+
+                                        <h5>
+                                            <?= esc($report['title'] ?? 'Untitled Report') ?>
+                                        </h5>
+
+                                        <span class="badge <?= $badgeClass ?>">
+                                            <?= esc($status) ?>
+                                        </span>
+
+                                    </div>
+
+
+                                    <!-- Information -->
+                                    <div class="mobile-report-meta">
+
+                                        <div>
+                                            <i class="bi bi-tag"></i>
+
+                                            <span>
+                                                <?= esc(
+                                                    $report['category_name']
+                                                        ?? 'No Category'
+                                                ) ?>
+                                            </span>
+                                        </div>
+
+                                        <div>
+                                            <i class="bi bi-calendar3"></i>
+
+                                            <span>
+                                                <?= !empty($report['date_reported'])
+                                                    ? date(
+                                                        'M d, Y',
+                                                        strtotime($report['date_reported'])
+                                                    )
+                                                    : 'No Date' ?>
+                                            </span>
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- Photo -->
+                                    <div class="mobile-report-photo">
+
+                                        <?php if (!empty($report['image_path'])): ?>
+
+                                            <img
+                                                src="<?= base_url($report['image_path']) ?>"
+                                                alt="Report Photo">
+
+                                        <?php else: ?>
+
+                                            <div class="mobile-no-photo">
+                                                <i class="bi bi-image"></i>
+                                                <span>No photo</span>
+                                            </div>
+
+                                        <?php endif; ?>
+
+                                    </div>
+
+
+                                    <!-- Actions -->
+                                    <div class="mobile-report-actions">
+
+                                        <a
+                                            href="<?= site_url(
+                                                        'resident/report-details/'
+                                                            . $report['report_id']
+                                                    ) ?>"
+                                            class="btn btn-outline-success btn-sm">
+
+                                            <i class="bi bi-eye-fill"></i>
+                                            View
+
+                                        </a>
+
+
+                                        <?php if (
+                                            ($report['status'] ?? '') === 'Pending'
+                                        ): ?>
+
+                                            <a
+                                                href="<?= site_url(
+                                                            'resident/report/edit/'
+                                                                . $report['report_id']
+                                                        ) ?>"
+                                                class="btn btn-outline-primary btn-sm">
+
+                                                <i class="bi bi-pencil-square"></i>
+                                                Edit
+
+                                            </a>
+
+
+                                            <form
+                                                action="<?= site_url(
+                                                            'resident/report/delete/'
+                                                                . $report['report_id']
+                                                        ) ?>"
+                                                method="post"
+                                                onsubmit="
+                                return confirm(
+                                    'Are you sure you want to delete this report? This action cannot be undone.'
+                                );
+                            ">
+
+                                                <?= csrf_field() ?>
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-outline-danger btn-sm">
+
+                                                    <i class="bi bi-trash-fill"></i>
+                                                    Delete
+
+                                                </button>
+
+                                            </form>
+
+                                        <?php endif; ?>
+
+                                    </div>
+
+                                </article>
+
+                            <?php endforeach; ?>
+
+                        <?php else: ?>
+
+                            <div class="mobile-empty-reports">
+
+                                <i class="bi bi-file-earmark-text"></i>
+
+                                <p>No reports found.</p>
+
+                            </div>
+
+                        <?php endif; ?>
+
+                    </div>
+                    <!-- End Mobile Report History -->
 
                     <div class="table-responsive">
 
@@ -238,9 +408,9 @@
                                             default       => 'bg-secondary',
                                         };
                                         ?>
-
-                                        <tr>
-
+                                        <tr
+                                            data-status="<?= esc($status) ?>"
+                                            data-title="<?= esc(strtolower($report['title'] ?? '')) ?>">
                                             <!-- Title -->
                                             <td>
                                                 <?= esc($report['title']) ?>
@@ -254,8 +424,8 @@
                                             <!-- Date -->
                                             <td>
                                                 <?= !empty($report['date_reported'])
-                                                ? date('F d, Y', strtotime($report['date_reported']))
-                                                : 'No Date' ?>
+                                                    ? date('F d, Y', strtotime($report['date_reported']))
+                                                    : 'No Date' ?>
                                             </td>
 
                                             <!-- Status -->
@@ -344,12 +514,35 @@
 
             </div>
 
+            <?php
+            $reportList = $reports ?? [];
+
+            $totalReports = count($reportList);
+
+            $statusCounts = array_count_values(
+                array_column($reportList, 'status')
+            );
+
+            $pendingReports =
+                $statusCounts['Pending'] ?? 0;
+
+            $inProgressReports =
+                $statusCounts['In Progress'] ?? 0;
+
+            $resolvedReports =
+                $statusCounts['Resolved'] ?? 0;
+
+            $rejectedReports =
+                $statusCounts['Rejected'] ?? 0;
+            ?>
+
             <!-- Summary Cards -->
 
-            <section class="mt-4">
+            <section class="mt-4 report-summary-section">
 
                 <div class="row">
 
+                    <!-- Total Reports -->
                     <div class="col-lg-3 col-md-6 mb-3">
 
                         <div class="card text-center shadow-sm">
@@ -360,7 +553,7 @@
 
                                 <h5 class="mt-3">Total Reports</h5>
 
-                                <h2>8</h2>
+                                <h2><?= $totalReports ?></h2>
 
                             </div>
 
@@ -368,6 +561,8 @@
 
                     </div>
 
+
+                    <!-- Pending -->
                     <div class="col-lg-3 col-md-6 mb-3">
 
                         <div class="card text-center shadow-sm">
@@ -378,7 +573,7 @@
 
                                 <h5 class="mt-3">Pending</h5>
 
-                                <h2>2</h2>
+                                <h2><?= $pendingReports ?></h2>
 
                             </div>
 
@@ -386,6 +581,8 @@
 
                     </div>
 
+
+                    <!-- In Progress -->
                     <div class="col-lg-3 col-md-6 mb-3">
 
                         <div class="card text-center shadow-sm">
@@ -396,7 +593,7 @@
 
                                 <h5 class="mt-3">In Progress</h5>
 
-                                <h2>1</h2>
+                                <h2><?= $inProgressReports ?></h2>
 
                             </div>
 
@@ -404,6 +601,8 @@
 
                     </div>
 
+
+                    <!-- Resolved -->
                     <div class="col-lg-3 col-md-6 mb-3">
 
                         <div class="card text-center shadow-sm">
@@ -414,7 +613,27 @@
 
                                 <h5 class="mt-3">Resolved</h5>
 
-                                <h2>5</h2>
+                                <h2><?= $resolvedReports ?></h2>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Rejected -->
+                    <div class="col-lg-3 col-md-6 mb-3">
+
+                        <div class="card text-center shadow-sm">
+
+                            <div class="card-body">
+
+                                <i class="bi bi-x-circle-fill text-danger fs-1"></i>
+
+                                <h5 class="mt-3">Rejected</h5>
+
+                                <h2><?= $rejectedReports ?></h2>
 
                             </div>
 
@@ -518,6 +737,110 @@
     <!-- Custom JS -->
 
     <script defer src="<?= base_url('assets/js/myreport.js') ?>"></script>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const statusFilter = document.getElementById("statusFilter");
+            const reportSearch = document.getElementById("reportSearch");
+
+            function applyFilters() {
+
+                const selectedStatus = statusFilter ?
+                    statusFilter.value.trim().toLowerCase() :
+                    "";
+
+                const searchText = reportSearch ?
+                    reportSearch.value.trim().toLowerCase() :
+                    "";
+
+
+                /* =========================
+                   DESKTOP / TABLET
+                ========================= */
+
+                document.querySelectorAll(
+                    ".reports-card tbody tr[data-status]"
+                ).forEach(function(row) {
+
+                    const reportStatus =
+                        (row.dataset.status || "")
+                        .trim()
+                        .toLowerCase();
+
+                    const titleCell =
+                        row.querySelector("td:first-child");
+
+                    const reportTitle = titleCell ?
+                        titleCell.textContent.trim().toLowerCase() :
+                        "";
+
+                    const statusMatch =
+                        selectedStatus === "" ||
+                        reportStatus === selectedStatus;
+
+                    const searchMatch =
+                        searchText === "" ||
+                        reportTitle.includes(searchText);
+
+                    row.style.display =
+                        statusMatch && searchMatch ?
+                        "" :
+                        "none";
+                });
+
+
+                /* =========================
+                   MOBILE
+                ========================= */
+
+                document.querySelectorAll(
+                    ".mobile-report-item[data-status]"
+                ).forEach(function(card) {
+
+                    const reportStatus =
+                        (card.dataset.status || "")
+                        .trim()
+                        .toLowerCase();
+
+                    const titleElement =
+                        card.querySelector(".mobile-report-top h5");
+
+                    const reportTitle = titleElement ?
+                        titleElement.textContent.trim().toLowerCase() :
+                        "";
+
+                    const statusMatch =
+                        selectedStatus === "" ||
+                        reportStatus === selectedStatus;
+
+                    const searchMatch =
+                        searchText === "" ||
+                        reportTitle.includes(searchText);
+
+                    card.style.display =
+                        statusMatch && searchMatch ?
+                        "" :
+                        "none";
+                });
+
+            }
+
+
+            if (statusFilter) {
+                statusFilter.addEventListener("change", applyFilters);
+            }
+
+            if (reportSearch) {
+                reportSearch.addEventListener("input", applyFilters);
+            }
+
+        });
+    </script>
+
+
+
 
 </body>
 

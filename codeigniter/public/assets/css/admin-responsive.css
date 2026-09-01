@@ -1,0 +1,691 @@
+/* =========================================
+   SHARED ADMIN RESPONSIVE LAYOUT
+========================================= */
+
+.admin-mobile-toggle {
+  display: none;
+}
+
+.admin-sidebar-overlay {
+  display: none;
+}
+
+/* =========================================
+   DESKTOP / DEFAULT
+========================================= */
+
+.cards {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+/* =========================================
+   REPORT FILTER DROPDOWNS
+   RESPONSIVE STANDARD SIZE
+========================================= */
+
+.report-filter-dropdown {
+  width: 100%;
+}
+
+/* DESKTOP */
+.report-filter-dropdown-btn {
+  width: 100%;
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 8px 12px;
+
+  background: #ffffff;
+  border: 1px solid #dce4df;
+  border-radius: 8px;
+
+  color: #29372e;
+  font-size: 14px;
+  font-weight: 400;
+
+  text-align: left;
+}
+
+.report-filter-dropdown-btn:hover,
+.report-filter-dropdown-btn:focus {
+  background: #ffffff;
+  border-color: #8dbb9c;
+  color: #29372e;
+}
+
+.report-filter-menu {
+  width: 100%;
+  min-width: 100%;
+  max-height: 260px;
+
+  overflow-y: auto;
+
+  padding: 6px;
+
+  font-size: 14px;
+}
+
+.report-filter-menu .dropdown-item {
+  padding: 9px 11px;
+
+  border-radius: 6px;
+
+  font-size: 14px;
+  line-height: 1.3;
+
+  white-space: normal;
+}
+
+/* =========================================
+   LARGE TABLET / SMALL LAPTOP
+========================================= */
+
+@media (max-width: 1200px) {
+  .cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+/* =========================================
+   TABLET / MOBILE
+   768px AND BELOW
+========================================= */
+
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .wrapper {
+    display: block;
+    min-height: 100vh;
+  }
+
+  /* ---------- SIDEBAR ---------- */
+
+  .sidebar {
+    position: fixed !important;
+
+    top: 0;
+    left: 0;
+
+    width: 250px !important;
+    max-width: 85vw;
+
+    height: 100vh !important;
+
+    z-index: 1050;
+
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+
+    overflow-y: auto;
+  }
+
+  .sidebar.admin-sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar .logo {
+    padding: 16px 14px !important;
+  }
+
+  .sidebar .logo i {
+    font-size: 23px !important;
+  }
+
+  .sidebar .logo h4 {
+    font-size: 1rem !important;
+  }
+
+  .sidebar .menu {
+    padding: 10px 0 !important;
+  }
+
+  .sidebar .menu li {
+    margin: 3px 10px !important;
+  }
+
+  .sidebar .menu li a {
+    gap: 9px !important;
+
+    padding: 9px 12px !important;
+
+    font-size: 12.5px !important;
+  }
+
+  .sidebar .menu li.logout {
+    margin-top: 18px !important;
+  }
+
+  /* ---------- MOBILE MENU BUTTON ---------- */
+
+  .admin-mobile-toggle {
+    position: fixed;
+
+    top: 12px;
+    left: 12px;
+
+    z-index: 1060;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 40px;
+    height: 40px;
+
+    padding: 0;
+
+    border: 0;
+    border-radius: 9px;
+
+    background: #1f6f43;
+    color: #ffffff;
+
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.15);
+
+    font-size: 1.2rem;
+  }
+
+  /* ---------- OVERLAY ---------- */
+
+  .admin-sidebar-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1040;
+
+    display: block;
+
+    background: rgba(0, 0, 0, 0.35);
+
+    opacity: 0;
+    visibility: hidden;
+
+    transition:
+      opacity 0.25s ease,
+      visibility 0.25s ease;
+  }
+
+  .admin-sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* ---------- MAIN CONTENT ---------- */
+
+  .main-content {
+    width: 100% !important;
+    margin-left: 0 !important;
+
+    padding: 16px !important;
+  }
+
+  /* ---------- TOPBAR ---------- */
+
+  .topbar {
+    gap: 12px !important;
+
+    margin-top: 46px;
+    margin-bottom: 18px !important;
+  }
+
+  .topbar h1,
+  .topbar h2,
+  .topbar h3 {
+    font-size: 1.3rem !important;
+  }
+
+  .topbar p {
+    font-size: 0.78rem !important;
+  }
+
+  /* ---------- COMMON CARDS ---------- */
+
+  .card,
+  .table-section,
+  .map-card,
+  .activity-card {
+    border-radius: 11px !important;
+  }
+
+  /* Do not globally force large Bootstrap padding */
+  .table-section,
+  .map-card,
+  .activity-card {
+    padding: 14px !important;
+  }
+
+  /* ---------- FORM CONTROLS ---------- */
+
+  .form-control,
+  .form-select {
+    min-height: 34px !important;
+
+    padding: 5px 8px !important;
+
+    font-size: 12px !important;
+  }
+
+  .form-select {
+    padding-right: 28px !important;
+    background-size: 12px 12px;
+  }
+
+  textarea.form-control {
+    min-height: 85px !important;
+  }
+
+  label,
+  .form-label {
+    margin-bottom: 5px !important;
+
+    font-size: 11px !important;
+  }
+
+  /* ---------- BUTTONS ---------- */
+
+  .btn,
+  button.btn,
+  a.btn {
+    min-height: 34px !important;
+
+    padding: 6px 9px !important;
+
+    font-size: 11.5px !important;
+  }
+
+  /* ---------- TABLE ---------- */
+
+  .table {
+    font-size: 11px !important;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px 7px !important;
+  }
+
+  /* ---------- BADGES ---------- */
+
+  .badge {
+    padding: 5px 7px !important;
+
+    font-size: 10px !important;
+  }
+
+  /* ---------- DASHBOARD SUMMARY ---------- */
+
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 10px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .dashboard-card {
+    min-width: 0;
+    min-height: 80px;
+
+    padding: 12px !important;
+    gap: 10px !important;
+
+    border-radius: 12px !important;
+  }
+
+  .dashboard-card .icon {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+
+    font-size: 17px !important;
+
+    border-radius: 10px !important;
+  }
+
+  .dashboard-card h3 {
+    margin: 0;
+
+    font-size: 1.15rem !important;
+    line-height: 1.1 !important;
+  }
+
+  .dashboard-card span {
+    font-size: 0.68rem !important;
+    line-height: 1.25 !important;
+  }
+
+  /* ---------- CUSTOM REPORT DROPDOWN ---------- */
+
+  .report-filter-dropdown-btn {
+    min-height: 34px;
+
+    padding: 5px 8px;
+
+    font-size: 11.5px;
+  }
+
+  .report-filter-menu {
+    max-height: 190px;
+
+    font-size: 11.5px;
+  }
+
+  .report-filter-menu .dropdown-item {
+    padding: 6px 8px;
+
+    font-size: 11.5px;
+  }
+}
+
+/* =========================================
+   SMALL PHONE
+   480px AND BELOW
+========================================= */
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 235px !important;
+  }
+
+  .sidebar .logo {
+    padding: 14px 12px !important;
+  }
+
+  .sidebar .logo i {
+    font-size: 21px !important;
+  }
+
+  .sidebar .logo h4 {
+    font-size: 0.95rem !important;
+  }
+
+  .sidebar .menu {
+    padding: 8px 0 !important;
+  }
+
+  .sidebar .menu li {
+    margin: 2px 9px !important;
+  }
+
+  .sidebar .menu li a {
+    gap: 8px !important;
+
+    padding: 8px 10px !important;
+
+    font-size: 12px !important;
+  }
+
+  .admin-mobile-toggle {
+    top: 10px;
+    left: 10px;
+
+    width: 38px;
+    height: 38px;
+
+    font-size: 1.1rem;
+  }
+
+  .main-content {
+    padding: 12px !important;
+  }
+
+  .topbar {
+    margin-top: 44px;
+  }
+
+  .topbar h1,
+  .topbar h2,
+  .topbar h3 {
+    font-size: 1.1rem !important;
+  }
+
+  .topbar p {
+    font-size: 0.7rem !important;
+  }
+
+  /* ---------- FORMS ---------- */
+
+  .form-control,
+  .form-select {
+    min-height: 32px !important;
+
+    padding: 5px 7px !important;
+
+    font-size: 11px !important;
+  }
+
+  label,
+  .form-label {
+    font-size: 10.5px !important;
+  }
+
+  /* ---------- BUTTONS ---------- */
+
+  .btn,
+  button.btn,
+  a.btn {
+    min-height: 32px !important;
+
+    padding: 5px 8px !important;
+
+    font-size: 11px !important;
+  }
+
+  /* ---------- TABLE ---------- */
+
+  .table {
+    font-size: 10.5px !important;
+  }
+
+  .table th,
+  .table td {
+    padding: 7px 6px !important;
+  }
+
+  /* ---------- SUMMARY CARDS ---------- */
+
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 8px !important;
+  }
+
+  .dashboard-card {
+    min-height: 72px;
+
+    padding: 9px !important;
+    gap: 8px !important;
+
+    flex-direction: row !important;
+    text-align: left !important;
+  }
+
+  .dashboard-card .icon {
+    width: 35px !important;
+    height: 35px !important;
+    min-width: 35px !important;
+
+    font-size: 14px !important;
+  }
+
+  .dashboard-card h3 {
+    font-size: 1rem !important;
+  }
+
+  .dashboard-card span {
+    font-size: 0.61rem !important;
+  }
+
+  /* ---------- CUSTOM REPORT DROPDOWN ---------- */
+
+  .report-filter-dropdown-btn {
+    min-height: 32px;
+
+    padding: 5px 7px;
+
+    font-size: 11px;
+  }
+
+  .report-filter-menu {
+    max-height: 175px;
+
+    padding: 4px;
+
+    font-size: 11px;
+  }
+
+  .report-filter-menu .dropdown-item {
+    padding: 5px 7px;
+
+    font-size: 11px;
+  }
+}
+/* =========================================
+   REPORT DATE FILTER SIZE
+========================================= */
+
+/* DESKTOP */
+#reportFromDate,
+#reportToDate {
+  min-height: 42px !important;
+  padding: 8px 10px !important;
+  font-size: 14px !important;
+}
+
+/* TABLET */
+@media (max-width: 768px) {
+  #reportFromDate,
+  #reportToDate {
+    min-height: 38px !important;
+    padding: 7px 9px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* PHONE */
+@media (max-width: 480px) {
+  #reportFromDate,
+  #reportToDate {
+    min-height: 32px !important;
+    padding: 5px 7px !important;
+    font-size: 11px !important;
+  }
+}
+/* =========================================
+   MOBILE SIDEBAR TAP RELIABILITY
+========================================= */
+
+@media (max-width: 768px) {
+  .admin-mobile-toggle {
+    z-index: 1080 !important;
+
+    pointer-events: auto !important;
+    touch-action: manipulation;
+
+    cursor: pointer;
+
+    user-select: none;
+    -webkit-user-select: none;
+
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .admin-sidebar-overlay {
+    pointer-events: none;
+  }
+
+  .admin-sidebar-overlay.show {
+    pointer-events: auto;
+  }
+
+  body.admin-menu-open {
+    overflow: hidden !important;
+  }
+
+  .sidebar {
+    pointer-events: auto;
+  }
+}
+/* ==========================================
+   PUROK DROPDOWNS - RESPONSIVE
+   Resident Management only
+   ========================================== */
+
+/* ---------- DESKTOP ---------- */
+#purokFilter + .report-filter-dropdown,
+.add-resident-purok-dropdown {
+  width: 100%;
+}
+
+#purokFilter + .report-filter-dropdown .report-filter-dropdown-btn,
+.add-resident-purok-btn {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 14px;
+  font-size: 14px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#purokFilter + .report-filter-dropdown .report-filter-menu,
+.add-resident-purok-menu {
+  width: 100%;
+  max-height: 280px;
+  overflow-y: auto;
+  font-size: 14px;
+}
+
+#purokFilter + .report-filter-dropdown .dropdown-item,
+.add-resident-purok-menu .dropdown-item {
+  padding: 9px 14px;
+}
+
+/* ---------- TABLET ---------- */
+@media (max-width: 991.98px) {
+  #purokFilter + .report-filter-dropdown .report-filter-dropdown-btn,
+  .add-resident-purok-btn {
+    min-height: 38px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  #purokFilter + .report-filter-dropdown .report-filter-menu,
+  .add-resident-purok-menu {
+    max-height: 240px;
+    font-size: 13px;
+  }
+
+  #purokFilter + .report-filter-dropdown .dropdown-item,
+  .add-resident-purok-menu .dropdown-item {
+    padding: 8px 12px;
+  }
+}
+
+/* ---------- CELLPHONE ---------- */
+@media (max-width: 575.98px) {
+  #purokFilter + .report-filter-dropdown .report-filter-dropdown-btn,
+  .add-resident-purok-btn {
+    min-height: 34px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  #purokFilter + .report-filter-dropdown .report-filter-menu,
+  .add-resident-purok-menu {
+    max-height: 200px;
+    font-size: 12px;
+  }
+
+  #purokFilter + .report-filter-dropdown .dropdown-item,
+  .add-resident-purok-menu .dropdown-item {
+    padding: 7px 10px;
+  }
+}

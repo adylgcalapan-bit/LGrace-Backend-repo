@@ -1,10 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Community Problems Visibility System</title>
+    <title>
+        Admin Dashboard | <?= esc($settings['system_name'] ?? 'Community Problems Visibility System') ?>
+    </title>
 
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -17,9 +19,20 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?= base_url('assets/css/dashboard-admin.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-theme.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css') ?>">
 </head>
 
-<body>
+<body class="<?= esc(system_theme_class()) ?>">
+
+    <button
+        type="button"
+        class="admin-mobile-toggle"
+        aria-label="Open admin menu">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div class="admin-sidebar-overlay"></div>
 
     <div class="wrapper">
 
@@ -81,7 +94,7 @@
                 <li>
                     <a href="<?= base_url('admin/account') ?>">
                         <i class="bi bi-person-circle"></i>
-                        Account / Profile
+                        Account
                     </a>
                 </li>
 
@@ -116,17 +129,22 @@
 
                 <div class="top-actions">
 
-                    <a id="newAnnouncementBtn" class="btn btn-success" href="<?= base_url('admin/announcements') ?>?open=add">
-                        <i class="bi bi-plus-circle"></i>
-                        New Announcement
-                    </a>
+                    <?php
+                    $adminName = trim((string) ($admin['full_name'] ?? 'System Admin'));
+
+                    $adminPhoto = ! empty($admin['profile_image'])
+                        ? base_url(ltrim($admin['profile_image'], '/'))
+                        : base_url('assets/images/admin picture.jpg');
+                    ?>
 
                     <div class="profile">
 
-                        <img src="<?= base_url('assets/images/admin picture.jpg') ?>">
+                        <img
+                            src="<?= esc($adminPhoto) ?>"
+                            alt="Administrator Profile">
 
                         <div>
-                            <strong>Admin</strong>
+                            <strong><?= esc($adminName) ?></strong>
                         </div>
 
                     </div>
@@ -189,6 +207,18 @@
                         <span>Resolved</span>
                     </div>
 
+
+                </div>
+
+                <div class="card dashboard-card">
+                    <div class="icon" style="background:#dc3545;">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+
+                    <div>
+                        <h3 id="rejectedReports"><?= (int) ($rejectedReports ?? 0) ?></h3>
+                        <span>Rejected</span>
+                    </div>
                 </div>
 
             </section>
@@ -270,9 +300,7 @@
                                         </td>
 
                                         <td>
-                                            <?= !empty($report['date_reported'])
-                                                ? date('F d, Y', strtotime($report['date_reported']))
-                                                : 'N/A' ?>
+                                            <?= format_system_date($report['date_reported'] ?? null) ?>
                                         </td>
 
                                     </tr>
@@ -297,46 +325,7 @@
 
             </section>
 
-            <section class="map-card announcement-dashboard-card">
-                <div class="section-title d-flex justify-content-between align-items-center">
-                    <h4>Announcements</h4>
-                    <a href="<?= base_url('admin/announcements') ?>" class="btn btn-sm btn-outline-success">Manage</a>
-                </div>
 
-
-                <div class="announcement-list">
-
-                    <?php if (!empty($dashboardAnnouncements)): ?>
-
-                        <?php foreach ($dashboardAnnouncements as $announcement): ?>
-
-                            <div class="announcement-item">
-
-                                <strong>
-                                    <?= esc($announcement['title']) ?>
-                                </strong>
-
-                                <p>
-                                    <?= esc($announcement['content']) ?>
-                                </p>
-
-                            </div>
-
-                        <?php endforeach; ?>
-
-                    <?php else: ?>
-
-                        <div class="text-center text-muted py-3">
-                            No published announcements yet.
-                        </div>
-
-                    <?php endif; ?>
-
-                </div>
-
-
-
-            </section>
 
             <!-- MAP -->
 
@@ -367,7 +356,7 @@
                         <?php foreach ($recentReports as $report): ?>
 
                             <li>
-                                ✔ Report
+                                âœ” Report
                                 <strong>#<?= esc($report['report_id']) ?></strong>
                                 by
                                 <strong><?= esc($report['display_resident_name'] ?? 'Unknown Resident') ?></strong>
@@ -395,6 +384,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -425,6 +415,25 @@
                 }
             ).addTo(map);
 
+            let heatLayer = null;
+
+            if (typeof L.heatLayer === "function") {
+                heatLayer = L.heatLayer([], {
+                    radius: 35,
+                    blur: 22,
+                    maxZoom: 17,
+                    minOpacity: 0.4,
+                    gradient: {
+                        0.2: "#b7e4c7",
+                        0.5: "#52b788",
+                        0.8: "#2d6a4f",
+                        1.0: "#1b4332"
+                    }
+                }).addTo(map);
+            }
+
+            const heatPoints = [];
+
             const markerBounds = [];
 
             reports.forEach(function(report) {
@@ -441,6 +450,15 @@
                 }
 
                 const color = statusColors[report.status] || "#6c757d";
+
+                const statusValue = String(report.status ?? "").trim();
+
+                if (
+                    statusValue !== "Resolved" &&
+                    statusValue !== "Rejected"
+                ) {
+                    heatPoints.push([lat, lng, 1]);
+                }
 
                 const marker = L.circleMarker([lat, lng], {
                     radius: 8,
@@ -482,6 +500,10 @@
                 markerBounds.push([lat, lng]);
             });
 
+            if (heatLayer) {
+                heatLayer.setLatLngs(heatPoints);
+            }
+
             if (markerBounds.length > 0) {
                 map.fitBounds(markerBounds, {
                     padding: [30, 30],
@@ -492,7 +514,7 @@
     </script>
 
     <script src="<?= base_url('assets/js/dashboard-admin.js') ?>"></script>
-
+    <script src="<?= base_url('assets/js/admin-responsive.js') ?>"></script>
 </body>
 
 </html>

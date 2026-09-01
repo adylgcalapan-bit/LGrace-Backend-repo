@@ -28,6 +28,30 @@ window.closeCategoryModal = function (modalId) {
 document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("searchCategory");
   const filterSelect = document.getElementById("filterStatus");
+  // ==========================
+  // CUSTOM STATUS DROPDOWN
+  // ==========================
+
+  document.querySelectorAll(".category-status-option").forEach((option) => {
+    option.addEventListener("click", function () {
+      if (!filterSelect) {
+        return;
+      }
+
+      const selectedValue = this.dataset.value || "all";
+
+      filterSelect.value = selectedValue;
+
+      const label = document.getElementById("categoryStatusLabel");
+
+      if (label) {
+        label.textContent = this.textContent.trim();
+      }
+
+      applyFilters();
+    });
+  });
+
   const rows = Array.from(document.querySelectorAll("#categoryTableBody tr"));
 
   document
@@ -63,10 +87,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (searchInput) {
     searchInput.addEventListener("input", applyFilters);
-  }
-
-  if (filterSelect) {
-    filterSelect.addEventListener("change", applyFilters);
   }
 
   document.querySelectorAll(".edit-btn").forEach((btn) => {

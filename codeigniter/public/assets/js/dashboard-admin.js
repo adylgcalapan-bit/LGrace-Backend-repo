@@ -87,16 +87,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // New Announcement Button
-  const announceBtn = document.getElementById("newAnnouncementBtn");
-
-  if (announceBtn) {
-    announceBtn.addEventListener("click", function (e) {
-      e.preventDefault();
-      window.location.href = "/admin/announcements?open=add";
-    });
-  }
-
   // Auto Refresh Dashboard Every 30 Seconds
   setInterval(() => {
     console.log("Refreshing dashboard data...");

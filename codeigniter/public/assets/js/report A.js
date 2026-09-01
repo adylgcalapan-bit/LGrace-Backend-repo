@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const filtersForm = document.getElementById("reportFiltersForm");
   const searchInput = document.getElementById("reportSearch");
-  const categoryFilter = document.getElementById("reportCategoryFilter");
+  const categoryFilter = document.getElementById("reportCategory");
   const statusFilter = document.getElementById("reportStatusFilter");
   const fromDate = document.getElementById("reportFromDate");
   const toDate = document.getElementById("reportToDate");
@@ -36,6 +36,70 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     },
   );
+
+  document.querySelectorAll(".report-status-option").forEach((option) => {
+    option.addEventListener("click", function () {
+      if (!statusFilter || !filtersForm) {
+        return;
+      }
+
+      const value = this.dataset.value || "all";
+      const label = this.textContent.trim();
+
+      statusFilter.value = value;
+
+      const statusLabel = document.getElementById("reportStatusLabel");
+
+      if (statusLabel) {
+        statusLabel.textContent = label;
+      }
+
+      filtersForm.requestSubmit();
+    });
+  });
+
+  // SORT CUSTOM DROPDOWN
+  document.querySelectorAll(".report-sort-option").forEach((option) => {
+    option.addEventListener("click", function () {
+      if (!sortFilter || !filtersForm) {
+        return;
+      }
+
+      const value = this.dataset.value || "newest";
+      const label = this.textContent.trim();
+
+      sortFilter.value = value;
+
+      const sortLabel = document.getElementById("reportSortLabel");
+
+      if (sortLabel) {
+        sortLabel.textContent = label;
+      }
+
+      filtersForm.requestSubmit();
+    });
+  });
+
+  document.querySelectorAll(".report-category-option").forEach((option) => {
+    option.addEventListener("click", function () {
+      if (!categoryFilter || !filtersForm) {
+        return;
+      }
+
+      const value = this.dataset.value || "0";
+      const label = this.textContent.trim();
+
+      categoryFilter.value = value;
+
+      const categoryLabel = document.getElementById("reportCategoryLabel");
+
+      if (categoryLabel) {
+        categoryLabel.textContent = label;
+      }
+
+      filtersForm.requestSubmit();
+    });
+  });
 
   const viewButtons = document.querySelectorAll(".view-btn");
   const reportModal = document.getElementById("reportModal");

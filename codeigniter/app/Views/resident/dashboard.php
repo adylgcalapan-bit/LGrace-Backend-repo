@@ -16,6 +16,7 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?= base_url('assets/css/dashboard-resident.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/resident-sidebar.css') ?>">
 </head>
 
 <body>
@@ -37,7 +38,7 @@
             <ul class="menu">
 
                 <li class="active">
-                    <a href="#">
+                    <a href="<?= base_url('resident/dashboard') ?>">
                         <i class="bi bi-house-door-fill"></i>
                         <span>Dashboard</span>
                     </a>
@@ -86,28 +87,38 @@
             <div class="topbar">
 
                 <div>
-
                     <h2>Resident Dashboard</h2>
 
-                    <p>Welcome to the Community Problems Visibility System</p>
-
+                    <p>
+                        Welcome to the Community Problems Visibility System
+                    </p>
                 </div>
 
                 <div class="resident-info">
 
-                    <i class="bi bi-person-circle"></i>
+                    <img
+                        src="<?= esc(
+                                    $resident['image_url']
+                                        ?? base_url('assets/images/resident picture.png')
+                                ) ?>"
+                        alt="Resident Profile"
+                        class="resident-topbar-image">
 
                     <div>
-
-                        <h6 class="mb-0">Juan Dela Cruz</h6>
+                        <h6 class="mb-0">
+                            <?= esc(
+                                $resident['full_name']
+                                    ?? 'Resident'
+                            ) ?>
+                        </h6>
 
                         <small>Resident</small>
-
                     </div>
 
                 </div>
 
             </div>
+
 
             <!-- Welcome Banner -->
 
@@ -115,7 +126,13 @@
 
                 <div class="banner-text">
 
-                    <h3>Hello, Juan Dela Cruz! 👋</h3>
+                    <h3>
+                        Hello,
+                        <?= esc(
+                            $resident['full_name']
+                                ?? 'Resident'
+                        ) ?>! 👋
+                    </h3>
 
                     <p>
                         Welcome back! You can report community concerns,
@@ -123,14 +140,20 @@
                         and receive updates from the barangay administrator.
                     </p>
 
-                    <a href="<?= base_url('resident/report') ?>" class="btn btn-success">
+                    <a
+                        href="<?= base_url('resident/report') ?>"
+                        class="btn btn-success">
+
                         <i class="bi bi-plus-circle"></i>
                         Report a Problem
                     </a>
 
-                    <a href="<?= base_url('resident/report-details') ?>" class="btn btn-outline-success ms-2">
-                        <i class="bi bi-eye-fill"></i>
-                        View Report Details
+                    <a
+                        href="<?= base_url('resident/my-reports') ?>"
+                        class="btn btn-outline-success ms-2">
+
+                        <i class="bi bi-file-earmark-text"></i>
+                        My Reports
                     </a>
 
                 </div>
@@ -139,88 +162,115 @@
 
             <!-- Summary Cards -->
 
+            <!-- Summary Cards -->
+
             <section class="summary-cards">
 
                 <div class="row">
-                    <!-- Pending -->
-                    <div class="col-lg-3 col-md-6 mb-4">
-
-                        <div class="card summary-card pending">
-
-                            <div class="card-body">
-
-                                <i class="bi bi-hourglass-split card-icon"></i>
-
-                                <h5>Pending</h5>
-
-                                <h2><?= (int) ($pendingReports ?? 0) ?></h2>
-
-                                <p>Reports Waiting</p>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- In Progress -->
-                    <div class="col-lg-3 col-md-6 mb-4">
-
-                        <div class="card summary-card progress-card">
-
-                            <div class="card-body">
-
-                                <i class="bi bi-arrow-repeat card-icon"></i>
-
-                                <h5>In Progress</h5>
-
-                                <h2><?= (int) ($progressReports ?? 0) ?></h2>
-
-                                <p>Being Processed</p>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- Resolved -->
-                    <div class="col-lg-3 col-md-6 mb-4">
-
-                        <div class="card summary-card resolved">
-
-                            <div class="card-body">
-
-                                <i class="bi bi-check-circle-fill card-icon"></i>
-
-                                <h5>Resolved</h5>
-
-                                <h2><?= (int) ($resolvedReports ?? 0) ?></h2>
-
-                                <p>Completed Reports</p>
-
-                            </div>
-
-                        </div>
-
-                    </div>
 
                     <!-- Total -->
-                    <div class="col-lg-3 col-md-6 mb-4">
-
+                    <div class="col-xl col-lg-4 col-md-6 mb-4">
                         <div class="card summary-card total">
-
                             <div class="card-body">
 
                                 <i class="bi bi-file-earmark-text-fill card-icon"></i>
 
                                 <h5>Total Reports</h5>
 
-                                <h2><?= (int) ($totalReports ?? 0) ?></h2>
+                                <h2>
+                                    <?= (int) ($statistics['total'] ?? 0) ?>
+                                </h2>
+
+                                <p>All Submitted Reports</p>
 
                             </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Pending -->
+                    <div class="col-xl col-lg-4 col-md-6 mb-4">
+                        <div class="card summary-card pending">
+                            <div class="card-body">
+
+                                <i class="bi bi-hourglass-split card-icon"></i>
+
+                                <h5>Pending</h5>
+
+                                <h2>
+                                    <?= (int) ($statistics['pending'] ?? 0) ?>
+                                </h2>
+
+                                <p>Waiting for Review</p>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- In Progress -->
+                    <div class="col-xl col-lg-4 col-md-6 mb-4">
+                        <div class="card summary-card progress-card">
+                            <div class="card-body">
+
+                                <i class="bi bi-arrow-repeat card-icon"></i>
+
+                                <h5>In Progress</h5>
+
+                                <h2>
+                                    <?= (int) ($statistics['in_progress'] ?? 0) ?>
+                                </h2>
+
+                                <p>Being Processed</p>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Resolved -->
+                    <div class="col-xl col-lg-4 col-md-6 mb-4">
+                        <div class="card summary-card resolved">
+                            <div class="card-body">
+
+                                <i class="bi bi-check-circle-fill card-icon"></i>
+
+                                <h5>Resolved</h5>
+
+                                <h2>
+                                    <?= (int) ($statistics['resolved'] ?? 0) ?>
+                                </h2>
+
+                                <p>Completed Reports</p>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Rejected -->
+                    <div class="col-xl col-lg-4 col-md-6 mb-4">
+                        <div class="card summary-card rejected">
+                            <div class="card-body">
+
+                                <i class="bi bi-x-circle-fill card-icon"></i>
+
+                                <h5>Rejected</h5>
+
+                                <h2>
+                                    <?= (int) ($statistics['rejected'] ?? 0) ?>
+                                </h2>
+
+                                <p>Declined Reports</p>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
 
             </section>
+
 
             <!-- Recent Reports -->
 
@@ -272,9 +322,9 @@
 
                                 <tbody>
 
-                                    <?php if (!empty($recentReports)): ?>
+                                    <?php if (!empty($recent_reports)): ?>
 
-                                        <?php foreach ($recentReports as $report): ?>
+                                        <?php foreach ($recent_reports as $report): ?>
 
                                             <?php
                                             $status = $report['status'] ?? 'Pending';
@@ -345,7 +395,7 @@
             </section>
             <!-- Quick Tips -->
 
-            <section class="mt-4">
+            <section class="mt-4 quick-reminders">
 
                 <div class="card">
 

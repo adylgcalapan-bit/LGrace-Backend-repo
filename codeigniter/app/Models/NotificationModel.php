@@ -12,11 +12,12 @@ class NotificationModel extends Model
     protected $returnType = 'array';
 
     protected $allowedFields = [
-    'user_id',
-    'report_id',
-    'message',
-    'status',
-    'date'
-];
+        'user_id',
+        'report_id',
+        'related_user_id',
+        'message',
+        'status',
+        'date'
+    ];
     protected $useTimestamps = false;
 }

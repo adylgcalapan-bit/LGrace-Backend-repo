@@ -282,24 +282,6 @@ body {
   border: 1px solid #edf4ef;
 }
 
-.announcement-dashboard-card .announcement-list {
-  display: grid;
-  gap: 12px;
-}
-
-.announcement-dashboard-card .announcement-item {
-  background: #f7fcf8;
-  border: 1px solid #e6f1e8;
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.announcement-dashboard-card .announcement-item p {
-  margin: 6px 0 0;
-  color: #64727b;
-  font-size: 14px;
-}
-
 #map {
   height: 420px;
   border-radius: 15px;

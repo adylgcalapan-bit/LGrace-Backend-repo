@@ -547,6 +547,94 @@
                 gap: 10px;
             }
         }
+
+        /* ==============================
+   LOGIN SUPPORT CONTACT
+============================== */
+
+        .login-support {
+            margin-top: 20px;
+            padding: 0;
+
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+
+            text-align: left;
+        }
+
+
+        /* TITLE */
+
+        .login-support-title {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+
+            gap: 7px;
+            margin-bottom: 9px;
+
+            color: #ffffff;
+
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+
+        /* CONTACT DETAILS */
+
+        .login-support-details {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+
+            gap: 8px 20px;
+        }
+
+        .login-support-details a {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+
+            color: rgba(255, 255, 255, 0.92);
+
+            font-size: 0.82rem;
+            font-weight: 500;
+
+            text-decoration: none;
+
+            transition: 0.2s ease;
+        }
+
+        .login-support-details a i {
+            color: #ffffff;
+        }
+
+        .login-support-details a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+
+        /* ==============================
+   MOBILE
+============================== */
+
+        @media (max-width: 576px) {
+
+            .login-support {
+                margin-top: 16px;
+            }
+
+            .login-support-details {
+                flex-direction: column;
+                align-items: flex-start;
+
+                gap: 7px;
+            }
+        }
     </style>
 
 </head>
@@ -563,7 +651,7 @@
 
                 <img
                     src="<?= base_url('assets/images/saguing-building.png') ?>"
-                    alt="Barangay Saguing Building"
+                    alt="<?= esc($settings['barangay_name'] ?? 'Barangay Saguing') ?> Building"
                     class="barangay-photo">
 
                 <div class="photo-overlay"></div>
@@ -574,17 +662,55 @@
 
                         <div class="mini-label">
                             <i class="bi bi-geo-alt-fill"></i>
-                            Barangay Saguing
+                            <?= esc($settings['barangay_name'] ?? 'Barangay Saguing') ?>
                         </div>
 
                         <h1>
-                            Community Problems Visibility System
+                            <?= esc($settings['system_name'] ?? 'Community Problems Visibility System') ?>
                         </h1>
 
                         <p>
-                            A simple and user-friendly platform for reporting
-                            and monitoring community concerns in Barangay Saguing.
+                            <?= esc(
+                                $settings['system_description']
+                                    ?? 'A simple and user-friendly platform for reporting and monitoring community concerns.'
+                            ) ?>
                         </p>
+
+                        <?php
+                        $contactEmail = trim((string) ($settings['contact_email'] ?? ''));
+                        $contactNumber = trim((string) ($settings['contact_number'] ?? ''));
+                        ?>
+
+                        <?php if ($contactEmail !== '' || $contactNumber !== ''): ?>
+
+                            <div class="login-support login-support-left">
+
+                                <div class="login-support-title">
+                                    <i class="bi bi-headset"></i>
+                                    Need assistance?
+                                </div>
+
+                                <div class="login-support-details">
+
+                                    <?php if ($contactEmail !== ''): ?>
+                                        <a href="mailto:<?= esc($contactEmail) ?>">
+                                            <i class="bi bi-envelope"></i>
+                                            <?= esc($contactEmail) ?>
+                                        </a>
+                                    <?php endif; ?>
+
+                                    <?php if ($contactNumber !== ''): ?>
+                                        <a href="tel:<?= esc($contactNumber) ?>">
+                                            <i class="bi bi-telephone"></i>
+                                            <?= esc($contactNumber) ?>
+                                        </a>
+                                    <?php endif; ?>
+
+                                </div>
+
+                            </div>
+
+                        <?php endif; ?>
 
                     </div>
 
@@ -607,19 +733,18 @@
 
                             <img
                                 src="<?= base_url('assets/images/logo.jpg') ?>"
-                                alt="Barangay Saguing Logo"
+                                alt="<?= esc($settings['barangay_name'] ?? 'Barangay Saguing') ?> Logo"
                                 class="login-logo">
 
                         </div>
 
                         <h5>
-                            Barangay Saguing
+                            <?= esc($settings['barangay_name'] ?? 'Barangay Saguing') ?>
                         </h5>
 
                         <p>
-                            Community Visibility System
+                            <?= esc($settings['system_name'] ?? 'Community Problems Visibility System') ?>
                         </p>
-
                     </div>
 
 
@@ -681,7 +806,7 @@
                                 for="email"
                                 class="form-label">
 
-                                Email
+                                Email or Username
 
                             </label>
 
@@ -694,11 +819,11 @@
                                     </span>
 
                                     <input
-                                        type="email"
+                                        type="text"
                                         id="email"
                                         name="email"
                                         class="form-control"
-                                        placeholder="Enter your email"
+                                        placeholder="Enter your email or username"
                                         autocomplete="email"
                                         required>
 
@@ -812,6 +937,7 @@
                         </button>
 
                     </form>
+
 
 
                     <!-- REGISTER -->

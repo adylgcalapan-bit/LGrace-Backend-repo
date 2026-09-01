@@ -29,6 +29,7 @@
 
     <link rel="stylesheet"
         href="<?= base_url('assets/css/report R.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/resident-sidebar.css') ?>">
 
 </head>
 

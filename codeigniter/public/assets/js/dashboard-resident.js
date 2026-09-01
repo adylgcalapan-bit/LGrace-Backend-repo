@@ -6,50 +6,30 @@ Community Problems Visibility System
 */
 
 document.addEventListener("DOMContentLoaded", function () {
+  console.log("Resident Dashboard Loaded");
 
-    console.log("Resident Dashboard Loaded");
+  // Highlight active sidebar menu
+  const menuItems = document.querySelectorAll(".menu li");
 
-    // Highlight active sidebar menu
-    const menuItems = document.querySelectorAll(".menu li");
+  menuItems.forEach((item) => {
+    item.addEventListener("click", function () {
+      menuItems.forEach((menu) => menu.classList.remove("active"));
 
-    menuItems.forEach(item => {
-
-        item.addEventListener("click", function () {
-
-            menuItems.forEach(menu => menu.classList.remove("active"));
-
-            this.classList.add("active");
-
-        });
-
+      this.classList.add("active");
     });
+  });
 
-    // Welcome message
-    const residentName = "Juan Dela Cruz";
+  // Welcome message
+  const residentName = "Juan Dela Cruz";
 
-    console.log("Welcome " + residentName);
-
+  console.log("Welcome " + residentName);
 });
-
 
 /*
 =========================================
 View Button
 =========================================
 */
-
-const viewButtons = document.querySelectorAll(".btn-outline-success");
-
-viewButtons.forEach(button => {
-
-    button.addEventListener("click", function () {
-
-        alert("Report details will be available after backend integration.");
-
-    });
-
-});
-
 
 /*
 =========================================
@@ -60,15 +40,10 @@ Report Button
 const reportButton = document.querySelector(".welcome-banner .btn");
 
 if (reportButton) {
-
-    reportButton.addEventListener("click", function () {
-
-        console.log("Redirecting to Report Page...");
-
-    });
-
+  reportButton.addEventListener("click", function () {
+    console.log("Redirecting to Report Page...");
+  });
 }
-
 
 /*
 =========================================
@@ -78,16 +53,13 @@ Dashboard Summary
 */
 
 const dashboardSummary = {
-
-    pending: 2,
-    inProgress: 1,
-    resolved: 5,
-    total: 8
-
+  pending: 2,
+  inProgress: 1,
+  resolved: 5,
+  total: 8,
 };
 
 console.table(dashboardSummary);
-
 
 /*
 =========================================

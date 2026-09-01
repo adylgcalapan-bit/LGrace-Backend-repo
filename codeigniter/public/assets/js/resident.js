@@ -1,85 +1,117 @@
 // ==========================================
 // RESIDENTS PAGE JAVASCRIPT
-// File: js/residents.js
+// File: public/assets/js/resident.js
 // ==========================================
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Residents Management Loaded");
 
-  // ==========================
-  // SEARCH + PUROK FILTER
-  // ==========================
+  // ==========================================
+  // SEARCH + FILTERS
+  // Backend filtering across ALL residents
+  // ==========================================
 
+  const filtersForm = document.getElementById("residentFiltersForm");
   const searchInput = document.getElementById("residentSearch");
   const statusFilter = document.getElementById("statusFilter");
   const purokFilter = document.getElementById("purokFilter");
-  const tableRows = document.querySelectorAll(".resident-row");
 
-  function applyResidentFilters() {
-    const searchValue = searchInput
-      ? searchInput.value.toLowerCase().trim()
-      : "";
+  let residentSearchTimer;
 
-    const selectedStatus = statusFilter
-      ? statusFilter.value.toLowerCase()
-      : "all status";
+  // ==========================================
+  // SEARCH
+  // ==========================================
 
-    const selectedPurok = purokFilter ? purokFilter.value : "";
+  if (searchInput && filtersForm) {
+    searchInput.addEventListener("input", () => {
+      clearTimeout(residentSearchTimer);
 
-    tableRows.forEach((row) => {
-      const rowText = row.textContent.toLowerCase();
-
-      const rowStatus = (row.getAttribute("data-status") || "").toLowerCase();
-
-      const rowPurokId = row.getAttribute("data-purok-id") || "unassigned";
-
-      const matchesSearch = searchValue === "" || rowText.includes(searchValue);
-
-      const matchesStatus =
-        selectedStatus === "all status" || rowStatus === selectedStatus;
-
-      const matchesPurok = selectedPurok === "" || rowPurokId === selectedPurok;
-
-      row.style.display =
-        matchesSearch && matchesStatus && matchesPurok ? "" : "none";
+      residentSearchTimer = setTimeout(() => {
+        filtersForm.requestSubmit();
+      }, 500);
     });
   }
 
-  if (searchInput) {
-    searchInput.addEventListener("input", applyResidentFilters);
-  }
+  // ==========================================
+  // CUSTOM STATUS DROPDOWN
+  // ==========================================
 
-  if (statusFilter) {
-    statusFilter.addEventListener("change", applyResidentFilters);
-  }
+  document.querySelectorAll(".resident-status-option").forEach((option) => {
+    option.addEventListener("click", function () {
+      if (!statusFilter || !filtersForm) {
+        return;
+      }
 
-  if (purokFilter) {
-    purokFilter.addEventListener("change", applyResidentFilters);
-  }
+      const selectedValue = this.dataset.value || "all";
 
-  // ==========================
-  // VIEW RESIDENT OVERVIEW
-  // ==========================
+      statusFilter.value = selectedValue;
+
+      const label = document.getElementById("residentStatusLabel");
+
+      if (label) {
+        label.textContent = this.textContent.trim();
+      }
+
+      filtersForm.requestSubmit();
+    });
+  });
+
+  // ==========================================
+  // CUSTOM PUROK FILTER DROPDOWN
+  // ==========================================
+
+  document.querySelectorAll(".resident-purok-option").forEach((option) => {
+    option.addEventListener("click", function () {
+      if (!purokFilter || !filtersForm) {
+        return;
+      }
+
+      const selectedValue = this.dataset.value ?? "";
+
+      purokFilter.value = selectedValue;
+
+      const label = document.getElementById("residentPurokLabel");
+
+      if (label) {
+        label.textContent = this.textContent.trim();
+      }
+
+      filtersForm.requestSubmit();
+    });
+  });
+
+  // ==========================================
+  // RESIDENT DETAILS
+  // ==========================================
 
   const residentRows = document.querySelectorAll(".resident-row");
   const residentModal = document.getElementById("residentModal");
+
+  let residentDateFormat = "MM/DD/YYYY";
 
   function formatResidentDate(value) {
     if (!value) {
       return "N/A";
     }
 
-    const parsedDate = new Date(String(value).replace(" ", "T"));
+    const datePart = String(value).trim().substring(0, 10);
+    const parts = datePart.split("-");
 
-    if (Number.isNaN(parsedDate.getTime())) {
+    if (parts.length !== 3) {
       return value;
     }
 
-    return parsedDate.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    const [year, month, day] = parts;
+
+    if (residentDateFormat === "DD/MM/YYYY") {
+      return `${day}/${month}/${year}`;
+    }
+
+    if (residentDateFormat === "YYYY/MM/DD") {
+      return `${year}/${month}/${day}`;
+    }
+
+    return `${month}/${day}/${year}`;
   }
 
   function getStatusBadgeClass(status) {
@@ -132,25 +164,20 @@ document.addEventListener("DOMContentLoaded", () => {
     reports.forEach((report) => {
       const row = document.createElement("tr");
 
-      // Report title
       const titleCell = document.createElement("td");
       titleCell.textContent =
         "#" + report.report_id + " - " + (report.title || "Untitled Report");
 
-      // Category
       const categoryCell = document.createElement("td");
       categoryCell.textContent = report.category_name || "Uncategorized";
 
-      // Date
       const dateCell = document.createElement("td");
       dateCell.textContent = formatResidentDate(report.date_reported);
 
-      // Status
       const statusCell = document.createElement("td");
 
       const badge = document.createElement("span");
       badge.className = "badge " + getStatusBadgeClass(report.status);
-
       badge.textContent = report.status || "Unknown";
 
       statusCell.appendChild(badge);
@@ -176,32 +203,75 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const modal = new bootstrap.Modal(residentModal);
+    const modal = bootstrap.Modal.getOrCreateInstance(residentModal);
 
     modal.show();
 
-    // Loading state
-    document.getElementById("residentModalName").textContent = "Loading...";
+    const modalName = document.getElementById("residentModalName");
 
-    document.getElementById("residentModalUsername").textContent = "—";
+    const modalUsername = document.getElementById("residentModalUsername");
 
-    document.getElementById("residentModalEmail").textContent = "—";
+    const modalEmail = document.getElementById("residentModalEmail");
 
-    document.getElementById("residentModalContact").textContent = "—";
+    const modalContact = document.getElementById("residentModalContact");
 
-    document.getElementById("residentModalAddress").textContent = "—";
+    const modalAddress = document.getElementById("residentModalAddress");
 
-    document.getElementById("residentModalRegistered").textContent = "—";
+    const modalRegistered = document.getElementById("residentModalRegistered");
 
-    document.getElementById("residentModalId").textContent = "—";
+    const modalId = document.getElementById("residentModalId");
 
-    document.getElementById("residentStatTotal").textContent = "0";
+    const statTotal = document.getElementById("residentStatTotal");
 
-    document.getElementById("residentStatPending").textContent = "0";
+    const statPending = document.getElementById("residentStatPending");
 
-    document.getElementById("residentStatProgress").textContent = "0";
+    const statProgress = document.getElementById("residentStatProgress");
 
-    document.getElementById("residentStatResolved").textContent = "0";
+    const statResolved = document.getElementById("residentStatResolved");
+
+    if (modalName) {
+      modalName.textContent = "Loading...";
+    }
+
+    if (modalUsername) {
+      modalUsername.textContent = "—";
+    }
+
+    if (modalEmail) {
+      modalEmail.textContent = "—";
+    }
+
+    if (modalContact) {
+      modalContact.textContent = "—";
+    }
+
+    if (modalAddress) {
+      modalAddress.textContent = "—";
+    }
+
+    if (modalRegistered) {
+      modalRegistered.textContent = "—";
+    }
+
+    if (modalId) {
+      modalId.textContent = "—";
+    }
+
+    if (statTotal) {
+      statTotal.textContent = "0";
+    }
+
+    if (statPending) {
+      statPending.textContent = "0";
+    }
+
+    if (statProgress) {
+      statProgress.textContent = "0";
+    }
+
+    if (statResolved) {
+      statResolved.textContent = "0";
+    }
 
     const recentReportsBody = document.getElementById("residentRecentReports");
 
@@ -219,6 +289,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await response.json();
 
+      residentDateFormat = result.date_format || "MM/DD/YYYY";
+
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Unable to load resident details.");
       }
@@ -226,91 +298,172 @@ document.addEventListener("DOMContentLoaded", () => {
       const resident = result.resident || {};
       const stats = result.statistics || {};
 
-      // ==========================
+      // ==========================================
       // ACCOUNT STATUS
-      // ==========================
+      // ==========================================
 
       const statusBadge = document.getElementById("residentModalStatus");
+
       const statusForm = document.getElementById("residentStatusForm");
+
       const statusButton = document.getElementById("residentStatusButton");
+
       const statusButtonIcon = document.getElementById(
         "residentStatusButtonIcon",
       );
+
       const statusButtonText = document.getElementById(
         "residentStatusButtonText",
       );
 
+      const residentResendOtpForm = document.getElementById(
+        "residentResendOtpForm",
+      );
+
+      const residentDeletePendingForm = document.getElementById(
+        "residentDeletePendingForm",
+      );
+
+      const residentResendOtpButton = document.getElementById(
+        "residentResendOtpButton",
+      );
+
       const isActive = Number(resident.is_active) === 1;
 
-      // Status badge
-      if (isActive) {
-        statusBadge.textContent = "Active";
-        statusBadge.className = "badge bg-success";
-      } else {
-        statusBadge.textContent = "Inactive";
-        statusBadge.className = "badge bg-secondary";
+      const isEmailVerified = Boolean(resident.email_verified_at);
+
+      const isPendingVerification = !isActive && !isEmailVerified;
+
+      if (statusBadge) {
+        if (isPendingVerification) {
+          statusBadge.textContent = "Pending Verification";
+
+          statusBadge.className = "badge bg-warning text-dark";
+        } else if (isActive) {
+          statusBadge.textContent = "Active";
+
+          statusBadge.className = "badge bg-success";
+        } else {
+          statusBadge.textContent = "Inactive";
+
+          statusBadge.className = "badge bg-secondary";
+        }
       }
 
-      // Connect form to real resident
-      statusForm.action = `/admin/residents/${resident.user_id}/status`;
-
-      statusButton.disabled = false;
-
-      // Button appearance
-      if (isActive) {
-        statusButton.className = "btn btn-danger";
-        statusButtonIcon.className = "bi bi-person-dash-fill me-1";
-
-        statusButtonText.textContent = "Deactivate Account";
-      } else {
-        statusButton.className = "btn btn-success";
-        statusButtonIcon.className = "bi bi-person-check-fill me-1";
-
-        statusButtonText.textContent = "Activate Account";
+      if (statusForm) {
+        statusForm.action = `/admin/residents/${resident.user_id}/status`;
       }
 
-      document.getElementById("residentModalImage").src =
-        resident.image_url || "";
+      if (residentResendOtpForm) {
+        residentResendOtpForm.action = `/admin/residents/${resident.user_id}/resend-verification`;
 
-      document.getElementById("residentModalId").textContent =
-        resident.resident_id || "N/A";
+        if (isPendingVerification) {
+          residentResendOtpForm.classList.remove("d-none");
+        } else {
+          residentResendOtpForm.classList.add("d-none");
+        }
+      }
 
-      document.getElementById("residentModalName").textContent =
-        resident.full_name || "N/A";
+      if (residentDeletePendingForm) {
+        residentDeletePendingForm.action = `/admin/residents/${resident.user_id}/delete-pending`;
 
-      document.getElementById("residentModalUsername").textContent =
-        resident.username || "N/A";
+        if (isPendingVerification) {
+          residentDeletePendingForm.classList.remove("d-none");
+        } else {
+          residentDeletePendingForm.classList.add("d-none");
+        }
+      }
 
-      document.getElementById("residentModalEmail").textContent =
-        resident.email || "N/A";
+      if (residentResendOtpButton) {
+        residentResendOtpButton.disabled = !isPendingVerification;
+      }
 
-      document.getElementById("residentModalContact").textContent =
-        resident.mobile_number || "N/A";
+      if (statusButton) {
+        if (isPendingVerification) {
+          statusButton.disabled = true;
+          statusButton.className = "btn btn-secondary";
+        } else {
+          statusButton.disabled = false;
 
-      document.getElementById("residentModalAddress").textContent =
-        resident.address || "No address provided";
+          statusButton.className = isActive
+            ? "btn btn-danger"
+            : "btn btn-success";
+        }
+      }
 
-      document.getElementById("residentModalRegistered").textContent =
-        formatResidentDate(resident.created_at);
+      if (statusButtonIcon) {
+        statusButtonIcon.className = isPendingVerification
+          ? "bi bi-hourglass-split me-1"
+          : isActive
+            ? "bi bi-person-dash-fill me-1"
+            : "bi bi-person-check-fill me-1";
+      }
 
-      document.getElementById("residentStatTotal").textContent =
-        stats.total ?? 0;
+      if (statusButtonText) {
+        statusButtonText.textContent = isPendingVerification
+          ? "Waiting for Verification"
+          : isActive
+            ? "Deactivate Account"
+            : "Activate Account";
+      }
 
-      document.getElementById("residentStatPending").textContent =
-        stats.pending ?? 0;
+      const modalImage = document.getElementById("residentModalImage");
 
-      document.getElementById("residentStatProgress").textContent =
-        stats.in_progress ?? 0;
+      if (modalImage) {
+        modalImage.src = resident.image_url || "";
+      }
 
-      document.getElementById("residentStatResolved").textContent =
-        stats.resolved ?? 0;
+      if (modalId) {
+        modalId.textContent = resident.resident_id || "N/A";
+      }
+
+      if (modalName) {
+        modalName.textContent = resident.full_name || "N/A";
+      }
+
+      if (modalUsername) {
+        modalUsername.textContent = resident.username || "N/A";
+      }
+
+      if (modalEmail) {
+        modalEmail.textContent = resident.email || "N/A";
+      }
+
+      if (modalContact) {
+        modalContact.textContent = resident.mobile_number || "N/A";
+      }
+
+      if (modalAddress) {
+        modalAddress.textContent = resident.address || "No address provided";
+      }
+
+      if (modalRegistered) {
+        modalRegistered.textContent = formatResidentDate(resident.created_at);
+      }
+
+      if (statTotal) {
+        statTotal.textContent = stats.total ?? 0;
+      }
+
+      if (statPending) {
+        statPending.textContent = stats.pending ?? 0;
+      }
+
+      if (statProgress) {
+        statProgress.textContent = stats.in_progress ?? 0;
+      }
+
+      if (statResolved) {
+        statResolved.textContent = stats.resolved ?? 0;
+      }
 
       renderRecentReports(result.recent_reports || []);
     } catch (error) {
       console.error("Resident details error:", error);
 
-      document.getElementById("residentModalName").textContent =
-        "Unable to load resident";
+      if (modalName) {
+        modalName.textContent = "Unable to load resident";
+      }
 
       if (recentReportsBody) {
         recentReportsBody.innerHTML =
@@ -319,180 +472,125 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // ==========================================
+  // ROW CLICK → OPEN RESIDENT DETAILS
+  // ==========================================
+
   residentRows.forEach((row) => {
-    row.addEventListener("click", function () {
+    row.addEventListener("click", () => {
       loadResidentDetails(row);
     });
   });
 
-  // ==========================
-  // EDIT RESIDENT
-  // ==========================
+  // ==========================================
+  // AUTO-OPEN RESIDENT FROM URL
+  // ==========================================
 
-  const editButtons = document.querySelectorAll("tbody .btn-warning");
+  const params = new URLSearchParams(window.location.search);
 
-  editButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const modal = new bootstrap.Modal(
-        document.getElementById("editResidentModal"),
+  const residentIdFromUrl = params.get("resident_id");
+
+  if (residentIdFromUrl) {
+    const targetRow = document.querySelector(
+      `.resident-row[data-user-id="${residentIdFromUrl}"]`,
+    );
+
+    if (targetRow) {
+      loadResidentDetails(targetRow);
+
+      targetRow.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      targetRow.classList.add("table-active");
+
+      const cleanUrl = new URL(window.location.href);
+
+      cleanUrl.searchParams.delete("resident_id");
+
+      window.history.replaceState(
+        {},
+        document.title,
+        cleanUrl.pathname + cleanUrl.search + cleanUrl.hash,
       );
+    }
+  }
 
-      modal.show();
-    });
-  });
-
-  // ==========================
-  // DELETE RESIDENT
-  // ==========================
+  // ==========================================
+  // DELETE RESIDENT MODAL
+  // ==========================================
 
   const deleteButtons = document.querySelectorAll("tbody .btn-danger");
 
   deleteButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const modal = new bootstrap.Modal(
-        document.getElementById("deleteResidentModal"),
-      );
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+
+      const deleteModal = document.getElementById("deleteResidentModal");
+
+      if (!deleteModal) {
+        return;
+      }
+
+      const modal = bootstrap.Modal.getOrCreateInstance(deleteModal);
 
       modal.show();
     });
   });
 
-  // ==========================
+  // ==========================================
   // SAVE CHANGES
-  // ==========================
+  // ==========================================
 
   const saveButton = document.querySelector("#editResidentModal .btn-success");
 
   if (saveButton) {
     saveButton.addEventListener("click", () => {
-      alert("Resident information updated successfully.");
+      console.log("Resident save button clicked.");
     });
   }
 
-  // ==========================
+  // ==========================================
   // DELETE CONFIRMATION
-  // ==========================
+  // ==========================================
 
-  const confirmDelete = document.querySelector(
-    "#deleteResidentModal .btn-danger",
-  );
+  const confirmDelete = document.getElementById("confirmDeletePendingResident");
 
   if (confirmDelete) {
     confirmDelete.addEventListener("click", () => {
-      alert("Resident deleted successfully.");
+      const deleteForm = document.getElementById("residentDeletePendingForm");
+
+      if (!deleteForm || !deleteForm.action) {
+        return;
+      }
+
+      confirmDelete.disabled = true;
+      confirmDelete.textContent = "Deleting...";
+
+      deleteForm.submit();
     });
   }
 
-  // ==========================
-  // PAGINATION
-  // ==========================
-
-  const pageLinks = document.querySelectorAll(".pagination .page-link");
-
-  pageLinks.forEach((link) => {
-    link.addEventListener("click", function (e) {
-      e.preventDefault();
-
-      pageLinks.forEach((item) => {
-        item.parentElement.classList.remove("active");
-      });
-
-      if (!this.parentElement.classList.contains("disabled")) {
-        this.parentElement.classList.add("active");
-      }
-    });
-  });
-
-  // ==========================
+  // ==========================================
   // LOGOUT
-  // ==========================
+  // ==========================================
 
-  const logout = document.querySelector(".logout");
+  const logout = document.querySelector(".logout a");
 
   if (logout) {
-    logout.addEventListener("click", function (e) {
-      e.preventDefault();
-
+    logout.addEventListener("click", function (event) {
       const answer = confirm("Are you sure you want to logout?");
 
-      if (answer) {
-        window.location.href = "/login";
-      }
-    });
-  }
-
-  // ==========================
-  // AUTO REFRESH
-  // ==========================
-
-  setInterval(() => {
-    console.log("Refreshing resident records...");
-  }, 30000);
-
-  // ==========================
-  // ADD RESIDENT PASSWORD UX
-  // ==========================
-
-  document.querySelectorAll(".toggle-resident-password").forEach((button) => {
-    button.addEventListener("click", () => {
-      const targetId = button.dataset.target;
-      const input = document.getElementById(targetId);
-      const icon = button.querySelector("i");
-
-      if (!input) return;
-
-      const isHidden = input.type === "password";
-
-      input.type = isHidden ? "text" : "password";
-
-      if (icon) {
-        icon.className = isHidden ? "bi bi-eye-slash" : "bi bi-eye";
-      }
-
-      button.title = isHidden ? "Hide Password" : "Show Password";
-    });
-  });
-
-  const addResidentForm = document.getElementById("addResidentForm");
-
-  const residentPassword = document.getElementById("residentPassword");
-
-  const residentConfirmPassword = document.getElementById(
-    "residentConfirmPassword",
-  );
-
-  if (addResidentForm && residentPassword && residentConfirmPassword) {
-    addResidentForm.addEventListener("submit", (event) => {
-      residentConfirmPassword.setCustomValidity("");
-
-      if (residentPassword.value !== residentConfirmPassword.value) {
+      if (!answer) {
         event.preventDefault();
-
-        residentConfirmPassword.setCustomValidity("Passwords do not match.");
-
-        residentConfirmPassword.reportValidity();
       }
-    });
-
-    residentConfirmPassword.addEventListener("input", () => {
-      residentConfirmPassword.setCustomValidity("");
-
-      if (
-        residentConfirmPassword.value !== "" &&
-        residentPassword.value !== residentConfirmPassword.value
-      ) {
-        residentConfirmPassword.setCustomValidity("Passwords do not match.");
-      }
-    });
-
-    residentPassword.addEventListener("input", () => {
-      residentConfirmPassword.setCustomValidity("");
     });
   }
 
-  // ==========================
+  // ==========================================
   // ACTIVATE / DEACTIVATE
-  // ==========================
+  // ==========================================
 
   const residentStatusForm = document.getElementById("residentStatusForm");
 
@@ -512,5 +610,281 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
       }
     });
+  }
+
+  // ==========================================
+  // ADD RESIDENT MOBILE NUMBER
+  // ==========================================
+
+  const mobileNumberInput = document.getElementById("mobile_number");
+
+  if (mobileNumberInput) {
+    mobileNumberInput.addEventListener("input", () => {
+      mobileNumberInput.value = mobileNumberInput.value
+        .replace(/\D/g, "")
+        .slice(0, 11);
+    });
+  }
+
+  // ==========================================
+  // ADD RESIDENT PUROK
+  // ==========================================
+
+  const addResidentPurok = document.getElementById("addResidentPurok");
+
+  const addResidentPurokLabel = document.getElementById(
+    "addResidentPurokLabel",
+  );
+
+  document.querySelectorAll(".add-resident-purok-option").forEach((option) => {
+    option.addEventListener("click", function () {
+      if (!addResidentPurok) {
+        return;
+      }
+
+      addResidentPurok.value = this.dataset.value || "";
+
+      if (addResidentPurokLabel) {
+        addResidentPurokLabel.textContent = this.textContent.trim();
+      }
+    });
+  });
+
+  // ==========================================
+  // ADD RESIDENT PASSWORD UX
+  // ==========================================
+
+  const residentPassword = document.getElementById("password");
+
+  const residentConfirmPassword = document.getElementById("confirm_password");
+
+  const toggleResidentPassword = document.getElementById(
+    "toggleResidentPassword",
+  );
+
+  const toggleResidentConfirmPassword = document.getElementById(
+    "toggleResidentConfirmPassword",
+  );
+
+  const residentPasswordMatch = document.getElementById(
+    "residentPasswordMatch",
+  );
+
+  function togglePasswordVisibility(input, button) {
+    if (!input || !button) {
+      return;
+    }
+
+    const isHidden = input.type === "password";
+
+    input.type = isHidden ? "text" : "password";
+
+    const icon = button.querySelector("i");
+
+    if (icon) {
+      icon.className = isHidden ? "bi bi-eye-slash" : "bi bi-eye";
+    }
+
+    button.setAttribute(
+      "aria-label",
+      isHidden ? "Hide password" : "Show password",
+    );
+  }
+
+  if (toggleResidentPassword) {
+    toggleResidentPassword.addEventListener("click", () => {
+      togglePasswordVisibility(residentPassword, toggleResidentPassword);
+    });
+  }
+
+  if (toggleResidentConfirmPassword) {
+    toggleResidentConfirmPassword.addEventListener("click", () => {
+      togglePasswordVisibility(
+        residentConfirmPassword,
+        toggleResidentConfirmPassword,
+      );
+    });
+  }
+
+  function checkResidentPasswordMatch() {
+    if (
+      !residentPassword ||
+      !residentConfirmPassword ||
+      !residentPasswordMatch
+    ) {
+      return;
+    }
+
+    residentConfirmPassword.classList.remove("is-valid", "is-invalid");
+
+    residentConfirmPassword.setCustomValidity("");
+
+    if (residentConfirmPassword.value === "") {
+      residentPasswordMatch.textContent = "";
+
+      residentPasswordMatch.className = "form-text";
+
+      return;
+    }
+
+    if (residentPassword.value === residentConfirmPassword.value) {
+      residentConfirmPassword.classList.add("is-valid");
+
+      residentPasswordMatch.textContent = "Passwords match.";
+
+      residentPasswordMatch.className = "form-text text-success";
+    } else {
+      residentConfirmPassword.classList.add("is-invalid");
+
+      residentConfirmPassword.setCustomValidity("Passwords do not match.");
+
+      residentPasswordMatch.textContent = "Passwords do not match.";
+
+      residentPasswordMatch.className = "form-text text-danger";
+    }
+  }
+
+  residentPassword?.addEventListener("input", checkResidentPasswordMatch);
+
+  residentConfirmPassword?.addEventListener(
+    "input",
+    checkResidentPasswordMatch,
+  );
+
+  // ==========================================
+  // PROFILE IMAGE PREVIEW
+  // ==========================================
+
+  const residentProfileInput = document.getElementById("profile_image");
+
+  const residentProfilePreview = document.getElementById(
+    "residentProfilePreview",
+  );
+
+  const residentProfilePreviewWrap = document.getElementById(
+    "residentProfilePreviewWrap",
+  );
+
+  if (
+    residentProfileInput &&
+    residentProfilePreview &&
+    residentProfilePreviewWrap
+  ) {
+    residentProfileInput.addEventListener("change", () => {
+      const file = residentProfileInput.files?.[0];
+
+      if (!file) {
+        residentProfilePreview.src = "";
+
+        residentProfilePreviewWrap.classList.add("d-none");
+
+        return;
+      }
+
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+      if (!allowedTypes.includes(file.type)) {
+        residentProfileInput.value = "";
+        residentProfilePreview.src = "";
+
+        residentProfilePreviewWrap.classList.add("d-none");
+
+        alert("Profile picture must be a JPG, PNG, or WebP image.");
+
+        return;
+      }
+
+      const maxSize = 2 * 1024 * 1024;
+
+      if (file.size > maxSize) {
+        residentProfileInput.value = "";
+        residentProfilePreview.src = "";
+
+        residentProfilePreviewWrap.classList.add("d-none");
+
+        alert("Profile picture must not exceed 2 MB.");
+
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        residentProfilePreview.src = event.target.result;
+
+        residentProfilePreviewWrap.classList.remove("d-none");
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ==========================================
+  // ADD RESIDENT SUBMIT
+  // Prevent password mismatch + double submit
+  // ==========================================
+
+  const addResidentForm = document.getElementById("addResidentForm");
+
+  const addResidentSubmitBtn = document.getElementById("addResidentSubmitBtn");
+
+  const addResidentSubmitSpinner = document.getElementById(
+    "addResidentSubmitSpinner",
+  );
+
+  const addResidentSubmitText = document.getElementById(
+    "addResidentSubmitText",
+  );
+
+  if (addResidentForm) {
+    addResidentForm.addEventListener("submit", (event) => {
+      checkResidentPasswordMatch();
+
+      // Password mismatch
+      if (residentConfirmPassword && !residentConfirmPassword.checkValidity()) {
+        event.preventDefault();
+        residentConfirmPassword.reportValidity();
+        return;
+      }
+
+      // Purok not selected
+      if (addResidentPurok && addResidentPurok.value === "") {
+        event.preventDefault();
+
+        if (addResidentPurokLabel) {
+          addResidentPurokLabel.textContent = "Please select a Purok";
+        }
+
+        return;
+      }
+
+      // Check all normal required HTML fields
+      if (!addResidentForm.checkValidity()) {
+        event.preventDefault();
+        addResidentForm.reportValidity();
+        return;
+      }
+
+      // For now, DO NOT disable the button.
+      // Just show loading text.
+      if (addResidentSubmitSpinner) {
+        addResidentSubmitSpinner.classList.remove("d-none");
+      }
+
+      if (addResidentSubmitText) {
+        addResidentSubmitText.textContent = "Creating Resident...";
+      }
+    });
+  }
+  // ==========================================
+  // SUCCESS / ERROR CENTER POPUP
+  // ==========================================
+
+  const residentMessageModal = document.getElementById("residentMessageModal");
+
+  if (residentMessageModal && window.bootstrap) {
+    const messageModal = new bootstrap.Modal(residentMessageModal);
+
+    messageModal.show();
   }
 });

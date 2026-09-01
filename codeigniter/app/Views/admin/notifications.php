@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -8,9 +8,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="<?= base_url('assets/css/notifications.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-theme.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css') ?>">
 </head>
 
-<body>
+<body class="<?= esc(system_theme_class()) ?>">
+    <button
+        type="button"
+        class="admin-mobile-toggle"
+        aria-label="Open admin menu">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div class="admin-sidebar-overlay"></div>
     <div class="wrapper">
         <aside class="sidebar">
             <div class="logo">
@@ -36,7 +46,7 @@
                     </a>
                 </li>
                 <li><a href="<?= base_url('admin/settings') ?>"><i class="bi bi-gear"></i>Settings</a></li>
-                <li><a href="<?= base_url('admin/account') ?>"><i class="bi bi-person-circle"></i>Account / Profile</a></li>
+                <li><a href="<?= base_url('admin/account') ?>"><i class="bi bi-person-circle"></i>Account</a></li>
                 <li class="logout"><a href="<?= base_url('logout') ?>"><i class="bi bi-box-arrow-right"></i>Logout</a></li>
             </ul>
         </aside>
@@ -64,11 +74,57 @@
                     </div>
                     <div class="col-lg-3">
                         <label class="form-label">Filter</label>
-                        <select class="form-select" id="filterNotification">
-                            <option value="all">All</option>
-                            <option value="unread">Unread</option>
-                            <option value="read">Read</option>
-                        </select>
+                        <input
+                            type="hidden"
+                            id="filterNotification"
+                            value="all">
+
+                        <div class="dropdown report-filter-dropdown">
+
+                            <button
+                                class="btn report-filter-dropdown-btn dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+
+                                <span id="notificationFilterLabel">
+                                    All
+                                </span>
+
+                            </button>
+
+                            <ul class="dropdown-menu report-filter-menu">
+
+                                <li>
+                                    <button
+                                        type="button"
+                                        class="dropdown-item notification-filter-option"
+                                        data-value="all">
+                                        All
+                                    </button>
+                                </li>
+
+                                <li>
+                                    <button
+                                        type="button"
+                                        class="dropdown-item notification-filter-option"
+                                        data-value="unread">
+                                        Unread
+                                    </button>
+                                </li>
+
+                                <li>
+                                    <button
+                                        type="button"
+                                        class="dropdown-item notification-filter-option"
+                                        data-value="read">
+                                        Read
+                                    </button>
+                                </li>
+
+                            </ul>
+
+                        </div>
                     </div>
                     <div class="col-lg-3">
                         <div class="badge-count">
@@ -161,6 +217,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?= base_url('assets/js/notifications.js') ?>"></script>
+    <script src="<?= base_url('assets/js/admin-responsive.js') ?>"></script>
 </body>
 
 </html>

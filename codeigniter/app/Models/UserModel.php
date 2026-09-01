@@ -20,7 +20,8 @@ class UserModel extends Model
         'password',
         'purok_id',
         'role',
-        'is_active'
+        'is_active',
+        'email_verified_at'
     ];
 
     protected $useTimestamps = true;

@@ -26,6 +26,22 @@ document.addEventListener("DOMContentLoaded", function () {
   let map = null;
   let marker = null;
 
+  const SAGUING_BOUNDS = {
+    minLat: 6.965,
+    maxLat: 6.995,
+    minLng: 125.065,
+    maxLng: 125.095,
+  };
+
+  function isInsideSaguingBounds(lat, lng) {
+    return (
+      lat >= SAGUING_BOUNDS.minLat &&
+      lat <= SAGUING_BOUNDS.maxLat &&
+      lng >= SAGUING_BOUNDS.minLng &&
+      lng <= SAGUING_BOUNDS.maxLng
+    );
+  }
+
   // =====================================
   // Location Validation State
   // =====================================
@@ -111,6 +127,31 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function setMarker(lat, lng) {
+      if (!isInsideSaguingBounds(lat, lng)) {
+        if (locationStatus) {
+          locationStatus.textContent =
+            "Selected location is outside Barangay Saguing.";
+        }
+
+        setLocationState(
+          false,
+          "Please select a location within Barangay Saguing, Makilala, Cotabato.",
+        );
+
+        if (latitudeInput) {
+          latitudeInput.value = "";
+        }
+
+        if (longitudeInput) {
+          longitudeInput.value = "";
+        }
+
+        if (addressInput) {
+          addressInput.value = "";
+        }
+
+        return;
+      }
       map.setView([lat, lng], 16);
 
       if (marker) {
@@ -286,81 +327,68 @@ document.addEventListener("DOMContentLoaded", function () {
 
     return hasLocation;
   }
-// =====================================
-// Photo Validation
-// Maximum: 5 photos, 5 MB each
-// =====================================
+  // =====================================
+  // Photo Validation
+  // Maximum: 5 photos, 5 MB each
+  // =====================================
 
-function setPhotosState(isValid, message = "") {
-  if (!photosInput) {
-    return;
-  }
+  function setPhotosState(isValid, message = "") {
+    if (!photosInput) {
+      return;
+    }
 
-  photosInput.classList.toggle("is-invalid", !isValid);
-  photosInput.classList.toggle(
-    "is-valid",
-    isValid && photosInput.files.length > 0,
-  );
-
-  if (photosError) {
-    photosError.textContent = message;
-    photosError.classList.toggle("show", !isValid);
-  }
-}
-
-function validatePhotos() {
-  if (!photosInput) {
-    return true;
-  }
-
-  const files = Array.from(photosInput.files || []);
-
-  if (photoCount) {
-    photoCount.textContent = `${files.length} of 5 photos selected`;
-  }
-
-  // Maximum 5 photos
-  if (files.length > 5) {
-    setPhotosState(
-      false,
-      "You can upload a maximum of 5 photos only.",
+    photosInput.classList.toggle("is-invalid", !isValid);
+    photosInput.classList.toggle(
+      "is-valid",
+      isValid && photosInput.files.length > 0,
     );
 
-    return false;
+    if (photosError) {
+      photosError.textContent = message;
+      photosError.classList.toggle("show", !isValid);
+    }
   }
 
-  const allowedTypes = [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-  ];
+  function validatePhotos() {
+    if (!photosInput) {
+      return true;
+    }
 
-  const maxFileSize = 5 * 1024 * 1024;
+    const files = Array.from(photosInput.files || []);
 
-  for (const file of files) {
-    if (!allowedTypes.includes(file.type)) {
-      setPhotosState(
-        false,
-        "Only JPG, PNG, and WebP images are allowed.",
-      );
+    if (photoCount) {
+      photoCount.textContent = `${files.length} of 5 photos selected`;
+    }
+
+    // Maximum 5 photos
+    if (files.length > 5) {
+      setPhotosState(false, "You can upload a maximum of 5 photos only.");
 
       return false;
     }
 
-    if (file.size > maxFileSize) {
-      setPhotosState(
-        false,
-        "Each photo must not exceed 5 MB.",
-      );
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
 
-      return false;
+    const maxFileSize = 5 * 1024 * 1024;
+
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        setPhotosState(false, "Only JPG, PNG, and WebP images are allowed.");
+
+        return false;
+      }
+
+      if (file.size > maxFileSize) {
+        setPhotosState(false, "Each photo must not exceed 5 MB.");
+
+        return false;
+      }
     }
+
+    setPhotosState(true);
+
+    return true;
   }
-
-  setPhotosState(true);
-
-  return true;
-}
   // =====================================
   // Live Validation
   // =====================================
@@ -376,9 +404,9 @@ function validatePhotos() {
   if (descriptionInput) {
     descriptionInput.addEventListener("input", validateDescription);
   }
-   if (photosInput) {
-  photosInput.addEventListener("change", validatePhotos);
-}
+  if (photosInput) {
+    photosInput.addEventListener("change", validatePhotos);
+  }
   // =====================================
   // Submit Report Form
   // =====================================
@@ -399,7 +427,8 @@ function validatePhotos() {
         !titleValid ||
         !categoryValid ||
         !descriptionValid ||
-        !locationValid
+        !locationValid ||
+        !photosValid
       ) {
         event.preventDefault();
       }
@@ -439,10 +468,10 @@ function validatePhotos() {
       setLocationState(false, "Please pin the exact location on the map.");
 
       if (photoCount) {
-  photoCount.textContent = "0 of 5 photos selected";
-}
+        photoCount.textContent = "0 of 5 photos selected";
+      }
 
-setPhotosState(true);
+      setPhotosState(true);
     });
   }
 });

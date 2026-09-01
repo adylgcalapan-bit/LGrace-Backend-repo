@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -17,12 +17,22 @@
     <link rel="stylesheet" href="<?= base_url('assets/css/report A.css') ?>">
 
     <!-- Leaflet CSS -->
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-theme.css') ?>">
+
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css') ?>">
 </head>
 
-<body>
+<body class="<?= esc(system_theme_class()) ?>">
+
+    <button
+        type="button"
+        class="admin-mobile-toggle"
+        aria-label="Open admin menu">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div class="admin-sidebar-overlay"></div>
 
     <div class="wrapper">
 
@@ -84,7 +94,7 @@
                 <li>
                     <a href="<?= base_url('admin/account') ?>">
                         <i class="bi bi-person-circle"></i>
-                        Account / Profile
+                        Account
                     </a>
                 </li>
 
@@ -191,34 +201,92 @@
                                 Category
                             </label>
 
-                            <select
-                                class="form-select"
+                            <?php
+                            $currentCategoryId = (int) ($filters['category'] ?? 0);
+
+                            $currentCategoryLabel = 'All Categories';
+
+                            foreach ($categories ?? [] as $category) {
+                                if (
+                                    $currentCategoryId ===
+                                    (int) ($category['category_id'] ?? 0)
+                                ) {
+                                    $currentCategoryLabel =
+                                        (string) ($category['category_name'] ?? 'Unknown Category');
+
+                                    if (
+                                        isset($category['is_active']) &&
+                                        (int) $category['is_active'] === 0
+                                    ) {
+                                        $currentCategoryLabel .= ' (Inactive)';
+                                    }
+
+                                    break;
+                                }
+                            }
+                            ?>
+
+                            <input
+                                type="hidden"
                                 id="reportCategory"
-                                name="category">
+                                name="category"
+                                value="<?= esc($currentCategoryId) ?>">
 
-                                <option value="0">
-                                    All Categories
-                                </option>
+                            <div class="dropdown report-filter-dropdown">
 
-                                <?php foreach ($categories as $category): ?>
+                                <button
+                                    class="btn report-filter-dropdown-btn dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
 
-                                    <option
-                                        value="<?= esc($category['category_id']) ?>"
-                                        <?= (int) ($filters['category'] ?? 0) === (int) $category['category_id']
-                                            ? 'selected'
-                                            : '' ?>>
+                                    <span id="reportCategoryLabel">
+                                        <?= esc($currentCategoryLabel) ?>
+                                    </span>
 
-                                        <?= esc($category['category_name']) ?>
+                                </button>
 
-                                        <?= isset($category['is_active']) && (int) $category['is_active'] === 0
-                                            ? ' (Inactive)'
-                                            : '' ?>
+                                <ul class="dropdown-menu report-filter-menu">
 
-                                    </option>
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item report-category-option"
+                                            data-value="0">
+                                            All Categories
+                                        </button>
+                                    </li>
 
-                                <?php endforeach; ?>
+                                    <?php foreach ($categories ?? [] as $category): ?>
 
-                            </select>
+                                        <?php
+                                        $categoryLabel =
+                                            (string) ($category['category_name'] ?? 'Unknown Category');
+
+                                        if (
+                                            isset($category['is_active']) &&
+                                            (int) $category['is_active'] === 0
+                                        ) {
+                                            $categoryLabel .= ' (Inactive)';
+                                        }
+                                        ?>
+
+                                        <li>
+                                            <button
+                                                type="button"
+                                                class="dropdown-item report-category-option"
+                                                data-value="<?= esc($category['category_id'] ?? '') ?>">
+
+                                                <?= esc($categoryLabel) ?>
+
+                                            </button>
+                                        </li>
+
+                                    <?php endforeach; ?>
+
+                                </ul>
+
+                            </div>
 
                         </div>
 
@@ -232,52 +300,91 @@
                                 Status
                             </label>
 
-                            <select
-                                class="form-select"
+                            <?php
+                            $currentStatus = (string) ($filters['status'] ?? 'all');
+
+                            $statusLabels = [
+                                'all' => 'All Status',
+                                'Pending' => 'Pending',
+                                'In Progress' => 'In Progress',
+                                'Resolved' => 'Resolved',
+                                'Rejected' => 'Rejected',
+                            ];
+
+                            $currentStatusLabel =
+                                $statusLabels[$currentStatus] ?? 'All Status';
+                            ?>
+
+                            <input
+                                type="hidden"
                                 id="reportStatusFilter"
-                                name="status">
+                                name="status"
+                                value="<?= esc($currentStatus) ?>">
 
-                                <option
-                                    value="all"
-                                    <?= ($filters['status'] ?? 'all') === 'all'
-                                        ? 'selected'
-                                        : '' ?>>
-                                    All Status
-                                </option>
+                            <div class="dropdown report-filter-dropdown">
 
-                                <option
-                                    value="Pending"
-                                    <?= ($filters['status'] ?? '') === 'Pending'
-                                        ? 'selected'
-                                        : '' ?>>
-                                    Pending
-                                </option>
+                                <button
+                                    class="btn report-filter-dropdown-btn dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
 
-                                <option
-                                    value="In Progress"
-                                    <?= ($filters['status'] ?? '') === 'In Progress'
-                                        ? 'selected'
-                                        : '' ?>>
-                                    In Progress
-                                </option>
+                                    <span id="reportStatusLabel">
+                                        <?= esc($currentStatusLabel) ?>
+                                    </span>
 
-                                <option
-                                    value="Resolved"
-                                    <?= ($filters['status'] ?? '') === 'Resolved'
-                                        ? 'selected'
-                                        : '' ?>>
-                                    Resolved
-                                </option>
+                                </button>
 
-                                <option
-                                    value="Rejected"
-                                    <?= ($filters['status'] ?? '') === 'Rejected'
-                                        ? 'selected'
-                                        : '' ?>>
-                                    Rejected
-                                </option>
+                                <ul class="dropdown-menu report-filter-menu">
 
-                            </select>
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item report-status-option"
+                                            data-value="all">
+                                            All Status
+                                        </button>
+                                    </li>
+
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item report-status-option"
+                                            data-value="Pending">
+                                            Pending
+                                        </button>
+                                    </li>
+
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item report-status-option"
+                                            data-value="In Progress">
+                                            In Progress
+                                        </button>
+                                    </li>
+
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item report-status-option"
+                                            data-value="Resolved">
+                                            Resolved
+                                        </button>
+                                    </li>
+
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item report-status-option"
+                                            data-value="Rejected">
+                                            Rejected
+                                        </button>
+                                    </li>
+
+                                </ul>
+
+                            </div>
 
                         </div>
 
@@ -334,28 +441,61 @@
                                 Sort By
                             </label>
 
-                            <select
-                                class="form-select"
+                            <?php
+                            $currentSort = (string) ($filters['sort'] ?? 'newest');
+
+                            $sortLabels = [
+                                'newest' => 'Newest First',
+                                'oldest' => 'Oldest First',
+                            ];
+
+                            $currentSortLabel =
+                                $sortLabels[$currentSort] ?? 'Newest First';
+                            ?>
+
+                            <input
+                                type="hidden"
                                 id="reportSort"
-                                name="sort">
+                                name="sort"
+                                value="<?= esc($currentSort) ?>">
 
-                                <option
-                                    value="newest"
-                                    <?= ($filters['sort'] ?? 'newest') === 'newest'
-                                        ? 'selected'
-                                        : '' ?>>
-                                    Newest First
-                                </option>
+                            <div class="dropdown report-filter-dropdown">
 
-                                <option
-                                    value="oldest"
-                                    <?= ($filters['sort'] ?? '') === 'oldest'
-                                        ? 'selected'
-                                        : '' ?>>
-                                    Oldest First
-                                </option>
+                                <button
+                                    class="btn report-filter-dropdown-btn dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
 
-                            </select>
+                                    <span id="reportSortLabel">
+                                        <?= esc($currentSortLabel) ?>
+                                    </span>
+
+                                </button>
+
+                                <ul class="dropdown-menu report-filter-menu">
+
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item report-sort-option"
+                                            data-value="newest">
+                                            Newest First
+                                        </button>
+                                    </li>
+
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item report-sort-option"
+                                            data-value="oldest">
+                                            Oldest First
+                                        </button>
+                                    </li>
+
+                                </ul>
+
+                            </div>
 
                         </div>
 
@@ -468,7 +608,7 @@
                                         data-latitude="<?= esc($report['latitude'] ?? '') ?>"
                                         data-longitude="<?= esc($report['longtitude'] ?? '') ?>"
                                         data-address="<?= esc($address) ?>"
-                                        data-date="<?= date('F d, Y', strtotime($report['date_reported'])) ?>"
+                                        data-date="<?= esc(format_system_date($report['date_reported'] ?? null)) ?>"
                                         data-status="<?= esc($status) ?>"
                                         data-priority="<?= esc($report['priority'] ?? '') ?>"
                                         data-description="<?= esc($report['description'] ?? '') ?>"
@@ -496,7 +636,7 @@
 
                                         <!-- Date Reported -->
                                         <td>
-                                            <?= date('F d, Y', strtotime($report['date_reported'])) ?>
+                                            <?= esc(format_system_date($report['date_reported'] ?? null)) ?>
                                         </td>
 
                                         <!-- Status -->
@@ -623,22 +763,7 @@
 
                                 </li>
 
-                                <!-- PAGE NUMBERS -->
-                                <?php for ($pageNumber = 1; $pageNumber <= $totalPages; $pageNumber++): ?>
 
-                                    <li class="page-item <?= $pageNumber === $currentPage ? 'active' : '' ?>">
-
-                                        <a
-                                            class="page-link"
-                                            href="<?= esc($buildPageUrl($pageNumber)) ?>">
-
-                                            <?= $pageNumber ?>
-
-                                        </a>
-
-                                    </li>
-
-                                <?php endfor; ?>
 
                                 <!-- NEXT -->
                                 <li class="page-item <?= $currentPage >= $totalPages ? 'disabled' : '' ?>">
@@ -988,6 +1113,7 @@
     <!-- Report JS -->
 
     <script src="<?= base_url('assets/js/report A.js') ?>"></script>
+
 
 
 </body>

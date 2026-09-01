@@ -396,3 +396,272 @@ body {
     font-size: 13px;
   }
 }
+/* =========================================================
+   MOBILE ORGANIZED REPORT HISTORY
+========================================================= */
+
+.mobile-report-list {
+  display: none;
+}
+
+@media (max-width: 576px) {
+  /* Hide desktop table on phone only */
+  .reports-card .table-responsive {
+    display: none;
+  }
+
+  /* Show mobile card version */
+  .mobile-report-list {
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+  /* Individual report */
+  .mobile-report-item {
+    padding: 13px;
+
+    background: #ffffff;
+
+    border: 1px solid #e4ebe6;
+    border-radius: 12px;
+
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Title + status */
+  .mobile-report-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 10px;
+  }
+
+  .mobile-report-top h5 {
+    flex: 1;
+
+    margin: 0;
+
+    color: #26392b;
+
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .mobile-report-top .badge {
+    flex-shrink: 0;
+
+    padding: 5px 8px;
+
+    font-size: 9px;
+  }
+
+  /* Category + date */
+  .mobile-report-meta {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 7px 14px;
+
+    margin-bottom: 11px;
+
+    color: #68756c;
+
+    font-size: 10px;
+  }
+
+  .mobile-report-meta div {
+    display: flex;
+    align-items: center;
+
+    gap: 5px;
+  }
+
+  .mobile-report-meta i {
+    color: #2e7d32;
+  }
+
+  /* Photo */
+  .mobile-report-photo {
+    margin-bottom: 11px;
+  }
+
+  .mobile-report-photo img {
+    width: 76px;
+    height: 58px;
+
+    display: block;
+
+    object-fit: cover;
+
+    border-radius: 8px;
+
+    border: 1px solid #e2e8e3;
+  }
+
+  .mobile-no-photo {
+    width: 76px;
+    height: 58px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 3px;
+
+    color: #96a099;
+
+    background: #f6f8f6;
+
+    border: 1px dashed #ccd5ce;
+    border-radius: 8px;
+
+    font-size: 9px;
+  }
+
+  .mobile-no-photo i {
+    font-size: 16px;
+  }
+
+  /* Actions */
+  .mobile-report-actions {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    padding-top: 10px;
+
+    border-top: 1px solid #edf1ee;
+  }
+
+  .mobile-report-actions form {
+    display: inline-flex;
+
+    margin: 0;
+  }
+
+  .mobile-report-actions .btn {
+    min-height: 32px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 4px;
+
+    margin: 0;
+
+    padding: 5px 9px;
+
+    border-radius: 7px;
+
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  /* Empty state */
+  .mobile-empty-reports {
+    padding: 25px 15px;
+
+    text-align: center;
+
+    color: #879189;
+  }
+
+  .mobile-empty-reports i {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #81a486;
+
+    font-size: 28px;
+  }
+
+  .mobile-empty-reports p {
+    margin: 0;
+
+    font-size: 12px;
+  }
+}
+/* =========================================================
+   MOBILE COMPACT SUMMARY CARDS
+========================================================= */
+
+@media (max-width: 576px) {
+  .report-summary-section .row {
+    --bs-gutter-x: 10px;
+    --bs-gutter-y: 10px;
+
+    margin-bottom: 0;
+  }
+
+  /* 2 cards per row */
+  .report-summary-section .row > [class*="col-"] {
+    width: 50%;
+
+    margin-bottom: 0 !important;
+  }
+
+  .report-summary-section .card {
+    height: 100%;
+
+    border-radius: 12px;
+  }
+
+  .report-summary-section .card-body {
+    min-height: 118px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    padding: 13px 8px;
+  }
+
+  /* Icons */
+  .report-summary-section .card-body > i {
+    margin-bottom: 4px;
+
+    font-size: 26px !important;
+  }
+
+  /* Labels */
+  .report-summary-section .card h5 {
+    margin-top: 5px !important;
+    margin-bottom: 3px;
+
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  /* Numbers */
+  .report-summary-section .card h2 {
+    margin: 0;
+
+    font-size: 24px;
+    line-height: 1.2;
+  }
+
+  /* Disable lifting effect on phone */
+  .report-summary-section .card:hover {
+    transform: none;
+  }
+}
+/* =========================================================
+   MOBILE 5TH SUMMARY CARD
+========================================================= */
+
+@media (max-width: 576px) {
+  .report-summary-section .row > [class*="col-"]:last-child {
+    width: 100%;
+  }
+}

@@ -1,0 +1,1088 @@
+/* =========================================
+   SHARED ADMIN THEME
+========================================= */
+
+/* =========================================
+   LIGHT MODE
+========================================= */
+
+body.theme-light {
+  background: #f5f6f8;
+  color: #212529;
+}
+
+/* =========================================
+   DARK MODE VARIABLES
+========================================= */
+
+body.theme-dark {
+  --background: #111411;
+  --surface: #1b1f1c;
+  --surface-soft: #222723;
+  --text: #f3f5f4;
+  --text-muted: #adb7b1;
+  --border: #3a433d;
+  --primary-soft: #173b29;
+
+  background: #111411 !important;
+  color: #f3f5f4 !important;
+  color-scheme: dark;
+}
+
+html:has(body.theme-dark) {
+  background: #111411 !important;
+}
+
+/* =========================================
+   REMOVE WHITE PAGE AREAS
+========================================= */
+
+body.theme-dark,
+body.theme-dark .wrapper,
+body.theme-dark .main-content,
+body.theme-dark main,
+body.theme-dark .content,
+body.theme-dark .page-content {
+  background: #111411 !important;
+  color: #f3f5f4 !important;
+}
+
+/* Helps remove blank/light strip at top */
+body.theme-dark::before,
+body.theme-dark .wrapper::before,
+body.theme-dark .main-content::before,
+body.theme-dark .main-content::after {
+  background: #111411 !important;
+}
+
+/* =========================================
+   PAGE HEADER / TOP AREA
+========================================= */
+
+body.theme-dark .topbar,
+body.theme-dark header.topbar,
+body.theme-dark .page-header,
+body.theme-dark .top-header {
+  background: #171b18 !important;
+  color: #ffffff !important;
+  border-color: #39413c !important;
+}
+
+body.theme-dark .topbar h1,
+body.theme-dark .topbar h2,
+body.theme-dark .topbar h3,
+body.theme-dark .topbar p,
+body.theme-dark .topbar strong,
+body.theme-dark .topbar small,
+body.theme-dark .page-header h1,
+body.theme-dark .page-header h2,
+body.theme-dark .page-header p {
+  color: #ffffff !important;
+}
+
+/* =========================================
+   SIDEBAR
+========================================= */
+
+body.theme-dark .sidebar {
+  background: #123d2b !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .sidebar .logo,
+body.theme-dark .sidebar .logo h4,
+body.theme-dark .sidebar .logo i,
+body.theme-dark .sidebar a,
+body.theme-dark .sidebar span,
+body.theme-dark .sidebar strong,
+body.theme-dark .sidebar small,
+body.theme-dark .sidebar i {
+  color: #ffffff !important;
+}
+
+body.theme-dark .sidebar .menu li a:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.theme-dark .sidebar .menu li.active a {
+  background: #278653 !important;
+  color: #ffffff !important;
+}
+
+/* =========================================
+   CARDS
+========================================= */
+
+body.theme-dark .card,
+body.theme-dark .settings-card {
+  background: #1b1f1c !important;
+  color: #f3f5f4 !important;
+  border-color: #39413c !important;
+}
+
+/* =========================================
+   SETTINGS CARD HEADER / BODY
+========================================= */
+
+body.theme-dark .settings-card-header {
+  background: #202521 !important;
+  border-color: #39413c !important;
+}
+
+body.theme-dark .settings-card-body {
+  background: #181c19 !important;
+}
+
+/* =========================================
+   INNER SETTINGS OPTIONS
+========================================= */
+
+body.theme-dark .notification-option,
+body.theme-dark .security-option,
+body.theme-dark .professional-security-option,
+body.theme-dark .display-option {
+  background: #222723 !important;
+  border-color: #3a433d !important;
+  color: #f3f5f4 !important;
+}
+
+/* =========================================
+   SETTINGS TEXT
+========================================= */
+
+body.theme-dark .settings-section-title h4,
+body.theme-dark .notification-option h5,
+body.theme-dark .security-option h5,
+body.theme-dark .display-option h5,
+body.theme-dark .display-option-heading h5 {
+  color: #ffffff !important;
+}
+
+body.theme-dark .settings-section-title p,
+body.theme-dark .notification-option p,
+body.theme-dark .security-option p,
+body.theme-dark .display-option p,
+body.theme-dark .display-option-heading p {
+  color: #b8c1bc !important;
+}
+
+body.theme-dark .form-label {
+  color: #f0f2f1 !important;
+}
+
+body.theme-dark .text-muted,
+body.theme-dark small {
+  color: #aeb8b2 !important;
+}
+
+/* =========================================
+   SETTINGS ICONS
+========================================= */
+
+body.theme-dark .settings-section-icon,
+body.theme-dark .notification-option-icon,
+body.theme-dark .security-option-icon,
+body.theme-dark .display-option-icon {
+  background: #173b29 !important;
+  color: #65d895 !important;
+}
+
+/* =========================================
+   FORM CONTROLS
+========================================= */
+
+body.theme-dark .form-control,
+body.theme-dark .form-select {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #4a554e !important;
+}
+
+body.theme-dark .form-control::placeholder {
+  color: #9ea7a1 !important;
+}
+
+body.theme-dark .form-control:focus,
+body.theme-dark .form-select:focus {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #5f8f72 !important;
+}
+
+body.theme-dark .form-select option {
+  background: #202521;
+  color: #ffffff;
+}
+
+body.theme-dark .input-group-text {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #4a554e !important;
+}
+
+/* =========================================
+   REVIEW YOUR CHANGES
+========================================= */
+
+body.theme-dark .settings-action-bar {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark .settings-action-bar strong {
+  color: #ffffff !important;
+}
+
+body.theme-dark .settings-action-bar p {
+  color: #c0c8c3 !important;
+}
+
+/* Reset Changes */
+body.theme-dark #resetBtn,
+body.theme-dark .settings-action-buttons .btn-outline-secondary {
+  background: #2b302c !important;
+  color: #ffffff !important;
+  border-color: #59635d !important;
+}
+
+body.theme-dark #resetBtn i,
+body.theme-dark .settings-action-buttons .btn-outline-secondary i {
+  color: #ffffff !important;
+}
+
+body.theme-dark #resetBtn:hover {
+  background: #363d38 !important;
+  color: #ffffff !important;
+}
+
+/* Save Changes */
+body.theme-dark #saveBtn,
+body.theme-dark .settings-action-buttons .btn-success {
+  background: #278653 !important;
+  color: #ffffff !important;
+  border-color: #278653 !important;
+}
+
+body.theme-dark #saveBtn i {
+  color: #ffffff !important;
+}
+
+/* =========================================
+   TABLES
+========================================= */
+
+body.theme-dark .table {
+  --bs-table-bg: #1b1f1c;
+  --bs-table-color: #f3f5f4;
+  --bs-table-border-color: #3a433d;
+  --bs-table-striped-bg: #222723;
+  --bs-table-striped-color: #ffffff;
+  --bs-table-hover-bg: #292f2a;
+  --bs-table-hover-color: #ffffff;
+}
+
+body.theme-dark table th,
+body.theme-dark table td {
+  border-color: #3a433d !important;
+}
+
+/* =========================================
+   MODALS
+========================================= */
+
+body.theme-dark .modal-content {
+  background: #1b1f1c !important;
+  color: #ffffff !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark .modal-header,
+body.theme-dark .modal-footer {
+  border-color: #3a433d !important;
+}
+
+/* =========================================
+   DROPDOWNS
+========================================= */
+
+body.theme-dark .dropdown-menu {
+  background: #202521 !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark .dropdown-item {
+  color: #ffffff !important;
+}
+
+body.theme-dark .dropdown-item:hover {
+  background: #303632 !important;
+}
+
+/* =========================================
+   PAGINATION
+========================================= */
+
+body.theme-dark .page-link {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #424b45 !important;
+}
+
+body.theme-dark .page-item.active .page-link {
+  background: #278653 !important;
+  border-color: #278653 !important;
+}
+
+/* =========================================
+   OTHER BOOTSTRAP ELEMENTS
+========================================= */
+
+body.theme-dark .list-group-item {
+  background: #1b1f1c !important;
+  color: #ffffff !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark hr {
+  border-color: #465049 !important;
+}
+
+body.theme-dark a:not(.btn):not(.nav-link):not(.dropdown-item) {
+  color: #8fd7aa;
+}
+
+/* =========================================
+   PROFILE / ADMIN SUMMARY
+========================================= */
+
+body.theme-dark .profile,
+body.theme-dark .profile-summary-card {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark .profile strong,
+body.theme-dark .profile small {
+  color: #ffffff !important;
+}
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+body.theme-dark ::-webkit-scrollbar-track {
+  background: #151815;
+}
+
+body.theme-dark ::-webkit-scrollbar-thumb {
+  background: #526158;
+}
+
+body.theme-dark ::-webkit-scrollbar-thumb:hover {
+  background: #68786e;
+}
+/* =========================================
+   SETTINGS - FINAL TWO WHITE BOXES
+========================================= */
+
+/* ADMIN PROFILE - TOP RIGHT */
+body.theme-dark .settings-admin-profile {
+  background: #202521 !important;
+  border: 1px solid #3a433d !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .settings-admin-info strong {
+  color: #ffffff !important;
+}
+
+body.theme-dark .settings-admin-info span,
+body.theme-dark .settings-admin-info span i {
+  color: #9fc9ad !important;
+}
+
+body.theme-dark .settings-admin-avatar {
+  background: #2a302c !important;
+}
+
+/* REVIEW YOUR CHANGES - BOTTOM */
+body.theme-dark .settings-actions {
+  background: #202521 !important;
+  border: 1px solid #3a433d !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .settings-actions-info strong {
+  color: #ffffff !important;
+}
+
+body.theme-dark .settings-actions-info span {
+  color: #b8c1bc !important;
+}
+
+body.theme-dark .settings-actions-icon {
+  background: #173b29 !important;
+  color: #65d895 !important;
+}
+
+body.theme-dark .settings-actions-icon i {
+  color: #65d895 !important;
+}
+
+/* RESET BUTTON */
+body.theme-dark .settings-reset-btn {
+  background: #2b302c !important;
+  color: #ffffff !important;
+  border-color: #59635d !important;
+}
+
+body.theme-dark .settings-reset-btn i {
+  color: #ffffff !important;
+}
+
+body.theme-dark .settings-reset-btn:hover {
+  background: #363d38 !important;
+}
+/* =========================================
+   ADMIN DASHBOARD - DARK MODE FIX
+========================================= */
+
+/* Recent Community Reports */
+body.theme-dark .table-section {
+  background: #1b1f1c !important;
+  border-color: #39413c !important;
+}
+
+body.theme-dark .table-header {
+  background: #1b1f1c !important;
+}
+
+body.theme-dark .table-header h4 {
+  color: #ffffff !important;
+}
+
+/* Recent Activity */
+body.theme-dark .activity-card {
+  background: #1b1f1c !important;
+  border-color: #39413c !important;
+}
+
+body.theme-dark .activity-card .section-title h4 {
+  color: #ffffff !important;
+}
+
+body.theme-dark .activity-card ul,
+body.theme-dark .activity-card li {
+  background: transparent !important;
+  color: #c5cdc8 !important;
+}
+
+body.theme-dark .activity-card li {
+  border-color: #39413c !important;
+}
+
+body.theme-dark .activity-card li strong {
+  color: #ffffff !important;
+}
+
+/* Outline buttons inside dashboard cards */
+body.theme-dark .table-section .btn-outline-success {
+  background: transparent !important;
+  color: #65d895 !important;
+  border-color: #4c9b6d !important;
+}
+
+body.theme-dark .table-section .btn-outline-success:hover {
+  background: #278653 !important;
+  color: #ffffff !important;
+}
+/* =========================================
+   ADMIN DASHBOARD - MAP DARK MODE
+========================================= */
+
+body.theme-dark .map-card {
+  background: #1b1f1c !important;
+  border-color: #39413c !important;
+}
+
+body.theme-dark .map-card .section-title h4,
+body.theme-dark .map-card .section-title h5 {
+  color: #ffffff !important;
+}
+
+body.theme-dark .map-card .section-title p {
+  color: #b8c1bc !important;
+}
+
+/* Keep the actual Leaflet map unchanged */
+body.theme-dark .map-card .leaflet-container {
+  background: transparent !important;
+}
+
+/* =========================================
+   ADMIN REPORTS - DARK MODE FIX
+========================================= */
+
+/* Community Reports card */
+body.theme-dark .reports-card {
+  background: #1b1f1c !important;
+  border-color: #39413c !important;
+}
+
+body.theme-dark .reports-card .card-header {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #39413c !important;
+}
+
+body.theme-dark .reports-card .card-header h1,
+body.theme-dark .reports-card .card-header h2,
+body.theme-dark .reports-card .card-header h3,
+body.theme-dark .reports-card .card-header h4,
+body.theme-dark .reports-card .card-header h5 {
+  color: #ffffff !important;
+}
+
+body.theme-dark .reports-card .card-body {
+  background: #1b1f1c !important;
+  color: #ffffff !important;
+}
+
+/* Bottom part of reports card */
+body.theme-dark .reports-card .card-footer {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #39413c !important;
+}
+
+/* Pagination bottom */
+body.theme-dark .pagination {
+  background: transparent !important;
+}
+
+body.theme-dark .pagination .page-link {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #465049 !important;
+}
+
+body.theme-dark .pagination .page-item.active .page-link {
+  background: #278653 !important;
+  border-color: #278653 !important;
+  color: #ffffff !important;
+}
+
+/* Footer at pinaka-baba */
+body.theme-dark .footer {
+  background: #111411 !important;
+  color: #b8c1bc !important;
+}
+
+body.theme-dark .footer p,
+body.theme-dark .footer span {
+  color: #b8c1bc !important;
+}
+
+body.theme-dark .footer hr {
+  border-color: #39413c !important;
+}
+/* ADMIN REPORTS - FORCE BG-WHITE TO DARK */
+body.theme-dark .card-header.bg-white,
+body.theme-dark .card-footer.bg-white {
+  background: #202521 !important;
+  background-color: #202521 !important;
+  color: #ffffff !important;
+  border-color: #39413c !important;
+}
+
+body.theme-dark .card-header.bg-white h4 {
+  color: #ffffff !important;
+}
+
+/* =========================================
+   ADMIN REPORT DETAILS MODAL - DARK MODE
+========================================= */
+
+body.theme-dark #reportModal .modal-content {
+  background: #1b1f1c !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark #reportModal .modal-body {
+  background: #1b1f1c !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark #reportModal .modal-body strong,
+body.theme-dark #reportModal .modal-body h5,
+body.theme-dark #reportModal .modal-body h6,
+body.theme-dark #reportModal .modal-body label {
+  color: #ffffff !important;
+}
+
+body.theme-dark #reportModal .modal-body p,
+body.theme-dark #reportModal .modal-body span,
+body.theme-dark #reportModal .modal-body div {
+  color: #c7cfca !important;
+}
+
+body.theme-dark #reportModal .modal-body hr {
+  border-color: #3a433d !important;
+}
+
+/* Description and section headings */
+body.theme-dark #reportModal .modal-body .fw-bold,
+body.theme-dark #reportModal .modal-body .fw-semibold {
+  color: #ffffff !important;
+}
+
+/* Keep Leaflet popup readable */
+body.theme-dark #reportModal .leaflet-popup-content,
+body.theme-dark #reportModal .leaflet-popup-content *,
+body.theme-dark #reportModal .leaflet-popup-tip-container * {
+  color: #212529 !important;
+}
+/* REPORT DETAILS MAP POPUP - KEEP LIGHT */
+body.theme-dark #reportModal .leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  color: #212529 !important;
+}
+
+body.theme-dark #reportModal .leaflet-popup-content,
+body.theme-dark #reportModal .leaflet-popup-content div,
+body.theme-dark #reportModal .leaflet-popup-content span,
+body.theme-dark #reportModal .leaflet-popup-content p,
+body.theme-dark #reportModal .leaflet-popup-content strong {
+  color: #212529 !important;
+  opacity: 1 !important;
+}
+
+body.theme-dark #reportModal .leaflet-popup-tip {
+  background: #ffffff !important;
+}
+
+body.theme-dark #reportModal .leaflet-popup-close-button {
+  color: #555555 !important;
+}
+/* FINAL FIX - REPORT MAP POPUP TEXT */
+body.theme-dark #reportModal .modal-body .leaflet-popup-content {
+  color: #212529 !important;
+}
+
+body.theme-dark #reportModal .modal-body .leaflet-popup-content strong {
+  color: #212529 !important;
+}
+/* =========================================
+   ADMIN ACCOUNT - DARK MODE
+========================================= */
+
+/* TOP RIGHT ADMIN PROFILE */
+body.theme-dark .account-admin-profile {
+  background: #202521 !important;
+  border: 1px solid #3a433d !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .account-admin-info strong {
+  color: #ffffff !important;
+}
+
+body.theme-dark .account-admin-info span,
+body.theme-dark .account-admin-info span i {
+  color: #9fc9ad !important;
+}
+
+body.theme-dark .account-admin-avatar {
+  background: #2a302c !important;
+}
+
+/* MAIN ACCOUNT CARDS */
+body.theme-dark .account-section-card {
+  background: #1b1f1c !important;
+  border-color: #39413c !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .account-section-header {
+  background: #202521 !important;
+  border-color: #39413c !important;
+}
+
+body.theme-dark .account-section-body {
+  background: #181c19 !important;
+}
+
+/* CARD TITLES */
+body.theme-dark .account-section-header h4 {
+  color: #ffffff !important;
+}
+
+body.theme-dark .account-section-header p {
+  color: #b8c1bc !important;
+}
+
+body.theme-dark .account-section-icon {
+  background: #173b29 !important;
+  color: #65d895 !important;
+}
+
+/* PROFILE PHOTO AREA */
+body.theme-dark .profile-account-photo {
+  background: #202521 !important;
+  border-color: #3a433d !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .profile-account-photo h4,
+body.theme-dark .profile-account-photo h5,
+body.theme-dark .profile-account-photo strong,
+body.theme-dark .profile-account-photo label {
+  color: #ffffff !important;
+}
+
+body.theme-dark .profile-photo-note {
+  color: #aeb8b2 !important;
+}
+
+/* ACCOUNT FORM AREA */
+body.theme-dark .profile-account-fields {
+  color: #ffffff !important;
+}
+
+body.theme-dark .account-form-group label {
+  color: #f3f5f4 !important;
+}
+
+body.theme-dark .account-input-wrap {
+  background: #202521 !important;
+  border-color: #4a554e !important;
+}
+
+body.theme-dark .account-input-wrap input {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .account-input-wrap i {
+  color: #8fb49b !important;
+}
+
+/* SAVE AREA */
+body.theme-dark .profile-account-actions {
+  background: transparent !important;
+  border-color: #39413c !important;
+}
+
+body.theme-dark .profile-save-note,
+body.theme-dark .profile-save-note span {
+  color: #b8c1bc !important;
+}
+
+/* SECURITY & ACCESS */
+body.theme-dark .security-access-summary {
+  background: #202521 !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark .security-access-item {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark .security-access-item strong,
+body.theme-dark .security-access-item h5,
+body.theme-dark .security-access-item h6 {
+  color: #ffffff !important;
+}
+
+body.theme-dark .security-access-item small,
+body.theme-dark .security-access-item span {
+  color: #b8c1bc !important;
+}
+
+/* FILE INPUT */
+body.theme-dark .profile-account-photo input[type="file"] {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #4a554e !important;
+}
+
+body.theme-dark
+  .profile-account-photo
+  input[type="file"]::file-selector-button {
+  background: #2b302c !important;
+  color: #ffffff !important;
+  border: 0 !important;
+}
+/* =========================================
+   ADMIN ACCOUNT - FINAL LIGHT PARTS
+========================================= */
+
+/* INFORMATION BAR */
+body.theme-dark .account-info-note,
+body.theme-dark .profile-account-note {
+  background: #202521 !important;
+  color: #b8c1bc !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark .account-info-note i,
+body.theme-dark .profile-account-note i {
+  color: #65d895 !important;
+}
+
+/* CANCEL BUTTON */
+body.theme-dark .profile-account-photo .btn-outline-secondary,
+body.theme-dark .profile-account-photo .btn-light {
+  background: #2b302c !important;
+  color: #ffffff !important;
+  border-color: #59635d !important;
+}
+
+body.theme-dark .profile-account-photo .btn-outline-secondary:hover,
+body.theme-dark .profile-account-photo .btn-light:hover {
+  background: #363d38 !important;
+  color: #ffffff !important;
+}
+
+/* SECURITY SUMMARY ICON BOXES */
+body.theme-dark .security-access-item-icon,
+body.theme-dark .security-access-icon {
+  background: #173b29 !important;
+  color: #65d895 !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark .security-access-item-icon i,
+body.theme-dark .security-access-icon i {
+  color: #65d895 !important;
+}
+
+/* =========================================
+   ADMIN ACCOUNT - EXACT FINAL FIX
+========================================= */
+
+/* INFO BAR */
+body.theme-dark .account-section-card .account-information-note {
+  background: #202521 !important;
+  background-color: #202521 !important;
+  color: #b8c1bc !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark .account-information-note span {
+  color: #b8c1bc !important;
+}
+
+body.theme-dark .account-information-note i {
+  color: #65d895 !important;
+}
+
+/* CANCEL PHOTO BUTTON */
+body.theme-dark .profile-account-photo .profile-cancel-btn {
+  background: #2b302c !important;
+  background-color: #2b302c !important;
+  color: #ffffff !important;
+  border-color: #59635d !important;
+}
+
+body.theme-dark .profile-account-photo .profile-cancel-btn:hover {
+  background: #363d38 !important;
+  background-color: #363d38 !important;
+  color: #ffffff !important;
+}
+
+/* ACCOUNT ROLE / STATUS / MEMBER SINCE ICONS */
+body.theme-dark
+  .account-section-card
+  .security-access-summary
+  .security-access-item
+  .security-access-icon {
+  background: #173b29 !important;
+  background-color: #173b29 !important;
+  color: #65d895 !important;
+  border-color: #3a433d !important;
+  box-shadow: none !important;
+}
+
+body.theme-dark .security-access-item .security-access-icon i {
+  color: #65d895 !important;
+}
+
+/* PROTECTED ACCOUNT */
+body.theme-dark .account-section-card .security-protected-badge {
+  background: #173b29 !important;
+  background-color: #173b29 !important;
+  color: #65d895 !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark .security-protected-badge i {
+  color: #65d895 !important;
+}
+/* =========================================
+   ADMIN MAP - STATUS FILTER READABILITY
+========================================= */
+
+body.theme-dark #statusFilter {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #4a554e !important;
+}
+
+body.theme-dark #statusFilter option {
+  background: #202521 !important;
+  color: #ffffff !important;
+}
+
+/* Category dropdown pud para consistent */
+body.theme-dark #categoryFilter {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #4a554e !important;
+}
+
+body.theme-dark #categoryFilter option {
+  background: #202521 !important;
+  color: #ffffff !important;
+}
+/* =========================================
+   ADMIN MAP - LEGEND TEXT FIX
+========================================= */
+
+body.theme-dark .map-legend span {
+  color: #ffffff !important;
+}
+
+body.theme-dark .map-legend {
+  color: #ffffff !important;
+}
+
+/* Keep status icon colors */
+body.theme-dark .map-legend .pending {
+  color: #ff9800 !important;
+}
+
+body.theme-dark .map-legend .progress {
+  color: #2196f3 !important;
+}
+
+body.theme-dark .map-legend .resolved {
+  color: #28a745 !important;
+}
+
+body.theme-dark .map-legend .rejected {
+  color: #dc3545 !important;
+}
+/* MAP LEGEND - UNIFORM CIRCLES, CSS ONLY */
+body.theme-dark .map-legend i.bi-circle-fill {
+  display: inline-block !important;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+
+  border-radius: 50% !important;
+  font-size: 0 !important;
+
+  background: currentColor !important;
+  vertical-align: middle !important;
+}
+
+body.theme-dark .map-legend i.bi-circle-fill::before {
+  content: "" !important;
+}
+
+/* COLORS */
+body.theme-dark .map-legend .pending {
+  color: #ff9800 !important;
+}
+
+body.theme-dark .map-legend .in-progress {
+  color: #2196f3 !important;
+}
+
+body.theme-dark .map-legend .resolved {
+  color: #28a745 !important;
+}
+
+body.theme-dark .map-legend .rejected {
+  color: #dc3545 !important;
+}
+/* =========================================
+   PUROK MAP SETUP - DARK MODE
+========================================= */
+
+body.theme-dark .setup-container {
+  color: #ffffff;
+}
+
+body.theme-dark .setup-header h2 {
+  color: #ffffff !important;
+}
+
+body.theme-dark .setup-header .text-muted {
+  color: #b8c1bc !important;
+}
+
+body.theme-dark .setup-card {
+  background: #1b1f1c !important;
+  color: #ffffff !important;
+  border: 1px solid #39413c !important;
+}
+
+body.theme-dark .setup-card strong,
+body.theme-dark .setup-card label {
+  color: #ffffff !important;
+}
+
+body.theme-dark .purok-item {
+  color: #ffffff !important;
+}
+
+body.theme-dark .purok-item:hover {
+  background: #252b27 !important;
+}
+
+body.theme-dark .purok-item.active {
+  background: #173b29 !important;
+  box-shadow: inset 3px 0 0 #65d895 !important;
+}
+
+body.theme-dark .purok-name {
+  color: #ffffff !important;
+}
+
+body.theme-dark .status-mapped {
+  color: #65d895 !important;
+}
+
+body.theme-dark .status-unmapped {
+  color: #f0b85a !important;
+}
+
+body.theme-dark .coordinate-box {
+  background: #202521 !important;
+  border-color: #39413c !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .map-instruction {
+  color: #b8c1bc !important;
+}
+
+body.theme-dark #purokSearch {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #4a554e !important;
+}
+
+body.theme-dark #purokSearch::placeholder {
+  color: #8f9993 !important;
+}
+
+body.theme-dark .progress {
+  background: #343b36 !important;
+}

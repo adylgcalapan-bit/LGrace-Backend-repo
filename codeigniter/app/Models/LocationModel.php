@@ -12,6 +12,7 @@ class LocationModel extends Model
 
     protected $allowedFields = [
         'user_id',
+        'is_anonymous',
         'title',
         'description',
         'category_id',
@@ -21,6 +22,7 @@ class LocationModel extends Model
         'status',
         'moderation_status',
         'priority',
+        'resolved_at',
     ];
 
     protected $useTimestamps = true;

@@ -27,8 +27,13 @@
 
     <!-- Custom CSS -->
 
-    <link rel="stylesheet"
+    <link
+        rel="stylesheet"
         href="<?= base_url('assets/css/report R.css') ?>">
+
+    <link
+        rel="stylesheet"
+        href="<?= base_url('assets/css/resident-sidebar.css') ?>">
 
 </head>
 
@@ -101,15 +106,10 @@
                 </li>
 
                 <li class="logout">
-
                     <a href="<?= base_url('logout') ?>">
-
                         <i class="bi bi-box-arrow-right"></i>
-
-                        Logout
-
+                        <span>Logout</span>
                     </a>
-
                 </li>
 
             </ul>
@@ -265,7 +265,37 @@
 
                             </div>
 
-                            
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+                                    Anonymous Report
+                                </label>
+
+                                <div class="form-check mt-2">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        id="is_anonymous"
+                                        name="is_anonymous"
+                                        value="1"
+                                        <?= old('is_anonymous') ? 'checked' : '' ?>>
+
+                                    <label
+                                        class="form-check-label"
+                                        for="is_anonymous">
+
+                                        Submit this report anonymously
+
+                                    </label>
+
+                                </div>
+
+                                <small class="text-muted">
+                                    Your identity will be hidden from public and administrative report displays.
+                                </small>
+
+                            </div>
 
                             <div class="col-12 mb-4">
 
