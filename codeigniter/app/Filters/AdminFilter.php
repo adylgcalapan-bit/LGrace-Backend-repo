@@ -90,7 +90,49 @@ class AdminFilter implements FilterInterface
 
         // User is still active, refresh last activity time
         $session->set('last_activity', $now);
+        // =====================================
+        // VERIFY ADMIN ACCOUNT IS STILL VALID
+        // =====================================
+
+        $userId = (int) $session->get('user_id');
+
+        $db = \Config\Database::connect();
+
+        $admin = $db->table('users')
+            ->select('user_id, role, is_active')
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->get()
+            ->getRowArray();
+
+        if (
+            !$admin ||
+            (int) ($admin['is_active'] ?? 0) !== 1
+        ) {
+
+            // Remove Remember Me tokens
+            if ($userId > 0) {
+                $db->table('remember_tokens')
+                    ->where('user_id', $userId)
+                    ->delete();
+            }
+
+            // Destroy current session
+            $session->destroy();
+
+            // Remove Remember Me browser cookie
+            $response = redirect()->to('/login')
+                ->with(
+                    'error',
+                    'Your administrator account is inactive or no longer available.'
+                );
+
+            $response->deleteCookie('remember_token');
+
+            return $response;
+        }
     }
+
 
 
 

@@ -115,6 +115,121 @@ class AuthController extends BaseController
                 );
         }
 
+        // =====================================
+        // LOGIN ATTEMPT PROTECTION
+        // Maximum 5 failed attempts within 15 minutes
+        // =====================================
+
+        $db = \Config\Database::connect();
+
+        $normalizedLoginIdentifier =
+            strtolower($loginIdentifier);
+
+        $ipAddress = trim(
+            (string) $this->request->getIPAddress()
+        );
+
+        // Do not store the raw username/email or IP
+        // in the login-attempt record.
+        $attemptKey = hash(
+            'sha256',
+            $normalizedLoginIdentifier . '|' . $ipAddress
+        );
+
+        $manilaTimezone =
+            new \DateTimeZone('Asia/Manila');
+
+        $now =
+            new \DateTimeImmutable(
+                'now',
+                $manilaTimezone
+            );
+
+        $loginAttempt = $db->table('login_attempts')
+            ->where('attempt_key', $attemptKey)
+            ->get()
+            ->getRowArray();
+
+        if ($loginAttempt) {
+
+            // =====================================
+            // Check active temporary lock
+            // =====================================
+
+            if (!empty($loginAttempt['locked_until'])) {
+
+                $lockedUntil =
+                    \DateTimeImmutable::createFromFormat(
+                        'Y-m-d H:i:s',
+                        (string) $loginAttempt['locked_until'],
+                        $manilaTimezone
+                    );
+
+                if (
+                    $lockedUntil &&
+                    $lockedUntil > $now
+                ) {
+
+                    $secondsRemaining =
+                        $lockedUntil->getTimestamp()
+                        - $now->getTimestamp();
+
+                    $minutesRemaining =
+                        max(
+                            1,
+                            (int) ceil(
+                                $secondsRemaining / 60
+                            )
+                        );
+
+                    return redirect()->back()
+                        ->withInput()
+                        ->with(
+                            'error',
+                            'Too many failed login attempts. Please try again in '
+                                . $minutesRemaining
+                                . ' minute(s).'
+                        );
+                }
+
+                // Lock already expired.
+                $db->table('login_attempts')
+                    ->where('attempt_key', $attemptKey)
+                    ->delete();
+
+                $loginAttempt = null;
+            }
+
+            // =====================================
+            // Reset old incomplete attempts
+            // =====================================
+
+            if (
+                $loginAttempt &&
+                !empty($loginAttempt['updated_at'])
+            ) {
+
+                $lastAttempt =
+                    \DateTimeImmutable::createFromFormat(
+                        'Y-m-d H:i:s',
+                        (string) $loginAttempt['updated_at'],
+                        $manilaTimezone
+                    );
+
+                if (
+                    $lastAttempt &&
+                    $lastAttempt <= $now->modify('-15 minutes')
+                ) {
+
+                    $db->table('login_attempts')
+                        ->where('attempt_key', $attemptKey)
+                        ->delete();
+
+                    $loginAttempt = null;
+                }
+            }
+        }
+
         // Find user by email OR username
         $user = $userModel
             ->groupStart()
@@ -123,7 +238,10 @@ class AuthController extends BaseController
             ->groupEnd()
             ->first();
 
+        // =====================================
         // Check account and password
+        // =====================================
+
         if (
             !$user ||
             !password_verify(
@@ -131,6 +249,64 @@ class AuthController extends BaseController
                 $user['password']
             )
         ) {
+
+            $failedAttempts =
+                (int) (
+                    $loginAttempt['attempts'] ?? 0
+                ) + 1;
+
+            $nowString =
+                $now->format('Y-m-d H:i:s');
+
+            $lockedUntilString = null;
+
+            if ($failedAttempts >= 5) {
+
+                $lockedUntilString =
+                    $now
+                    ->modify('+15 minutes')
+                    ->format('Y-m-d H:i:s');
+
+                // Keep maximum recorded count at 5.
+                $failedAttempts = 5;
+            }
+
+            $attemptData = [
+                'attempts'     => $failedAttempts,
+                'locked_until' => $lockedUntilString,
+                'updated_at'   => $nowString,
+            ];
+
+            if ($loginAttempt) {
+
+                $db->table('login_attempts')
+                    ->where(
+                        'attempt_key',
+                        $attemptKey
+                    )
+                    ->update($attemptData);
+            } else {
+
+                $attemptData['attempt_key'] =
+                    $attemptKey;
+
+                $attemptData['created_at'] =
+                    $nowString;
+
+                $db->table('login_attempts')
+                    ->insert($attemptData);
+            }
+
+            if ($failedAttempts >= 5) {
+
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Too many failed login attempts. Please try again after 15 minutes.'
+                    );
+            }
+
             return redirect()->back()
                 ->withInput()
                 ->with(
@@ -139,6 +315,14 @@ class AuthController extends BaseController
                 );
         }
 
+        // =====================================
+        // Correct password:
+        // clear previous failed login attempts
+        // =====================================
+
+        $db->table('login_attempts')
+            ->where('attempt_key', $attemptKey)
+            ->delete();
 
         // =====================================
         // RESIDENT ACCOUNT VERIFICATION / STATUS
@@ -296,6 +480,26 @@ class AuthController extends BaseController
         }
 
         $db = \Config\Database::connect();
+
+        // =====================================
+        // PASSWORD RESET REQUEST COOLDOWN
+        // Allow only one reset email per minute
+        // =====================================
+
+        $recentReset = $db->table('password_reset_tokens')
+            ->where('user_id', $user['user_id'])
+            ->where(
+                'created_at > DATE_SUB(NOW(), INTERVAL 60 SECOND)',
+                null,
+                false
+            )
+            ->get()
+            ->getRowArray();
+
+        if ($recentReset) {
+            return redirect()->to('/forgot-password')
+                ->with('success', $genericMessage);
+        }
 
         // Remove previous reset tokens sa same user
         $db->table('password_reset_tokens')
@@ -497,6 +701,12 @@ class AuthController extends BaseController
                 ->with('error', 'This password reset link is invalid or has expired.');
         }
 
+        $resetUser = $db->table('users')
+            ->select('user_id, email')
+            ->where('user_id', $resetToken['user_id'])
+            ->get()
+            ->getRowArray();
+
         $db->transStart();
 
         $db->table('users')
@@ -524,7 +734,13 @@ class AuthController extends BaseController
                 ->with('error', 'Unable to reset the password. Please try again.');
         }
 
-
+        if (!empty($resetUser['email'])) {
+            $this->sendSecurityNotificationEmail(
+                (string) $resetUser['email'],
+                'Security Alert: Password Reset',
+                'The password for your Community Visibility System account was reset successfully.'
+            );
+        }
 
         return redirect()->to('/login')
             ->with('success', 'Password reset successfully. You can now log in.');
@@ -1068,17 +1284,32 @@ class AuthController extends BaseController
             $newPhysicalPath =
                 FCPATH . $profileImagePath;
         }
+        $residentNo =  $this->getNextAvailableResidentNo($db);
+
+        $verifiedAt =
+            !empty($verificationRecord['verified_at'])
+            ? $verificationRecord['verified_at']
+            : date('Y-m-d H:i:s');
 
         $inserted = $userModel->insert([
-            'full_name' => $fullName,
-            'email' => $normalizedEmail,
-            'mobile_number' => $mobileNumber !== '' ? $mobileNumber : null,
-            'username' => $username,
-            'address' => $address !== '' ? $address : null,
-            'purok_id' => $purokId,
-            'profile_image' => $profileImagePath,
-            'password' => password_hash($password, PASSWORD_DEFAULT),
-            'role' => 'resident',
+            'full_name'         => $fullName,
+            'email'             => $normalizedEmail,
+            'mobile_number'     => $mobileNumber !== ''
+                ? $mobileNumber
+                : null,
+            'username'          => $username,
+            'address'           => $address !== ''
+                ? $address
+                : null,
+            'purok_id'          => $purokId,
+            'profile_image'     => $profileImagePath,
+            'password'          => password_hash(
+                $password,
+                PASSWORD_DEFAULT
+            ),
+            'role'              => 'resident',
+            'is_active'         => 1,
+            'email_verified_at' => $verifiedAt,
         ]);
 
         if ($inserted === false) {
@@ -1678,5 +1909,116 @@ class AuthController extends BaseController
         $response->deleteCookie('remember_token');
 
         return $response;
+    }
+    private function getNextAvailableResidentNo($db): int
+    {
+        $rows = $db->table('users')
+            ->select('resident_no')
+            ->where('role', 'resident')
+            ->where(
+                'resident_no IS NOT NULL',
+                null,
+                false
+            )
+            ->orderBy('resident_no', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $nextNumber = 1;
+
+        foreach ($rows as $row) {
+
+            $currentNumber =
+                (int) ($row['resident_no'] ?? 0);
+
+            if ($currentNumber < $nextNumber) {
+                continue;
+            }
+
+            if ($currentNumber > $nextNumber) {
+                break;
+            }
+
+            $nextNumber++;
+        }
+
+        return $nextNumber;
+    }
+    private function sendSecurityNotificationEmail(
+        string $toEmail,
+        string $subject,
+        string $message
+    ): void {
+        if (
+            $toEmail === '' ||
+            !filter_var($toEmail, FILTER_VALIDATE_EMAIL)
+        ) {
+            return;
+        }
+
+        try {
+            $emailService = service('email');
+            $emailService->clear(true);
+
+            $emailConfig = config('Email');
+
+            $emailService->setFrom(
+                $emailConfig->fromEmail,
+                $emailConfig->fromName
+            );
+
+            $emailService->setTo($toEmail);
+            $emailService->setSubject($subject);
+
+            $emailService->setMessage(
+                '
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h2>Security Notification</h2>
+
+                <p>' . esc($message) . '</p>
+
+                <p>
+                    If you made this change, no action is required.
+                </p>
+
+                <p>
+                    If you did not make this change,
+                    please secure your account immediately.
+                </p>
+
+                <hr>
+
+                <small>
+                    Barangay Saguing Community Visibility System
+                </small>
+
+                <p style="
+                    font-size: 12px;
+                    color: #6c757d;
+                    margin-top: 20px;
+                ">
+                    This is an automated security notification.
+                    Please do not reply to this email.
+                </p>
+            </div>
+            '
+            );
+
+            if (!$emailService->send()) {
+                log_message(
+                    'error',
+                    'Security notification email failed for: '
+                        . $toEmail
+                );
+            }
+        } catch (\Throwable $e) {
+            log_message(
+                'error',
+                'Security notification email error: {message}',
+                [
+                    'message' => $e->getMessage()
+                ]
+            );
+        }
     }
 }

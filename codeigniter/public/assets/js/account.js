@@ -172,6 +172,18 @@ document.addEventListener("DOMContentLoaded", () => {
   sendAdminEmailCodeBtn?.addEventListener("click", async () => {
     const emailValue = adminEmail?.value.trim();
 
+    const currentPasswordValue = currentPassword?.value || "";
+
+    if (!currentPasswordValue) {
+      showMessage(
+        "Enter your current password before changing your email.",
+        "danger",
+      );
+
+      currentPassword?.focus();
+      return;
+    }
+
     if (!emailValue) {
       showMessage("Please enter the new email address first.", "danger");
       adminEmail?.focus();
@@ -186,6 +198,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const formData = new FormData();
 
     formData.append("email", emailValue);
+
+    formData.append("current_password", currentPasswordValue);
 
     if (csrfName && csrfHash) {
       formData.append(csrfName, csrfHash);
@@ -251,6 +265,10 @@ document.addEventListener("DOMContentLoaded", () => {
         error.message || "Unable to send verification code.",
         "danger",
       );
+
+      if (error.message && error.message.toLowerCase().includes("password")) {
+        currentPassword?.focus();
+      }
 
       sendAdminEmailCodeBtn.disabled = false;
       sendAdminEmailCodeBtn.textContent = originalText;
@@ -339,11 +357,12 @@ document.addEventListener("DOMContentLoaded", () => {
   adminEmail?.addEventListener("input", () => {
     resetAdminEmailVerification();
   });
+
   // =========================================
   // PASSWORD SHOW / HIDE TOGGLE
   // =========================================
   document.addEventListener("click", (event) => {
-    const button = event.target.closest(".password-toggle-btn");
+    const button = event.target.closest(".password-toggle");
 
     if (!button) {
       return;
@@ -351,33 +370,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     event.preventDefault();
 
-    const targetId = button.getAttribute("data-target");
+    const targetId = button.getAttribute("data-password-target");
+
     const passwordInput = document.getElementById(targetId);
+
     const icon = button.querySelector("i");
 
     if (!passwordInput) {
       return;
     }
 
-    if (passwordInput.type === "password") {
-      passwordInput.type = "text";
+    const isHidden = passwordInput.type === "password";
 
-      if (icon) {
-        icon.classList.remove("bi-eye");
-        icon.classList.add("bi-eye-slash");
-      }
+    passwordInput.type = isHidden ? "text" : "password";
 
-      button.setAttribute("aria-label", "Hide password");
-    } else {
-      passwordInput.type = "password";
-
-      if (icon) {
-        icon.classList.remove("bi-eye-slash");
-        icon.classList.add("bi-eye");
-      }
-
-      button.setAttribute("aria-label", "Show password");
+    if (icon) {
+      icon.className = isHidden ? "bi bi-eye-slash" : "bi bi-eye";
     }
+
+    button.setAttribute(
+      "aria-label",
+      isHidden ? "Hide password" : "Show password",
+    );
   });
 
   uploadPhotoBtn?.addEventListener("click", async () => {

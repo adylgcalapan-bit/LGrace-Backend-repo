@@ -238,8 +238,10 @@
 
                                 <input type="date"
                                     class="form-control"
-                                    id="incidentDate">
-
+                                    id="incidentDate"
+                                    name="incident_date"
+                                    max="<?= date('Y-m-d') ?>"
+                                    required>
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -254,7 +256,7 @@
                                     class="form-control"
                                     id="photos"
                                     name="photos[]"
-                                    accept="image/jpeg,image/png,image/webp"
+                                    accept=".jpg,.jpeg,.png,.webp"
                                     multiple>
 
                                 <small class="text-muted">

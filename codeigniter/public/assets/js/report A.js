@@ -58,28 +58,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // SORT CUSTOM DROPDOWN
-  document.querySelectorAll(".report-sort-option").forEach((option) => {
-    option.addEventListener("click", function () {
-      if (!sortFilter || !filtersForm) {
-        return;
-      }
-
-      const value = this.dataset.value || "newest";
-      const label = this.textContent.trim();
-
-      sortFilter.value = value;
-
-      const sortLabel = document.getElementById("reportSortLabel");
-
-      if (sortLabel) {
-        sortLabel.textContent = label;
-      }
-
-      filtersForm.requestSubmit();
-    });
-  });
-
   document.querySelectorAll(".report-category-option").forEach((option) => {
     option.addEventListener("click", function () {
       if (!categoryFilter || !filtersForm) {
@@ -101,6 +79,31 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  // =====================================
+  // SORT CUSTOM DROPDOWN
+  // =====================================
+
+  document.querySelectorAll(".report-sort-option").forEach((option) => {
+    option.addEventListener("click", function () {
+      if (!sortFilter || !filtersForm) {
+        return;
+      }
+
+      const value = this.dataset.value || "newest";
+      const label = this.textContent.trim();
+
+      sortFilter.value = value;
+
+      const sortLabel = document.getElementById("reportSortLabel");
+
+      if (sortLabel) {
+        sortLabel.textContent = label;
+      }
+
+      filtersForm.requestSubmit();
+    });
+  });
+
   const viewButtons = document.querySelectorAll(".view-btn");
   const reportModal = document.getElementById("reportModal");
   let reportMapInstance = null;
@@ -114,7 +117,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      const reportId = row.getAttribute("data-id") || "";
+      const reportNo = row.getAttribute("data-report-no") || "";
       const resident = row.getAttribute("data-resident") || "";
       const residentId = row.getAttribute("data-resident-id") || "";
       const title = row.getAttribute("data-title") || "";
@@ -127,12 +130,22 @@ document.addEventListener("DOMContentLoaded", function () {
       const date = row.getAttribute("data-date") || "";
       const status = row.getAttribute("data-status") || "";
       const description = row.getAttribute("data-description") || "";
-      const photo = row.getAttribute("data-photo") || "";
+      const photosJson = row.getAttribute("data-photos") || "[]";
 
-      reportModal.querySelector(".modal-title").textContent =
-        `Report Details - ${reportId}`;
+      let photos = [];
 
-      reportModal.querySelector("#reportId").textContent = reportId;
+      try {
+        const parsedPhotos = JSON.parse(photosJson);
+
+        if (Array.isArray(parsedPhotos)) {
+          photos = parsedPhotos;
+        }
+      } catch (error) {
+        photos = [];
+      }
+
+      reportModal.querySelector(".modal-title").textContent = "Report Details";
+      reportModal.querySelector("#reportNo").textContent = reportNo || "N/A";
       reportModal.querySelector("#reportResident").textContent = resident;
       reportModal.querySelector("#reportResidentId").textContent = residentId;
       reportModal.querySelector("#reportTitle").textContent = title;
@@ -144,18 +157,39 @@ document.addEventListener("DOMContentLoaded", function () {
       reportModal.querySelector("#reportDescription").textContent =
         description || "No description provided.";
 
-      const photoElement = reportModal.querySelector("#reportPhoto");
+      const photoContainer = reportModal.querySelector("#reportPhotos");
 
       const noPhotoElement = reportModal.querySelector("#reportNoPhoto");
 
-      if (photo) {
-        photoElement.src = photo;
-        photoElement.style.display = "block";
-        noPhotoElement.style.display = "none";
+      if (photoContainer) {
+        photoContainer.innerHTML = "";
+      }
+
+      if (photos.length > 0) {
+        photos.slice(0, 5).forEach((photoUrl, index) => {
+          const image = document.createElement("img");
+
+          image.src = photoUrl;
+          image.alt = `Report Photo ${index + 1}`;
+
+          image.className = "img-fluid rounded";
+
+          image.style.width = "140px";
+          image.style.height = "120px";
+          image.style.objectFit = "cover";
+
+          if (photoContainer) {
+            photoContainer.appendChild(image);
+          }
+        });
+
+        if (noPhotoElement) {
+          noPhotoElement.style.display = "none";
+        }
       } else {
-        photoElement.src = "";
-        photoElement.style.display = "none";
-        noPhotoElement.style.display = "inline";
+        if (noPhotoElement) {
+          noPhotoElement.style.display = "inline";
+        }
       }
 
       const modal = new bootstrap.Modal(reportModal);

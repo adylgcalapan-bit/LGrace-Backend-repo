@@ -799,6 +799,8 @@
                         <?= csrf_field() ?>
 
 
+
+
                         <!-- EMAIL -->
                         <div class="mb-3">
 
@@ -817,14 +819,13 @@
                                     <span class="input-group-text">
                                         <i class="bi bi-envelope-fill"></i>
                                     </span>
-
                                     <input
                                         type="text"
                                         id="email"
                                         name="email"
                                         class="form-control"
                                         placeholder="Enter your email or username"
-                                        autocomplete="email"
+                                        autocomplete="username"
                                         required>
 
                                 </div>
@@ -985,6 +986,9 @@
             }
         }
     </script>
+
+
+
 
     <!-- Keep existing login validation -->
     <script src="<?= base_url('assets/js/login.js') ?>"></script>

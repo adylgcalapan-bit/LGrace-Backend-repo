@@ -30,6 +30,9 @@ class ReportController extends BaseController
         $title = trim((string) $this->request->getPost('title'));
         $categoryId = (int) $this->request->getPost('category_id');
         $description = trim((string) $this->request->getPost('description'));
+        $incidentDate = trim(
+            (string) $this->request->getPost('incident_date')
+        );
         $latitude = trim((string) $this->request->getPost('latitude'));
         $longitude = trim((string) $this->request->getPost('longitude'));
         $address = trim((string) $this->request->getPost('address'));
@@ -56,6 +59,43 @@ class ReportController extends BaseController
                 );
         }
 
+        // =====================================
+        // Validate Date of Incident
+        // =====================================
+
+        $manilaTimezone = new \DateTimeZone('Asia/Manila');
+
+        $incidentDateObject = \DateTime::createFromFormat(
+            '!Y-m-d',
+            $incidentDate,
+            $manilaTimezone
+        );
+
+        $validIncidentDate =
+            $incidentDateObject &&
+            $incidentDateObject->format('Y-m-d') === $incidentDate;
+
+        if (!$validIncidentDate) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Invalid incident date.');
+        }
+
+        $today = new \DateTime(
+            'today',
+            $manilaTimezone
+        );
+
+        if ($incidentDateObject > $today) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'The date of incident cannot be in the future.'
+                );
+        }
+
+
         $latitudeValue = (float) $latitude;
         $longitudeValue = (float) $longitude;
 
@@ -73,6 +113,8 @@ class ReportController extends BaseController
                     'Report location must be within Barangay Saguing, Makilala, Cotabato.'
                 );
         }
+
+
 
         // =====================================
         // Check if selected category exists
@@ -135,6 +177,13 @@ class ReportController extends BaseController
             'image/webp'
         ];
 
+        $allowedExtensions = [
+            'jpg',
+            'jpeg',
+            'png',
+            'webp',
+        ];
+
         foreach ($photos as $photo) {
 
             if (!$photo->isValid()) {
@@ -143,6 +192,23 @@ class ReportController extends BaseController
                     ->with(
                         'error',
                         'One of the uploaded photos is invalid.'
+                    );
+            }
+
+            $clientExtension = strtolower(
+                $photo->getClientExtension()
+            );
+
+            if (!in_array(
+                $clientExtension,
+                $allowedExtensions,
+                true
+            )) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Each photo must have a JPG, JPEG, PNG, or WebP file extension.'
                     );
             }
 
@@ -173,14 +239,80 @@ class ReportController extends BaseController
         }
 
         // =====================================
+        // Prevent rapid duplicate submissions
+        // =====================================
+
+        $submissionFingerprint = hash(
+            'sha256',
+            (string) json_encode(
+                [
+                    'user_id'      => $userId,
+                    'title'        => $title,
+                    'category_id'  => $categoryId,
+                    'description'  => $description,
+                    'incident_date' => $incidentDate,
+                    'latitude'     => number_format(
+                        $latitudeValue,
+                        6,
+                        '.',
+                        ''
+                    ),
+                    'longitude'    => number_format(
+                        $longitudeValue,
+                        6,
+                        '.',
+                        ''
+                    ),
+                    'address'      => $address,
+                    'is_anonymous' => $isAnonymous,
+                ],
+                JSON_UNESCAPED_UNICODE |
+                    JSON_UNESCAPED_SLASHES
+            )
+        );
+
+        $lastSubmissionFingerprint =
+            (string) session()->get(
+                'last_report_submission_fingerprint'
+            );
+
+        $lastSubmissionTime =
+            (int) session()->get(
+                'last_report_submission_time'
+            );
+
+        // Same resident + same report details submitted again
+        // within 10 seconds = treat as accidental duplicate.
+        if (
+            $lastSubmissionFingerprint !== '' &&
+            hash_equals(
+                $lastSubmissionFingerprint,
+                $submissionFingerprint
+            ) &&
+            $lastSubmissionTime > 0 &&
+            (time() - $lastSubmissionTime) <= 10
+        ) {
+            return redirect()
+                ->to('/resident/my-reports')
+                ->with(
+                    'success',
+                    'Your report was already submitted successfully.'
+                );
+        }
+
+        // =====================================
         // Save report
         // =====================================
 
+        $reportNo = $this->getNextAvailableReportNo($db);
+
         $reportId = $reportModel->insert([
+            'report_no' => $reportNo,
             'user_id' => $userId,
             'is_anonymous' => $isAnonymous,
             'title' => $title,
             'description' => $description,
+            'incident_date' => $incidentDate,
             'category_id' => $categoryId,
             'latitude' => $latitude,
             'longtitude' => $longitude,
@@ -292,6 +424,16 @@ class ReportController extends BaseController
                     );
             }
         }
+
+        // Remember this successful submission.
+        // This prevents the same request from being saved twice.
+        session()->set([
+            'last_report_submission_fingerprint'
+            => $submissionFingerprint,
+
+            'last_report_submission_time'
+            => time(),
+        ]);
 
         // =====================================
         // Notify all admins about new report
@@ -493,11 +635,39 @@ class ReportController extends BaseController
             'status' => $status
         ];
 
-        // Store the exact time when the report becomes Resolved.
-        // Clear it if the report is reopened or changed to another status.
+        // =====================================
+        // RESOLVED 7-DAY TIMER
+        // =====================================
+
+        $currentStatus =
+            trim((string) ($report['status'] ?? ''));
+
+        $currentPriority =
+            trim((string) ($report['priority'] ?? ''));
+
         if ($status === 'Resolved') {
-            $updateData['resolved_at'] = date('Y-m-d H:i:s');
+
+            /*
+     * Start the timer ONLY when the report
+     * first becomes Resolved.
+     *
+     * If it is already Resolved and admin
+     * only changes priority, keep the
+     * original resolved_at.
+     */
+            if (
+                $currentStatus !== 'Resolved' ||
+                empty($report['resolved_at'])
+            ) {
+                $updateData['resolved_at'] =
+                    date('Y-m-d H:i:s');
+            }
         } else {
+
+            /*
+     * If reopened / changed away from
+     * Resolved, clear the old timer.
+     */
             $updateData['resolved_at'] = null;
         }
 
@@ -515,6 +685,26 @@ class ReportController extends BaseController
             return redirect()->back()
                 ->with('error', 'Unable to update report.');
         }
+
+        $finalPriority =
+            $priority !== ''
+            ? $priority
+            : $currentPriority;
+
+        $this->logAdminAudit(
+            'UPDATE_REPORT_MODERATION',
+            'report',
+            $reportId,
+            'Status changed from '
+                . ($currentStatus !== '' ? $currentStatus : 'N/A')
+                . ' to '
+                . $status
+                . '; Priority changed from '
+                . ($currentPriority !== '' ? $currentPriority : 'N/A')
+                . ' to '
+                . ($finalPriority !== '' ? $finalPriority : 'N/A')
+                . '.'
+        );
 
         // =====================================
         // Notify resident about report update
@@ -660,18 +850,18 @@ class ReportController extends BaseController
             ->get()
             ->getResultArray();
 
-        // Get current photo
-        $image = $db->table('images')
+        // Get all current photos
+        $images = $db->table('images')
+            ->select('image_id, image_path')
             ->where('report_id', $reportId)
             ->orderBy('image_id', 'ASC')
             ->get()
-            ->getRowArray();
-
-        $report['image_path'] = $image['image_path'] ?? null;
+            ->getResultArray();
 
         return view('resident/edit-report', [
-            'report' => $report,
-            'categories' => $categories
+            'report'     => $report,
+            'categories' => $categories,
+            'images'     => $images,
         ]);
     }
     public function updateResidentReport($reportId = null)
@@ -706,12 +896,39 @@ class ReportController extends BaseController
         }
 
         // Get submitted values
-        $title = trim((string) $this->request->getPost('title'));
-        $description = trim((string) $this->request->getPost('description'));
-        $categoryId = (int) $this->request->getPost('category_id');
-        $latitude = trim((string) $this->request->getPost('latitude'));
-        $longitude = trim((string) $this->request->getPost('longitude'));
-        $address = trim((string) $this->request->getPost('address'));
+        // Get submitted values
+        $title = trim(
+            (string) $this->request->getPost('title')
+        );
+
+        $description = trim(
+            (string) $this->request->getPost('description')
+        );
+
+        $categoryId =
+            (int) $this->request->getPost('category_id');
+
+        $incidentDate = trim(
+            (string) $this->request->getPost('incident_date')
+        );
+
+        $latitude = trim(
+            (string) $this->request->getPost('latitude')
+        );
+
+        $longitude = trim(
+            (string) $this->request->getPost('longitude')
+        );
+
+        $address = trim(
+            (string) $this->request->getPost('address')
+        );
+
+        $isAnonymous =
+            $this->request->getPost('is_anonymous')
+            ? 1
+            : 0;
+
 
         // Basic validation
         if (
@@ -724,6 +941,50 @@ class ReportController extends BaseController
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Please complete all required report information.');
+        }
+
+        // =====================================
+        // Validate Date of Incident
+        // =====================================
+
+        $manilaTimezone =
+            new \DateTimeZone('Asia/Manila');
+
+        $incidentDateObject =
+            \DateTime::createFromFormat(
+                '!Y-m-d',
+                $incidentDate,
+                $manilaTimezone
+            );
+
+        $validIncidentDate =
+            $incidentDateObject &&
+            $incidentDateObject->format('Y-m-d')
+            === $incidentDate;
+
+        if (!$validIncidentDate) {
+
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Invalid incident date.'
+                );
+        }
+
+        $today = new \DateTime(
+            'today',
+            $manilaTimezone
+        );
+
+        if ($incidentDateObject > $today) {
+
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'The date of incident cannot be in the future.'
+                );
         }
 
         $latitudeValue = (float) $latitude;
@@ -780,6 +1041,30 @@ class ReportController extends BaseController
                 'image/webp'
             ];
 
+            $allowedExtensions = [
+                'jpg',
+                'jpeg',
+                'png',
+                'webp',
+            ];
+
+            $clientExtension = strtolower(
+                $photo->getClientExtension()
+            );
+
+            if (!in_array(
+                $clientExtension,
+                $allowedExtensions,
+                true
+            )) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Photo must have a JPG, JPEG, PNG, or WebP file extension.'
+                    );
+            }
+
             if (!in_array($photo->getMimeType(), $allowedMimeTypes, true)) {
                 return redirect()->back()
                     ->withInput()
@@ -825,15 +1110,26 @@ class ReportController extends BaseController
             ->where('user_id', $userId)
             ->where('status', 'Pending')
             ->update([
+
                 'title' => $title,
+
                 'description' => $description,
+
+                'incident_date' => $incidentDate,
+
                 'category_id' => $categoryId,
+
                 'latitude' => $latitude,
 
                 // Actual column name in your database
                 'longtitude' => $longitude,
 
-                'address' => $address !== '' ? $address : null
+                'address' =>
+                $address !== ''
+                    ? $address
+                    : null,
+
+                'is_anonymous' => $isAnonymous
             ]);
 
         // Replace photo only if resident selected a new one
@@ -872,23 +1168,348 @@ class ReportController extends BaseController
                 ->with('error', 'Unable to update the report.');
         }
 
-        // Remove old physical photo after successful replacement
-        if (
-            $hasNewPhoto &&
-            !empty($existingImage['image_path'])
-        ) {
-            $oldPhysicalPath =
-                FCPATH . ltrim(
-                    $existingImage['image_path'],
-                    '/\\'
-                );
+        // =====================================
+        // Optional replacement photos
+        // Maximum: 5 photos
+        // =====================================
 
-            if (is_file($oldPhysicalPath)) {
-                unlink($oldPhysicalPath);
+        $photos =
+            $this->request->getFileMultiple('photos') ?? [];
+
+        // Remove empty upload entries
+        $photos = array_values(
+            array_filter(
+                $photos,
+                static function ($photo) {
+                    return $photo !== null
+                        && $photo->getError() !== UPLOAD_ERR_NO_FILE;
+                }
+            )
+        );
+
+        $hasNewPhotos = count($photos) > 0;
+
+        // Maximum 5 replacement photos
+        if (count($photos) > 5) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'You can upload a maximum of 5 photos only.'
+                );
+        }
+
+        // =====================================
+        // Validate every replacement photo
+        // =====================================
+
+        $allowedMimeTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+        ];
+
+        $allowedExtensions = [
+            'jpg',
+            'jpeg',
+            'png',
+            'webp',
+        ];
+
+        foreach ($photos as $photo) {
+
+            if (!$photo->isValid()) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'One of the selected photos is invalid.'
+                    );
+            }
+
+            $clientExtension = strtolower(
+                $photo->getClientExtension()
+            );
+
+            if (
+                !in_array(
+                    $clientExtension,
+                    $allowedExtensions,
+                    true
+                )
+            ) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Photos must have JPG, JPEG, PNG, or WebP file extensions.'
+                    );
+            }
+
+            if (
+                !in_array(
+                    $photo->getMimeType(),
+                    $allowedMimeTypes,
+                    true
+                )
+            ) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Only JPG, PNG, and WebP images are allowed.'
+                    );
+            }
+
+            if ($photo->getSize() > (5 * 1024 * 1024)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Each photo must not exceed 5 MB.'
+                    );
             }
         }
 
+        // =====================================
+        // Get ALL existing report photos
+        // before replacement
+        // =====================================
+
+        $existingImages = $db->table('images')
+            ->select('image_id, image_path')
+            ->where('report_id', $reportId)
+            ->orderBy('image_id', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $newImagePaths = [];
+        $newPhysicalPaths = [];
+
+        // =====================================
+        // Save new physical photos first
+        // =====================================
+
+        if ($hasNewPhotos) {
+
+            $uploadDirectory =
+                FCPATH . 'uploads/reports';
+
+            if (!is_dir($uploadDirectory)) {
+                mkdir(
+                    $uploadDirectory,
+                    0775,
+                    true
+                );
+            }
+
+            foreach ($photos as $photo) {
+
+                $newName = $photo->getRandomName();
+
+                try {
+
+                    $photo->move(
+                        $uploadDirectory,
+                        $newName
+                    );
+                } catch (\Throwable $e) {
+
+                    // Remove any new files already moved
+                    foreach ($newPhysicalPaths as $filePath) {
+
+                        if (is_file($filePath)) {
+                            unlink($filePath);
+                        }
+                    }
+
+                    return redirect()->back()
+                        ->withInput()
+                        ->with(
+                            'error',
+                            'Unable to save the selected photos.'
+                        );
+                }
+
+                $newImagePath =
+                    'uploads/reports/' . $newName;
+
+                $newImagePaths[] =
+                    $newImagePath;
+
+                $newPhysicalPaths[] =
+                    FCPATH . $newImagePath;
+            }
+        }
+
+        // =====================================
+        // Start transaction
+        // =====================================
+
+        $db->transStart();
+
+        // Update report information
+        $db->table('reports')
+            ->where('report_id', $reportId)
+            ->where('user_id', $userId)
+            ->where('status', 'Pending')
+            ->update([
+
+                'title' => $title,
+
+                'description' => $description,
+
+                'incident_date' => $incidentDate,
+
+                'category_id' => $categoryId,
+
+                'latitude' => $latitude,
+
+                // Actual column name in your database
+                'longtitude' => $longitude,
+
+                'address' =>
+                $address !== ''
+                    ? $address
+                    : null,
+
+                'is_anonymous' => $isAnonymous,
+            ]);
+
+        // =====================================
+        // Replace photos only when resident
+        // selected a new photo set
+        // =====================================
+
+        if ($hasNewPhotos) {
+
+            // Remove old image database rows
+            $db->table('images')
+                ->where('report_id', $reportId)
+                ->delete();
+
+            // Insert all new image rows
+            foreach ($newImagePaths as $imagePath) {
+
+                $db->table('images')->insert([
+                    'report_id'  => $reportId,
+                    'image_path' => $imagePath,
+                ]);
+            }
+        }
+
+        $db->transComplete();
+
+        // =====================================
+        // Rollback physical-file cleanup
+        // =====================================
+
+        if ($db->transStatus() === false) {
+
+            foreach ($newPhysicalPaths as $filePath) {
+
+                if (is_file($filePath)) {
+                    unlink($filePath);
+                }
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Unable to update the report.'
+                );
+        }
+
+        // =====================================
+        // Remove OLD physical photos only after
+        // successful database replacement
+        // =====================================
+
+        if ($hasNewPhotos) {
+
+            foreach ($existingImages as $existingImage) {
+
+                if (empty($existingImage['image_path'])) {
+                    continue;
+                }
+
+                $oldPhysicalPath =
+                    FCPATH . ltrim(
+                        $existingImage['image_path'],
+                        '/\\'
+                    );
+
+                if (is_file($oldPhysicalPath)) {
+                    unlink($oldPhysicalPath);
+                }
+            }
+        }
         return redirect()->to('/resident/my-reports')
             ->with('success', 'Report updated successfully.');
+    }
+
+    private function logAdminAudit(
+        string $action,
+        ?string $targetType = null,
+        ?int $targetId = null,
+        ?string $details = null
+    ): void {
+        $adminUserId = (int) session()->get('user_id');
+
+        if ($adminUserId <= 0) {
+            return;
+        }
+
+        try {
+            $db = \Config\Database::connect();
+
+            $db->table('admin_audit_logs')->insert([
+                'admin_user_id' => $adminUserId,
+                'action'        => $action,
+                'target_type'   => $targetType,
+                'target_id'     => $targetId,
+                'details'       => $details,
+                'ip_address'    => $this->request->getIPAddress(),
+                'created_at'    => date('Y-m-d H:i:s'),
+            ]);
+        } catch (\Throwable $e) {
+            log_message(
+                'error',
+                'Admin audit log failed: {message}',
+                [
+                    'message' => $e->getMessage(),
+                ]
+            );
+        }
+    }
+
+    private function getNextAvailableReportNo($db): int
+    {
+        $rows = $db->table('reports')
+            ->select('report_no')
+            ->where('report_no IS NOT NULL', null, false)
+            ->orderBy('report_no', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $nextNumber = 1;
+
+        foreach ($rows as $row) {
+            $currentNumber =
+                (int) ($row['report_no'] ?? 0);
+
+            if ($currentNumber < $nextNumber) {
+                continue;
+            }
+
+            if ($currentNumber > $nextNumber) {
+                break;
+            }
+
+            $nextNumber++;
+        }
+
+        return $nextNumber;
     }
 }

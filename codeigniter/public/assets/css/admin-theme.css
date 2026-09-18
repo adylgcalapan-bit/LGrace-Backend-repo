@@ -1086,3 +1086,56 @@ body.theme-dark #purokSearch::placeholder {
 body.theme-dark .progress {
   background: #343b36 !important;
 }
+
+/* =========================================
+   ADD RESIDENT MODAL - DARK MODE FIX
+========================================= */
+
+body.theme-dark #addResidentModal .modal-content,
+body.theme-dark #addResidentModal .modal-body,
+body.theme-dark #addResidentModal .modal-footer {
+  background: #1b1f1c !important;
+  color: #f3f5f4 !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark #addResidentModal .resident-form-section {
+  background: #222723 !important;
+  color: #f3f5f4 !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark #addResidentModal .resident-form-section h6,
+body.theme-dark #addResidentModal .form-label {
+  color: #ffffff !important;
+}
+
+body.theme-dark #addResidentModal .text-muted,
+body.theme-dark #addResidentModal .form-text,
+body.theme-dark #addResidentModal small {
+  color: #b8c1bc !important;
+}
+
+body.theme-dark #addResidentModal .add-resident-purok-btn {
+  background: #202521 !important;
+  color: #ffffff !important;
+  border-color: #4a554e !important;
+}
+
+body.theme-dark #addResidentModal .alert-light {
+  background: #202521 !important;
+  color: #b8c1bc !important;
+  border-color: #3a433d !important;
+}
+
+body.theme-dark #addResidentModal input[type="file"]::file-selector-button {
+  background: #303632 !important;
+  color: #ffffff !important;
+  border: 0 !important;
+}
+
+body.theme-dark #addResidentModal .btn-outline-secondary {
+  background: #2b302c !important;
+  color: #ffffff !important;
+  border-color: #59635d !important;
+}

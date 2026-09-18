@@ -34,17 +34,9 @@ $routes->get('admin/residents', 'DashboardController::residents', ['filter' => '
 $routes->post('admin/residents/create', 'DashboardController::createResident', ['filter' => 'admin']);
 $routes->post('admin/residents/(:num)/status', 'DashboardController::updateResidentStatus/$1', ['filter' => 'admin']);
 $routes->get('admin/residents/details/(:num)', 'DashboardController::residentDetails/$1', ['filter' => 'admin']);
-$routes->post(
-    'admin/residents/(:num)/resend-verification',
-    'DashboardController::resendResidentVerificationCode/$1',
-    ['filter' => 'admin']
-);
+$routes->post('admin/residents/(:num)/resend-verification', 'DashboardController::resendResidentVerificationCode/$1',  ['filter' => 'admin']);
 
-$routes->post(
-    'admin/residents/(:num)/delete-pending',
-    'DashboardController::deletePendingResident/$1',
-    ['filter' => 'admin']
-);
+$routes->post('admin/residents/(:num)/delete-pending', 'DashboardController::deletePendingResident/$1', ['filter' => 'admin']);
 $routes->get('admin/categories', 'DashboardController::categories', ['filter' => 'admin']);
 $routes->post('admin/categories/create', 'DashboardController::createCategory', ['filter' => 'admin']);
 $routes->post('admin/categories/delete/(:num)', 'DashboardController::deleteCategory/$1', ['filter' => 'admin']);
@@ -64,7 +56,10 @@ $routes->post('admin/account/password', 'DashboardController::changeAdminPasswor
 
 $routes->get('admin/map', 'DashboardController::map', ['filter' => 'admin']);
 $routes->get('admin/purok-map-setup', 'DashboardController::purokMapSetup', ['filter' => 'admin']);
+$routes->post('admin/purok-map-setup/create',  'DashboardController::createPurok',   ['filter' => 'admin']);
 $routes->post('admin/purok-map-setup/save', 'DashboardController::savePurokMapCoordinates', ['filter' => 'admin']);
+$routes->post('admin/purok-map-setup/update/(:num)', 'DashboardController::updatePurok/$1', ['filter' => 'admin']);
+$routes->post('admin/purok-map-setup/delete/(:num)', 'DashboardController::deletePurok/$1', ['filter' => 'admin']);
 $routes->post('admin/reports/update-status', 'ReportController::updateStatus', ['filter' => 'admin']);
 
 // RESIDENT - protected
@@ -86,8 +81,5 @@ $routes->post('resident/account/delete', 'DashboardController::deleteResidentAcc
 $routes->get('resident/report-details', 'DashboardController::reportDetails', ['filter' => 'resident']);
 $routes->get('resident/report-details/(:num)', 'DashboardController::reportDetails/$1', ['filter' => 'resident']);
 
-// CRUD locations/reports
-$routes->get('api/locations', 'Locations::index');
-$routes->post('api/locations', 'Locations::create');
-$routes->put('api/locations/(:num)', 'Locations::update/$1');
-$routes->delete('api/locations/(:num)', 'Locations::delete/$1');
+// Map data API - Admin read only
+$routes->get('api/locations', 'Locations::index', ['filter' => 'admin']);

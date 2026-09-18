@@ -466,6 +466,12 @@
 
                                         </div>
 
+                                        <!-- Message must stay OUTSIDE the hidden OTP section -->
+                                        <div
+                                            id="profileEmailCodeMessage"
+                                            class="small mt-2">
+                                        </div>
+
                                         <div
                                             id="profileEmailCodeSection"
                                             class="mt-3"
@@ -497,13 +503,9 @@
 
                                             </div>
 
-                                            <div
-                                                id="profileEmailCodeMessage"
-                                                class="small mt-2">
-                                            </div>
-
                                         </div>
                                         <!-- END EMAIL CHANGE VERIFICATION -->
+
 
 
                                     </div>

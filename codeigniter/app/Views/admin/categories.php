@@ -131,7 +131,7 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-success">
                             <tr>
-                                <th>ID</th>
+                                <th>Category No.</th>
                                 <th>Name</th>
                                 <th>Description</th>
                                 <th>Reports</th>
@@ -155,12 +155,7 @@
                                         data-status="<?= $isActive ? 'active' : 'inactive' ?>">
 
                                         <td>
-                                            CAT-<?= str_pad(
-                                                    (string) $categoryId,
-                                                    3,
-                                                    '0',
-                                                    STR_PAD_LEFT
-                                                ) ?>
+                                            <?= esc($category['category_no'] ?? 'N/A') ?>
                                         </td>
 
                                         <td>

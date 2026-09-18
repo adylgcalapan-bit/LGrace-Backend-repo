@@ -162,7 +162,7 @@
                                 type="text"
                                 class="form-control"
                                 id="reportSearch"
-                                placeholder="Search report title...">
+                                placeholder="Search report title, Report No,...">
                         </div>
 
                         <div class="col-md-4">
@@ -226,6 +226,10 @@
                                     data-status="<?= esc($status) ?>"
                                     data-title="<?= esc(strtolower($report['title'] ?? '')) ?>">
 
+                                    <div class="small text-muted mb-2">
+                                        Report No. <?= esc((string) ($report['report_no'] ?? 'N/A')) ?>
+                                    </div>
+
                                     <!-- Title + Status -->
                                     <div class="mobile-report-top">
 
@@ -258,10 +262,10 @@
                                             <i class="bi bi-calendar3"></i>
 
                                             <span>
-                                                <?= !empty($report['date_reported'])
+                                                <?= !empty($report['incident_date'])
                                                     ? date(
                                                         'M d, Y',
-                                                        strtotime($report['date_reported'])
+                                                        strtotime($report['incident_date'])
                                                     )
                                                     : 'No Date' ?>
                                             </span>
@@ -377,18 +381,15 @@
                         <table class="table table-hover align-middle">
 
                             <thead>
-
                                 <tr>
-
+                                    <th>Report No.</th>
                                     <th>Title</th>
                                     <th>Category</th>
-                                    <th>Date</th>
+                                    <th>Incident Date</th>
                                     <th>Status</th>
                                     <th>Photo</th>
                                     <th>Action</th>
-
                                 </tr>
-
                             </thead>
 
                             <tbody>
@@ -411,6 +412,12 @@
                                         <tr
                                             data-status="<?= esc($status) ?>"
                                             data-title="<?= esc(strtolower($report['title'] ?? '')) ?>">
+
+                                            <!-- REPORT NO. -->
+                                            <td>
+                                                <?= esc((string) ($report['report_no'] ?? '')) ?>
+                                            </td>
+
                                             <!-- Title -->
                                             <td>
                                                 <?= esc($report['title']) ?>
@@ -423,8 +430,8 @@
 
                                             <!-- Date -->
                                             <td>
-                                                <?= !empty($report['date_reported'])
-                                                    ? date('F d, Y', strtotime($report['date_reported']))
+                                                <?= !empty($report['incident_date'])
+                                                    ? date('F d, Y', strtotime($report['incident_date']))
                                                     : 'No Date' ?>
                                             </td>
 
@@ -497,7 +504,7 @@
                                 <?php else: ?>
 
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted">
+                                        <td colspan="7" class="text-center text-muted">
                                             No reports submitted yet.
                                         </td>
                                     </tr>
@@ -769,12 +776,10 @@
                         .trim()
                         .toLowerCase();
 
-                    const titleCell =
-                        row.querySelector("td:first-child");
-
-                    const reportTitle = titleCell ?
-                        titleCell.textContent.trim().toLowerCase() :
-                        "";
+                    const reportTitle =
+                        (row.dataset.title || "")
+                        .trim()
+                        .toLowerCase();
 
                     const statusMatch =
                         selectedStatus === "" ||

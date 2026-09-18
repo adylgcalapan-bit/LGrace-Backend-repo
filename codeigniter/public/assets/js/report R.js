@@ -23,6 +23,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const useLocationBtn = document.getElementById("useLocationBtn");
   const resetButton = document.querySelector('button[type="reset"]');
 
+  const submitButton = reportForm
+    ? reportForm.querySelector('button[type="submit"]')
+    : null;
+
+  let isSubmitting = false;
+
   let map = null;
   let marker = null;
 
@@ -68,7 +74,16 @@ document.addEventListener("DOMContentLoaded", function () {
   // =====================================
 
   if (mapContainer && typeof L !== "undefined") {
-    map = L.map("map").setView([7.0083, 125.0894], 13);
+    map = L.map("map");
+
+    const saguingLeafletBounds = L.latLngBounds(
+      [SAGUING_BOUNDS.minLat, SAGUING_BOUNDS.minLng],
+      [SAGUING_BOUNDS.maxLat, SAGUING_BOUNDS.maxLng],
+    );
+
+    map.fitBounds(saguingLeafletBounds, {
+      padding: [20, 20],
+    });
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors",
@@ -130,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!isInsideSaguingBounds(lat, lng)) {
         if (locationStatus) {
           locationStatus.textContent =
-            "Selected location is outside Barangay Saguing.";
+            "Selected location is outside Barangay Saguing. Returning to Saguing...";
         }
 
         setLocationState(
@@ -150,8 +165,15 @@ document.addEventListener("DOMContentLoaded", function () {
           addressInput.value = "";
         }
 
+        // Automatically return the map to Barangay Saguing
+        map.flyToBounds(saguingLeafletBounds, {
+          padding: [20, 20],
+          duration: 1.2,
+        });
+
         return;
       }
+
       map.setView([lat, lng], 16);
 
       if (marker) {
@@ -409,18 +431,21 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   // =====================================
   // Submit Report Form
+  // Prevent accidental double submission
   // =====================================
 
   if (reportForm) {
     reportForm.addEventListener("submit", function (event) {
+      // Stop a second submit while the first one is processing.
+      if (isSubmitting) {
+        event.preventDefault();
+        return;
+      }
+
       const titleValid = validateTitle();
-
       const categoryValid = validateCategory();
-
       const descriptionValid = validateDescription();
-
       const locationValid = validateLocation();
-
       const photosValid = validatePhotos();
 
       if (
@@ -431,10 +456,22 @@ document.addEventListener("DOMContentLoaded", function () {
         !photosValid
       ) {
         event.preventDefault();
+        return;
+      }
+
+      // Form is valid. Lock it immediately.
+      isSubmitting = true;
+
+      if (submitButton) {
+        submitButton.disabled = true;
+
+        submitButton.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-2" ' +
+          'role="status" aria-hidden="true"></span>' +
+          "Submitting...";
       }
     });
   }
-
   // =====================================
   // Reset Form and Map
   // =====================================
@@ -455,7 +492,9 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       if (map) {
-        map.setView([7.0083, 125.0894], 13);
+        map.fitBounds(saguingLeafletBounds, {
+          padding: [20, 20],
+        });
       }
 
       clearFormFeedback();

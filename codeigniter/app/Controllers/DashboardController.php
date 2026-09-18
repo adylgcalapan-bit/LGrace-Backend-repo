@@ -65,6 +65,8 @@ class DashboardController extends BaseController
             ->getResultArray();
 
 
+
+
         foreach ($recentReports as &$report) {
 
             $isAnonymous =
@@ -248,6 +250,18 @@ class DashboardController extends BaseController
             ->get()
             ->getResultArray();
 
+        $reportNumberMap = $this->getReportNumberMap($db);
+
+        foreach ($recentReports as &$recentReport) {
+            $recentReportId =
+                (int) ($recentReport['report_id'] ?? 0);
+
+            $recentReport['report_no'] =
+                $reportNumberMap[$recentReportId] ?? null;
+        }
+
+        unset($recentReport);
+
         // =========================
         // Profile Picture
         // =========================
@@ -256,18 +270,31 @@ class DashboardController extends BaseController
             ? base_url(ltrim($resident['profile_image'], '/\\'))
             : base_url('assets/images/resident picture.png');
 
+        $residentNumberMap = $this->getResidentNumberMap($db);
+
+        $residentNumber =
+            $residentNumberMap[(int) $resident['user_id']] ?? null;
+
+        $residentNo = $residentNumber !== null
+            ? 'R-' . str_pad(
+                (string) $residentNumber,
+                3,
+                '0',
+                STR_PAD_LEFT
+            )
+            : 'N/A';
+
+        // Visible Resident No. only.
+        // The real user_id remains the internal database ID.
         return $this->response->setJSON([
             'success' => true,
             'date_format' => $this->getSystemSettings()['date_format'] ?? 'MM/DD/YYYY',
 
             'resident' => [
                 'user_id' => $resident['user_id'],
-                'resident_id' => 'R-' . str_pad(
-                    (string) $resident['user_id'],
-                    3,
-                    '0',
-                    STR_PAD_LEFT
-                ),
+                'resident_no' => $residentNo,
+                'full_name' => $resident['full_name'],
+
                 'full_name' => $resident['full_name'],
                 'username' => $resident['username'],
                 'email' => $resident['email'],
@@ -357,25 +384,36 @@ class DashboardController extends BaseController
             ? base_url(ltrim($resident['profile_image'], '/\\'))
             : base_url('assets/images/resident picture.png');
 
+        $residentNumberMap = $this->getResidentNumberMap($db);
+
+        $residentNumber =
+            $residentNumberMap[(int) $resident['user_id']] ?? null;
+
+        $residentNo =
+            $residentNumber !== null
+            ? 'R-' . str_pad(
+                (string) $residentNumber,
+                3,
+                '0',
+                STR_PAD_LEFT
+            )
+            : 'N/A';
+
         return view('resident/dashboard', [
             'resident' => [
-                'user_id'       => $resident['user_id'],
-                'resident_id'   => 'R-' . str_pad(
-                    (string) $resident['user_id'],
-                    3,
-                    '0',
-                    STR_PAD_LEFT
-                ),
-                'full_name'     => $resident['full_name'] ?? '',
-                'username'      => $resident['username'] ?? '',
-                'email'         => $resident['email'] ?? '',
-                'mobile_number' => $resident['mobile_number'] ?? '',
-                'address'       => $resident['address'] ?? '',
-                'image_url'     => $imageUrl,
-                'is_active'     => (int) $resident['is_active'],
-                'created_at'    => $resident['created_at'] ?? null,
+                'user_id' => $resident['user_id'],
+                'resident_no' => $residentNo,
+                'resident_id' => $residentNo,
+                'full_name' => $resident['full_name'],
+                'username' => $resident['username'],
+                'email' => $resident['email'],
+                'mobile_number' => $resident['mobile_number'],
+                'address' => $resident['address'],
+                'image_url' => $imageUrl,
+                'is_active' => (int) $resident['is_active'],
+                'email_verified_at' => $resident['email_verified_at'],
+                'created_at' => $resident['created_at']
             ],
-
             'statistics' => [
                 'total'       => $totalReports,
                 'pending'     => $pendingReports,
@@ -535,6 +573,30 @@ class DashboardController extends BaseController
                 'image/webp',
             ];
 
+            $allowedExtensions = [
+                'jpg',
+                'jpeg',
+                'png',
+                'webp',
+            ];
+
+            $clientExtension = strtolower(
+                $profileImage->getClientExtension()
+            );
+
+            if (!in_array(
+                $clientExtension,
+                $allowedExtensions,
+                true
+            )) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Profile picture must have a JPG, JPEG, PNG, or WebP file extension.'
+                    );
+            }
+
             if (!in_array($profileImage->getMimeType(), $allowedMimeTypes, true)) {
                 return redirect()->back()
                     ->withInput()
@@ -572,7 +634,10 @@ class DashboardController extends BaseController
         // =========================
         $normalizedEmail = strtolower($email);
 
+        $residentNo = $this->getNextAvailableResidentNo($db);
+
         $residentId = $userModel->insert([
+            'resident_no'       => $residentNo,
             'full_name'         => $fullName,
             'email'             => $normalizedEmail,
             'mobile_number'     => $mobileNumber !== ''
@@ -814,6 +879,13 @@ class DashboardController extends BaseController
         // =========================
         // SUCCESS
         // =========================
+
+        $this->logAdminAudit(
+            'CREATE_RESIDENT',
+            'resident',
+            (int) $residentId,
+            'Created resident account for ' . $fullName . ' pending email verification.'
+        );
         return redirect()->to('/admin/residents')
             ->with(
                 'success',
@@ -1159,6 +1231,15 @@ class DashboardController extends BaseController
             }
         }
 
+        $this->logAdminAudit(
+            'DELETE_PENDING_RESIDENT',
+            'resident',
+            $userId,
+            'Deleted pending verification resident account: '
+                . (string) ($resident['full_name'] ?? 'Resident')
+                . '.'
+        );
+
         return redirect()->to('/admin/residents')
             ->with(
                 'success',
@@ -1183,8 +1264,12 @@ class DashboardController extends BaseController
         }
 
         // Prevent activating an unverified resident account
+        $currentStatus =
+            (int) ($resident['is_active'] ?? 0);
+
+        // Truly unverified residents cannot be manually activated.
         if (
-            (int) $resident['is_active'] !== 1 &&
+            $currentStatus === 0 &&
             empty($resident['email_verified_at'])
         ) {
             return redirect()->to('/admin/residents')
@@ -1194,14 +1279,65 @@ class DashboardController extends BaseController
                 );
         }
 
-        $newStatus = (int) $resident['is_active'] === 1 ? 0 : 1;
+        $newStatus =
+            $currentStatus === 1 ? 0 : 1;
+
+        $now = date('Y-m-d H:i:s');
+
+        $updateData = [
+            'is_active'  => $newStatus,
+            'updated_at' => $now,
+        ];
+
+        /*
+ * Compatibility for older ACTIVE residents
+ * whose verification timestamp was not saved.
+ *
+ * If an already-active resident is being
+ * deactivated, they are NOT Pending Verification.
+ */
+        if (
+            $currentStatus === 1 &&
+            $newStatus === 0 &&
+            empty($resident['email_verified_at'])
+        ) {
+            $updateData['email_verified_at'] = $now;
+        }
 
         $updated = $db->table('users')
             ->where('user_id', $userId)
             ->where('role', 'resident')
-            ->update([
-                'is_active' => $newStatus,
-            ]);
+            ->update($updateData);
+
+        $currentStatus =
+            (int) ($resident['is_active'] ?? 0);
+
+        $newStatus =
+            $currentStatus === 1 ? 0 : 1;
+
+        $updateData = [
+            'is_active' => $newStatus,
+        ];
+
+        /*
+ * Compatibility fix for older residents:
+ * if this account was already ACTIVE before
+ * but email_verified_at was never stored,
+ * preserve it as a verified account before
+ * deactivating it.
+ */
+        if (
+            $currentStatus === 1 &&
+            empty($resident['email_verified_at'])
+        ) {
+            $updateData['email_verified_at'] =
+                date('Y-m-d H:i:s');
+        }
+
+        $updated = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->update($updateData);
 
         if (!$updated) {
             return redirect()->to('/admin/residents')
@@ -1218,6 +1354,19 @@ class DashboardController extends BaseController
         $message = $newStatus === 1
             ? 'Resident account activated successfully.'
             : 'Resident account deactivated successfully.';
+
+        $this->logAdminAudit(
+            $newStatus === 1
+                ? 'ACTIVATE_RESIDENT'
+                : 'DEACTIVATE_RESIDENT',
+            'resident',
+            (int) $userId,
+            ($newStatus === 1
+                ? 'Activated resident account: '
+                : 'Deactivated resident account: ')
+                . (string) ($resident['full_name'] ?? 'Resident')
+                . '.'
+        );
 
         return redirect()->to('/admin/residents')
             ->with('success', $message);
@@ -1277,6 +1426,18 @@ class DashboardController extends BaseController
             ->orderBy('reports.report_id', 'DESC')
             ->get()
             ->getResultArray();
+
+        // Add the same visible Report No. used throughout the system
+        $reportNumberMap = $this->getReportNumberMap($db);
+
+        foreach ($reports as &$report) {
+            $reportId = (int) ($report['report_id'] ?? 0);
+
+            $report['report_no'] =
+                $reportNumberMap[$reportId] ?? null;
+        }
+
+        unset($report);
 
         return view('resident/myreports', [
             'reports' => $reports
@@ -1489,6 +1650,26 @@ class DashboardController extends BaseController
                 ->setJSON([
                     'success' => false,
                     'message' => 'Resident account not found.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        $currentPassword = (string) $this->request->getPost(
+            'current_password'
+        );
+
+        if (
+            $currentPassword === '' ||
+            !password_verify(
+                $currentPassword,
+                (string) ($resident['password'] ?? '')
+            )
+        ) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'The current password you entered is incorrect. Please check your Current Password and try again.',
                     'csrfHash' => csrf_hash(),
                 ]);
         }
@@ -2086,6 +2267,8 @@ class DashboardController extends BaseController
         // Optional Password Change
         // =====================================
 
+        $passwordChanged = false;
+
         if ($newPassword !== '' || $confirmPassword !== '') {
 
             if ($currentPassword === '') {
@@ -2116,6 +2299,8 @@ class DashboardController extends BaseController
                 $newPassword,
                 PASSWORD_DEFAULT
             );
+
+            $passwordChanged = true;
         }
 
         // =====================================
@@ -2144,6 +2329,32 @@ class DashboardController extends BaseController
                 'image/png',
                 'image/webp'
             ];
+
+            $allowedExtensions = [
+                'jpg',
+                'jpeg',
+                'png',
+                'webp',
+            ];
+
+            $clientExtension = strtolower(
+                $profileImage->getClientExtension()
+            );
+
+            if (!in_array(
+                $clientExtension,
+                $allowedExtensions,
+                true
+            )) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Profile picture must have a JPG, JPEG, PNG, or WebP file extension.'
+                    );
+            }
+
+
 
             if (!in_array(
                 $profileImage->getMimeType(),
@@ -2228,6 +2439,28 @@ class DashboardController extends BaseController
         // Keep session name updated
         session()->set('full_name', $fullName);
 
+        // =====================================
+        // Security Notifications
+        // =====================================
+
+        // Notify the OLD email if the account email was changed.
+        if ($emailChanged && $currentEmail !== '') {
+            $this->sendSecurityNotificationEmail(
+                $currentEmail,
+                'Security Alert: Email Address Changed',
+                'The email address connected to your Community Visibility System account was changed.'
+            );
+        }
+
+        // Notify the account email after a successful password change.
+        if ($passwordChanged) {
+            $this->sendSecurityNotificationEmail(
+                $normalizedEmail,
+                'Security Alert: Password Changed',
+                'The password for your Community Visibility System account was changed successfully.'
+            );
+        }
+
         return redirect()->to('/resident/profile')
             ->with('success', 'Profile updated successfully.');
     }
@@ -2268,10 +2501,19 @@ class DashboardController extends BaseController
             ->get()
             ->getRowArray();
 
+
+
         if (!$report) {
             return redirect()->to('/resident/my-reports')
                 ->with('error', 'Report not found.');
         }
+
+        // Add the same visible Report No. used throughout the system
+        $reportNumberMap = $this->getReportNumberMap($db);
+
+        $report['report_no'] =
+            $reportNumberMap[$reportId] ?? null;
+
 
         // Get all photos belonging to this report
         $images = $db->table('images')
@@ -2449,6 +2691,45 @@ class DashboardController extends BaseController
             ->get()
             ->getResultArray();
 
+        // Add consistent visible Report No.
+        $reportNumberMap = $this->getReportNumberMap($db);
+
+        foreach ($reports as &$report) {
+
+            $reportId = (int) ($report['report_id'] ?? 0);
+
+            $report['report_no'] =
+                $reportNumberMap[$reportId] ?? null;
+
+            // Get all report photos for Admin View Report modal
+            $reportImages = $db->table('images')
+                ->select('image_path')
+                ->where('report_id', $reportId)
+                ->orderBy('image_id', 'ASC')
+                ->limit(5)
+                ->get()
+                ->getResultArray();
+
+            $report['image_urls'] = [];
+
+            foreach ($reportImages as $reportImage) {
+
+                $imagePath = trim(
+                    (string) ($reportImage['image_path'] ?? '')
+                );
+
+                if ($imagePath === '') {
+                    continue;
+                }
+
+                $report['image_urls'][] =
+                    base_url(
+                        ltrim($imagePath, '/\\')
+                    );
+            }
+        }
+
+        unset($report);
         // =========================
         // CATEGORY FILTER OPTIONS
         // Include inactive categories because
@@ -2628,10 +2909,11 @@ class DashboardController extends BaseController
                 u.username,
                 u.address,
                 u.purok_id,
-                u.profile_image,
-                u.is_active,
-                u.created_at,
-                p.purok_name
+             u.profile_image,
+            u.is_active,
+            u.email_verified_at,
+            u.created_at,
+            p.purok_name
             ')
             ->join(
                 'puroks p',
@@ -2652,6 +2934,29 @@ class DashboardController extends BaseController
             )
             ->get()
             ->getResultArray();
+
+        // Add consistent visible Resident No.
+        $residentNumberMap = $this->getResidentNumberMap($db);
+
+        foreach ($residents as &$resident) {
+            $residentUserId =
+                (int) ($resident['user_id'] ?? 0);
+
+            $residentNumber =
+                $residentNumberMap[$residentUserId] ?? null;
+
+            $resident['resident_no'] =
+                $residentNumber !== null
+                ? 'R-' . str_pad(
+                    (string) $residentNumber,
+                    3,
+                    '0',
+                    STR_PAD_LEFT
+                )
+                : 'N/A';
+        }
+
+        unset($resident);
 
         // ==========================================
         // PUROK OPTIONS
@@ -2709,12 +3014,13 @@ class DashboardController extends BaseController
 
         $categories = $db->table('categories c')
             ->select('
-            c.category_id,
-            c.category_name,
-            c.description,
-            c.is_active,
-            COUNT(r.report_id) AS report_count
-        ')
+    c.category_id,
+    c.category_no,
+    c.category_name,
+    c.description,
+    c.is_active,
+    COUNT(r.report_id) AS report_count
+')
             ->join(
                 'reports r',
                 'r.category_id = c.category_id',
@@ -2722,6 +3028,7 @@ class DashboardController extends BaseController
             )
             ->groupBy([
                 'c.category_id',
+                'c.category_no',
                 'c.category_name',
                 'c.description',
                 'c.is_active'
@@ -2729,6 +3036,26 @@ class DashboardController extends BaseController
             ->orderBy('c.category_id', 'ASC')
             ->get()
             ->getResultArray();
+
+        $categoryNumber = 1;
+
+        foreach ($categories as &$category) {
+
+            $storedCategoryNo =
+                (int) ($category['category_no'] ?? 0);
+
+            $category['category_no'] =
+                $storedCategoryNo > 0
+                ? 'CAT-' . str_pad(
+                    (string) $storedCategoryNo,
+                    3,
+                    '0',
+                    STR_PAD_LEFT
+                )
+                : 'N/A';
+        }
+
+        unset($category);
 
         return view('admin/categories', [
             'categories' => $categories
@@ -2776,11 +3103,26 @@ class DashboardController extends BaseController
                 ->with('error', 'Category already exists.');
         }
 
+        $categoryNo =
+            $this->getNextAvailableCategoryNo($db);
+
         $db->table('categories')->insert([
+            'category_no'   => $categoryNo,
             'category_name' => $categoryName,
-            'description'   => $description !== '' ? $description : null,
+            'description'   => $description !== ''
+                ? $description
+                : null,
             'is_active'     => $isActive,
         ]);
+
+        $categoryId = (int) $db->insertID();
+
+        $this->logAdminAudit(
+            'CREATE_CATEGORY',
+            'category',
+            $categoryId > 0 ? $categoryId : null,
+            'Created category: ' . $categoryName . '.'
+        );
 
         return redirect()->to('/admin/categories')
             ->with('success', 'Category added successfully.');
@@ -2846,6 +3188,17 @@ class DashboardController extends BaseController
                 'is_active'     => $isActive,
             ]);
 
+        $this->logAdminAudit(
+            'UPDATE_CATEGORY',
+            'category',
+            $categoryId,
+            'Updated category from "'
+                . (string) ($category['category_name'] ?? 'Unknown')
+                . '" to "'
+                . $categoryName
+                . '".'
+        );
+
         return redirect()->to('/admin/categories')
             ->with('success', 'Category updated successfully.');
     }
@@ -2875,6 +3228,19 @@ class DashboardController extends BaseController
             ->update([
                 'is_active' => $newStatus
             ]);
+
+        $this->logAdminAudit(
+            $newStatus === 1
+                ? 'ACTIVATE_CATEGORY'
+                : 'DEACTIVATE_CATEGORY',
+            'category',
+            $categoryId,
+            ($newStatus === 1
+                ? 'Activated category: '
+                : 'Deactivated category: ')
+                . (string) ($category['category_name'] ?? 'Unknown')
+                . '.'
+        );
 
         return redirect()->to('/admin/categories')
             ->with(
@@ -2916,6 +3282,15 @@ class DashboardController extends BaseController
         $db->table('categories')
             ->where('category_id', $categoryId)
             ->delete();
+
+        $this->logAdminAudit(
+            'DELETE_CATEGORY',
+            'category',
+            $categoryId,
+            'Deleted category: '
+                . (string) ($category['category_name'] ?? 'Unknown')
+                . '.'
+        );
 
         return redirect()->to('/admin/categories')
             ->with('success', 'Category deleted successfully.');
@@ -3042,6 +3417,31 @@ class DashboardController extends BaseController
                 ->setJSON([
                     'success' => false,
                     'message' => 'Administrator account not found.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+        }
+
+        // =====================================
+        // CONFIRM CURRENT PASSWORD
+        // before allowing an email change
+        // =====================================
+
+        $currentPassword = (string) $this->request->getPost(
+            'current_password'
+        );
+
+        if (
+            $currentPassword === '' ||
+            !password_verify(
+                $currentPassword,
+                (string) ($admin['password'] ?? '')
+            )
+        ) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'The current password you entered is incorrect. Please check your Current Password and try again.',
                     'csrfHash' => csrf_hash(),
                 ]);
         }
@@ -3669,6 +4069,18 @@ class DashboardController extends BaseController
                 ->delete();
 
             session()->remove('verified_admin_email');
+
+            $oldAdminEmail = strtolower(trim(
+                (string) ($currentAdmin['email'] ?? '')
+            ));
+
+            if ($oldAdminEmail !== '') {
+                $this->sendSecurityNotificationEmail(
+                    $oldAdminEmail,
+                    'Security Alert: Email Address Changed',
+                    'The email address connected to your administrator account was changed.'
+                );
+            }
         }
 
 
@@ -3690,6 +4102,34 @@ class DashboardController extends BaseController
             ->where('user_id', $userId)
             ->get()
             ->getRowArray();
+
+        $residentNumberMap = $this->getResidentNumberMap($db);
+
+        $residentNumber =
+            $residentNumberMap[$userId] ?? null;
+
+        $residentNo =
+            $residentNumber !== null
+            ? 'R-' . str_pad(
+                (string) $residentNumber,
+                3,
+                '0',
+                STR_PAD_LEFT
+            )
+            : 'N/A';
+
+        $this->logAdminAudit(
+            $emailChanged
+                ? 'CHANGE_ADMIN_EMAIL'
+                : 'UPDATE_ADMIN_PROFILE',
+            'admin',
+            $userId,
+            $emailChanged
+                ? 'Administrator account profile was updated and the email address was changed.'
+                : 'Administrator account profile information was updated.'
+        );
+
+
 
         return $this->response->setJSON([
             'success' => true,
@@ -3759,7 +4199,7 @@ class DashboardController extends BaseController
 
         // Get actual admin password hash
         $admin = $db->table('users')
-            ->select('user_id, password, role, is_active')
+            ->select('user_id, email, password, role, is_active')
             ->where('user_id', $userId)
             ->where('role', 'admin')
             ->get()
@@ -3811,6 +4251,19 @@ class DashboardController extends BaseController
                     'message' => 'Unable to change password.'
                 ]);
         }
+
+        $this->sendSecurityNotificationEmail(
+            (string) ($admin['email'] ?? ''),
+            'Security Alert: Password Changed',
+            'The password for your administrator account was changed successfully.'
+        );
+
+        $this->logAdminAudit(
+            'CHANGE_ADMIN_PASSWORD',
+            'admin',
+            $userId,
+            'Administrator account password was changed.'
+        );
 
         return $this->response->setJSON([
             'success' => true,
@@ -3878,6 +4331,30 @@ class DashboardController extends BaseController
             'image/webp'
         ];
 
+        $allowedExtensions = [
+            'jpg',
+            'jpeg',
+            'png',
+            'webp',
+        ];
+
+        $clientExtension = strtolower(
+            $file->getClientExtension()
+        );
+
+        if (!in_array(
+            $clientExtension,
+            $allowedExtensions,
+            true
+        )) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Profile image must have a JPG, JPEG, PNG, or WebP file extension.'
+                ]);
+        }
+
         if (! in_array($file->getMimeType(), $allowedMimeTypes, true)) {
             return $this->response
                 ->setStatusCode(422)
@@ -3932,20 +4409,28 @@ class DashboardController extends BaseController
     {
         $db = \Config\Database::connect();
 
+        // Reports resolved more than 7 days ago
+        // must no longer be sent to the map.
+        $resolvedCutoff =
+            date(
+                'Y-m-d H:i:s',
+                strtotime('-7 days')
+            );
+
         $reports = $db->table('reports')
             ->select('
-    reports.report_id,
-    reports.title,
-    reports.description,
-    reports.category_id,
-    reports.latitude,
-    reports.longtitude AS longitude,
-    reports.address,
-    reports.status,
-    reports.resolved_at,
-    category.category_name,
-    image.image_path
-')
+        reports.report_id,
+        reports.title,
+        reports.description,
+        reports.category_id,
+        reports.latitude,
+        reports.longtitude AS longitude,
+        reports.address,
+        reports.status,
+        reports.resolved_at,
+        category.category_name,
+        image.image_path
+    ')
             ->join(
                 'categories category',
                 'category.category_id = reports.category_id',
@@ -3958,14 +4443,36 @@ class DashboardController extends BaseController
             )
             ->where('reports.latitude IS NOT NULL')
             ->where('reports.longtitude IS NOT NULL')
+            ->groupStart()
+            ->where('reports.status !=', 'Resolved')
+            ->orWhere(
+                'reports.resolved_at IS NULL',
+                null,
+                false
+            )
+            ->orWhere(
+                'reports.resolved_at >=',
+                $resolvedCutoff
+            )
+            ->groupEnd()
             ->get()
             ->getResultArray();
 
+        $reportNumberMap = $this->getReportNumberMap($db);
+
         foreach ($reports as &$report) {
+
             $report['image_url'] = !empty($report['image_path'])
                 ? base_url($report['image_path'])
                 : null;
+
+            $reportId = (int) ($report['report_id'] ?? 0);
+
+            $report['report_no'] =
+                $reportNumberMap[$reportId] ?? null;
         }
+
+        unset($report);
 
         unset($report);
 
@@ -4004,6 +4511,7 @@ class DashboardController extends BaseController
         $puroks = $db->table('puroks')
             ->select('
             purok_id,
+            purok_no,
             purok_name,
             latitude,
             longitude
@@ -4012,6 +4520,24 @@ class DashboardController extends BaseController
             ->orderBy('purok_name', 'ASC')
             ->get()
             ->getResultArray();
+        foreach ($puroks as &$purok) {
+
+            $storedPurokNo =
+                (int) ($purok['purok_no'] ?? 0);
+
+            $purok['purok_no'] =
+                $storedPurokNo > 0
+                ? 'P-' . str_pad(
+                    (string) $storedPurokNo,
+                    3,
+                    '0',
+                    STR_PAD_LEFT
+                )
+                : 'N/A';
+        }
+
+        unset($purok);
+        unset($purok);
 
         $completed = 0;
 
@@ -4033,6 +4559,245 @@ class DashboardController extends BaseController
         ]);
     }
 
+    // =========================================================
+    // ADMIN - CREATE PUROK
+    // =========================================================
+
+    public function createPurok()
+    {
+        $db = \Config\Database::connect();
+
+        $purokName = trim(
+            (string) $this->request->getPost('purok_name')
+        );
+
+        // Remove extra spaces
+        $purokName = preg_replace('/\s+/', ' ', $purokName);
+
+        if ($purokName === '') {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with(
+                    'error',
+                    'Purok name is required.'
+                );
+        }
+
+        if (mb_strlen($purokName) > 100) {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with(
+                    'error',
+                    'Purok name must not exceed 100 characters.'
+                );
+        }
+
+        // Prevent duplicate Purok names
+        $existing = $db->table('puroks')
+            ->where('purok_name', $purokName)
+            ->get()
+            ->getRowArray();
+
+        if ($existing) {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with(
+                    'error',
+                    'That Purok already exists.'
+                );
+        }
+        $purokNo =
+            $this->getNextAvailablePurokNo($db);
+
+        $inserted = $db->table('puroks')->insert([
+            'purok_no'       => $purokNo,
+            'purok_name'     => $purokName,
+            'leader_name'    => null,
+            'contact_number' => null,
+            'is_active'      => 1,
+            'created_at'     => date('Y-m-d H:i:s'),
+            'updated_at'     => date('Y-m-d H:i:s'),
+        ]);
+
+        if (!$inserted) {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with(
+                    'error',
+                    'Unable to add Purok.'
+                );
+        }
+
+        $purokId = (int) $db->insertID();
+
+        $this->logAdminAudit(
+            'CREATE_PUROK',
+            'purok',
+            $purokId > 0 ? $purokId : null,
+            'Created Purok: ' . $purokName . '.'
+        );
+
+        return redirect()
+            ->to('/admin/purok-map-setup')
+            ->with(
+                'success',
+                'Purok added successfully. You can now set its map location.'
+            );
+    }
+
+
+    // =========================================================
+    // ADMIN - UPDATE PUROK NAME
+    // =========================================================
+
+    public function updatePurok($id)
+    {
+        $db = \Config\Database::connect();
+
+        $purokId = (int) $id;
+
+        $purokName = trim(
+            (string) $this->request->getPost('purok_name')
+        );
+
+        $purokName = preg_replace('/\s+/', ' ', $purokName);
+
+        if ($purokId <= 0 || $purokName === '') {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with('error', 'Valid Purok name is required.');
+        }
+
+        if (mb_strlen($purokName) > 100) {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with(
+                    'error',
+                    'Purok name must not exceed 100 characters.'
+                );
+        }
+
+        $purok = $db->table('puroks')
+            ->where('purok_id', $purokId)
+            ->get()
+            ->getRowArray();
+
+        if (!$purok) {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with('error', 'Purok not found.');
+        }
+
+        // Check duplicate name except current Purok
+        $duplicate = $db->table('puroks')
+            ->where('purok_name', $purokName)
+            ->where('purok_id !=', $purokId)
+            ->get()
+            ->getRowArray();
+
+        if ($duplicate) {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with(
+                    'error',
+                    'Another Purok already uses that name.'
+                );
+        }
+
+        $updated = $db->table('puroks')
+            ->where('purok_id', $purokId)
+            ->update([
+                'purok_name' => $purokName,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+        if (!$updated) {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with('error', 'Unable to update Purok.');
+        }
+
+        $this->logAdminAudit(
+            'UPDATE_PUROK',
+            'purok',
+            $purokId,
+            'Updated Purok name from "'
+                . (string) ($purok['purok_name'] ?? 'Unknown')
+                . '" to "'
+                . $purokName
+                . '".'
+        );
+
+        return redirect()
+            ->to('/admin/purok-map-setup')
+            ->with('success', 'Purok name updated successfully.');
+    }
+
+    // =========================================================
+    // ADMIN - DELETE PUROK
+    // =========================================================
+
+    public function deletePurok($id)
+    {
+        $db = \Config\Database::connect();
+
+        $purokId = (int) $id;
+
+        if ($purokId <= 0) {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with('error', 'Invalid Purok.');
+        }
+
+        $purok = $db->table('puroks')
+            ->where('purok_id', $purokId)
+            ->get()
+            ->getRowArray();
+
+        if (!$purok) {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with('error', 'Purok not found.');
+        }
+
+        // SAFETY:
+        // Do not delete a Purok already assigned to residents
+        $residentCount = $db->table('users')
+            ->where('purok_id', $purokId)
+            ->countAllResults();
+
+        if ($residentCount > 0) {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with(
+                    'error',
+                    'This Purok is already assigned to residents. Edit the name instead.'
+                );
+        }
+
+        $deleted = $db->table('puroks')
+            ->where('purok_id', $purokId)
+            ->delete();
+
+        if (!$deleted) {
+            return redirect()
+                ->to('/admin/purok-map-setup')
+                ->with('error', 'Unable to delete Purok.');
+        }
+
+        $this->logAdminAudit(
+            'DELETE_PUROK',
+            'purok',
+            $purokId,
+            'Deleted Purok: '
+                . (string) ($purok['purok_name'] ?? 'Unknown')
+                . '.'
+        );
+
+        return redirect()
+            ->to('/admin/purok-map-setup')
+            ->with('success', 'Purok deleted successfully.');
+    }
 
     // =========================================================
     // ADMIN - SAVE PUROK MAP COORDINATES
@@ -4148,6 +4913,18 @@ class DashboardController extends BaseController
                 ]);
         }
 
+        $this->logAdminAudit(
+            'UPDATE_PUROK_MAP_LOCATION',
+            'purok',
+            $purokId,
+            'Updated map location for '
+                . (string) ($purok['purok_name'] ?? 'Unknown')
+                . ' to latitude '
+                . $latitude
+                . ' and longitude '
+                . $longitude
+                . '.'
+        );
 
         return $this->response->setJSON([
             'success' => true,
@@ -4178,8 +4955,15 @@ class DashboardController extends BaseController
             session()->destroy();
 
             return redirect()->to('/login')
-                ->with('error', 'Your session has expired. Please log in again.');
+                ->with(
+                    'error',
+                    'Your session has expired. Please log in again.'
+                );
         }
+
+        // =========================================
+        // GET RESIDENT
+        // =========================================
 
         $resident = $db->table('users')
             ->where('user_id', $userId)
@@ -4191,28 +4975,227 @@ class DashboardController extends BaseController
             session()->destroy();
 
             return redirect()->to('/login')
-                ->with('error', 'Resident account not found.');
+                ->with(
+                    'error',
+                    'Resident account not found.'
+                );
         }
 
-        $currentPassword = (string) $this->request->getPost('current_password');
-        $confirmation = trim((string) $this->request->getPost('delete_confirmation'));
+        // =========================================
+        // VALIDATE PASSWORD + CONFIRMATION
+        // =========================================
+
+        $currentPassword =
+            (string) $this->request->getPost(
+                'current_password'
+            );
+
+        $confirmation =
+            trim(
+                (string) $this->request->getPost(
+                    'delete_confirmation'
+                )
+            );
 
         if ($currentPassword === '') {
             return redirect()->to('/resident/profile')
-                ->with('error', 'Please enter your current password before deleting your account.');
+                ->with(
+                    'error',
+                    'Please enter your current password before deleting your account.'
+                );
         }
 
-        if (!password_verify($currentPassword, $resident['password'])) {
+        if (
+            !password_verify(
+                $currentPassword,
+                $resident['password']
+            )
+        ) {
             return redirect()->to('/resident/profile')
-                ->with('error', 'The password you entered is incorrect.');
+                ->with(
+                    'error',
+                    'The password you entered is incorrect.'
+                );
         }
 
         if ($confirmation !== 'DELETE') {
             return redirect()->to('/resident/profile')
-                ->with('error', 'Please type DELETE exactly to confirm account deletion.');
+                ->with(
+                    'error',
+                    'Please type DELETE exactly to confirm account deletion.'
+                );
         }
 
+        // =========================================
+        // GET ALL REPORTS OF THIS RESIDENT
+        // =========================================
+
+        $residentReports = $db->table('reports')
+            ->select('report_id')
+            ->where('user_id', $userId)
+            ->get()
+            ->getResultArray();
+
+        $reportIds = [];
+
+        foreach ($residentReports as $report) {
+            $reportId =
+                (int) ($report['report_id'] ?? 0);
+
+            if ($reportId > 0) {
+                $reportIds[] = $reportId;
+            }
+        }
+
+        // Keep image paths so physical files can
+        // also be removed after DB deletion succeeds.
+        $imagePaths = [];
+
+        if (!empty($reportIds)) {
+
+            $images = $db->table('images')
+                ->select('image_path')
+                ->whereIn('report_id', $reportIds)
+                ->get()
+                ->getResultArray();
+
+            foreach ($images as $image) {
+
+                $imagePath =
+                    trim(
+                        (string) (
+                            $image['image_path'] ?? ''
+                        )
+                    );
+
+                if ($imagePath !== '') {
+                    $imagePaths[] = $imagePath;
+                }
+            }
+        }
+
+        // =========================================
+        // DELETE ACCOUNT + ALL RELATED DB RECORDS
+        // =========================================
+
         $db->transStart();
+
+        /*
+     * Records connected to reports must be
+     * deleted BEFORE deleting the reports.
+     */
+
+        if (!empty($reportIds)) {
+
+            // Notifications connected to reports
+            if (
+                $db->tableExists('notifications') &&
+                $db->fieldExists(
+                    'report_id',
+                    'notifications'
+                )
+            ) {
+                $db->table('notifications')
+                    ->whereIn(
+                        'report_id',
+                        $reportIds
+                    )
+                    ->delete();
+            }
+
+            // Actions connected to reports
+            if (
+                $db->tableExists('action') &&
+                $db->fieldExists(
+                    'report_id',
+                    'action'
+                )
+            ) {
+                $db->table('action')
+                    ->whereIn(
+                        'report_id',
+                        $reportIds
+                    )
+                    ->delete();
+            }
+
+            // Images connected to reports
+            if ($db->tableExists('images')) {
+                $db->table('images')
+                    ->whereIn(
+                        'report_id',
+                        $reportIds
+                    )
+                    ->delete();
+            }
+
+            // Delete resident reports
+            $db->table('reports')
+                ->where('user_id', $userId)
+                ->delete();
+        }
+
+        /*
+     * Delete records directly connected
+     * to the resident account.
+     */
+
+        if ($db->tableExists('notifications')) {
+
+            $db->table('notifications')
+                ->where('user_id', $userId)
+                ->delete();
+
+            // Some registration notifications
+            // may reference the resident here.
+            if (
+                $db->fieldExists(
+                    'related_user_id',
+                    'notifications'
+                )
+            ) {
+                $db->table('notifications')
+                    ->where(
+                        'related_user_id',
+                        $userId
+                    )
+                    ->delete();
+            }
+        }
+
+        if ($db->tableExists('action')) {
+            $db->table('action')
+                ->where('user_id', $userId)
+                ->delete();
+        }
+
+        if ($db->tableExists('remember_tokens')) {
+            $db->table('remember_tokens')
+                ->where('user_id', $userId)
+                ->delete();
+        }
+
+        if ($db->tableExists('password_reset_tokens')) {
+            $db->table('password_reset_tokens')
+                ->where('user_id', $userId)
+                ->delete();
+        }
+
+        if (
+            $db->tableExists('email_verifications') &&
+            !empty($resident['email'])
+        ) {
+            $db->table('email_verifications')
+                ->where(
+                    'email',
+                    $resident['email']
+                )
+                ->delete();
+        }
+
+        // =========================================
+        // FINALLY DELETE THE RESIDENT ACCOUNT
+        // =========================================
 
         $db->table('users')
             ->where('user_id', $userId)
@@ -4221,15 +5204,78 @@ class DashboardController extends BaseController
 
         $db->transComplete();
 
-        if (!$db->transStatus()) {
+        // =========================================
+        // CHECK TRANSACTION
+        // =========================================
+
+        if ($db->transStatus() === false) {
+
+            log_message(
+                'error',
+                'Resident account deletion failed for user ID: {userId}',
+                [
+                    'userId' => $userId
+                ]
+            );
+
             return redirect()->to('/resident/profile')
-                ->with('error', 'We could not delete your account. Please try again.');
+                ->with(
+                    'error',
+                    'We could not delete your account. Please try again.'
+                );
         }
 
+        // =========================================
+        // DELETE PHYSICAL REPORT IMAGES
+        // =========================================
+
+        foreach ($imagePaths as $imagePath) {
+
+            $physicalPath =
+                FCPATH .
+                ltrim(
+                    $imagePath,
+                    '/\\'
+                );
+
+            if (is_file($physicalPath)) {
+                @unlink($physicalPath);
+            }
+        }
+
+        // =========================================
+        // DELETE PROFILE IMAGE
+        // =========================================
+
+        $profileImage =
+            trim(
+                (string) (
+                    $resident['profile_image'] ?? ''
+                )
+            );
+
+        if ($profileImage !== '') {
+
+            $physicalProfilePath =
+                FCPATH .
+                ltrim(
+                    $profileImage,
+                    '/\\'
+                );
+
+            if (is_file($physicalProfilePath)) {
+                @unlink($physicalProfilePath);
+            }
+        }
+
+        // Account is gone. End session.
         session()->destroy();
 
         return redirect()->to('/login')
-            ->with('success', 'Your account has been permanently deleted.');
+            ->with(
+                'success',
+                'Your account and all related records have been permanently deleted.'
+            );
     }
 
     public function saveSettings()
@@ -4339,5 +5385,301 @@ class DashboardController extends BaseController
 
         return redirect()->to('/admin/settings')
             ->with('success', 'Settings saved successfully.');
+    }
+
+    // =========================================================
+    // DISPLAY RESIDENT NUMBER
+    // Keeps visible Resident No. continuous without changing
+    // the real database user_id.
+    // =========================================================
+
+    private function getNextAvailableResidentNo($db): int
+    {
+        $rows = $db->table('users')
+            ->select('resident_no')
+            ->where('role', 'resident')
+            ->where(
+                'resident_no IS NOT NULL',
+                null,
+                false
+            )
+            ->orderBy('resident_no', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $nextNumber = 1;
+
+        foreach ($rows as $row) {
+
+            $currentNumber =
+                (int) ($row['resident_no'] ?? 0);
+
+            if ($currentNumber < $nextNumber) {
+                continue;
+            }
+
+            if ($currentNumber > $nextNumber) {
+                break;
+            }
+
+            $nextNumber++;
+        }
+
+        return $nextNumber;
+    }
+
+
+    private function getResidentNumberMap($db): array
+    {
+        $rows = $db->table('users')
+            ->select('user_id, resident_no')
+            ->where('role', 'resident')
+            ->get()
+            ->getResultArray();
+
+        $residentNumberMap = [];
+
+        foreach ($rows as $row) {
+
+            $userId =
+                (int) ($row['user_id'] ?? 0);
+
+            $residentNo =
+                (int) ($row['resident_no'] ?? 0);
+
+            if (
+                $userId <= 0 ||
+                $residentNo <= 0
+            ) {
+                continue;
+            }
+
+            $residentNumberMap[$userId] =
+                $residentNo;
+        }
+
+        return $residentNumberMap;
+    }
+    // =========================================================
+    // DISPLAY REPORT NUMBER
+    // Keeps visible Report No. continuous without changing
+    // the real database report_id.
+    // =========================================================
+    private function getReportNumberMap($db): array
+    {
+        $rows = $db->table('reports')
+            ->select('report_id, report_no')
+            ->get()
+            ->getResultArray();
+
+        $reportNumberMap = [];
+
+        foreach ($rows as $row) {
+
+            $reportId =
+                (int) ($row['report_id'] ?? 0);
+
+            $reportNo =
+                (int) ($row['report_no'] ?? 0);
+
+            if (
+                $reportId <= 0 ||
+                $reportNo <= 0
+            ) {
+                continue;
+            }
+
+            $reportNumberMap[$reportId] =
+                $reportNo;
+        }
+
+        return $reportNumberMap;
+    }
+
+    // =========================================================
+    // DISPLAY PUROK NUMBER
+    // Keeps visible Purok No. continuous without changing
+    // the real database purok_id.
+    // =========================================================
+
+    private function getNextAvailablePurokNo($db): int
+    {
+        $rows = $db->table('puroks')
+            ->select('purok_no')
+            ->where(
+                'purok_no IS NOT NULL',
+                null,
+                false
+            )
+            ->orderBy('purok_no', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $nextNumber = 1;
+
+        foreach ($rows as $row) {
+
+            $currentNumber =
+                (int) ($row['purok_no'] ?? 0);
+
+            if ($currentNumber < $nextNumber) {
+                continue;
+            }
+
+            if ($currentNumber > $nextNumber) {
+                break;
+            }
+
+            $nextNumber++;
+        }
+
+        return $nextNumber;
+    }
+
+    private function getNextAvailableCategoryNo($db): int
+    {
+        $rows = $db->table('categories')
+            ->select('category_no')
+            ->where(
+                'category_no IS NOT NULL',
+                null,
+                false
+            )
+            ->orderBy('category_no', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $nextNumber = 1;
+
+        foreach ($rows as $row) {
+
+            $currentNumber =
+                (int) ($row['category_no'] ?? 0);
+
+            if ($currentNumber < $nextNumber) {
+                continue;
+            }
+
+            if ($currentNumber > $nextNumber) {
+                break;
+            }
+
+            $nextNumber++;
+        }
+
+        return $nextNumber;
+    }
+
+    private function logAdminAudit(
+        string $action,
+        ?string $targetType = null,
+        ?int $targetId = null,
+        ?string $details = null
+    ): void {
+        $adminUserId = (int) session()->get('user_id');
+
+        if ($adminUserId <= 0) {
+            return;
+        }
+
+        try {
+            $db = \Config\Database::connect();
+
+            $db->table('admin_audit_logs')->insert([
+                'admin_user_id' => $adminUserId,
+                'action'        => $action,
+                'target_type'   => $targetType,
+                'target_id'     => $targetId,
+                'details'       => $details,
+                'ip_address'    => $this->request->getIPAddress(),
+                'created_at'    => date('Y-m-d H:i:s'),
+            ]);
+        } catch (\Throwable $e) {
+            log_message(
+                'error',
+                'Admin audit log failed: {message}',
+                [
+                    'message' => $e->getMessage(),
+                ]
+            );
+        }
+    }
+
+    private function sendSecurityNotificationEmail(
+        string $toEmail,
+        string $subject,
+        string $message
+    ): void {
+        if (
+            $toEmail === '' ||
+            !filter_var($toEmail, FILTER_VALIDATE_EMAIL)
+        ) {
+            return;
+        }
+
+        try {
+            $emailService = service('email');
+            $emailService->clear(true);
+
+            $emailConfig = config('Email');
+
+            $emailService->setFrom(
+                $emailConfig->fromEmail,
+                $emailConfig->fromName
+            );
+
+            $emailService->setTo($toEmail);
+            $emailService->setSubject($subject);
+
+            $emailService->setMessage(
+                '
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h2>Security Notification</h2>
+
+                <p>' . esc($message) . '</p>
+
+                <p>
+                    If you made this change, no action is required.
+                </p>
+
+                <p>
+                    If you did not make this change,
+                    please secure your account immediately.
+                </p>
+
+                <hr>
+
+                <small>
+                    Barangay Saguing Community Visibility System
+                </small>
+
+                <p style="
+                    font-size: 12px;
+                    color: #6c757d;
+                    margin-top: 20px;
+                ">
+                    This is an automated security notification.
+                    Please do not reply to this email.
+                </p>
+            </div>
+            '
+            );
+
+            if (!$emailService->send()) {
+                log_message(
+                    'error',
+                    'Security notification email failed for: '
+                        . $toEmail
+                );
+            }
+        } catch (\Throwable $e) {
+            log_message(
+                'error',
+                'Security notification email error: {message}',
+                [
+                    'message' => $e->getMessage()
+                ]
+            );
+        }
     }
 }

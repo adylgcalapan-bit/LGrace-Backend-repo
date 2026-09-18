@@ -165,8 +165,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const row = document.createElement("tr");
 
       const titleCell = document.createElement("td");
+
       titleCell.textContent =
-        "#" + report.report_id + " - " + (report.title || "Untitled Report");
+        "Report No. " +
+        (report.report_no ?? "N/A") +
+        " - " +
+        (report.title || "Untitled Report");
 
       const categoryCell = document.createElement("td");
       categoryCell.textContent = report.category_name || "Uncategorized";
@@ -414,7 +418,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (modalId) {
-        modalId.textContent = resident.resident_id || "N/A";
+        modalId.textContent =
+          resident.resident_no || resident.resident_id || "N/A";
       }
 
       if (modalName) {

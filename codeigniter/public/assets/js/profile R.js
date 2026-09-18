@@ -87,6 +87,18 @@ document.addEventListener("DOMContentLoaded", () => {
   sendProfileEmailCodeBtn?.addEventListener("click", async () => {
     const newEmail = emailInput?.value.trim().toLowerCase() || "";
 
+    const currentPasswordValue = currentPassword?.value || "";
+
+    if (!currentPasswordValue) {
+      setProfileEmailMessage(
+        "Enter your current password before changing your email.",
+        "error",
+      );
+
+      currentPassword?.focus();
+      return;
+    }
+
     if (!newEmail) {
       setProfileEmailMessage("Please enter your new email address.", "error");
       return;
@@ -116,6 +128,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const formData = new FormData();
 
       formData.append("email", newEmail);
+
+      formData.append("current_password", currentPasswordValue);
 
       if (csrfInput) {
         formData.append(csrfInput.name, csrfInput.value);
@@ -176,6 +190,10 @@ document.addEventListener("DOMContentLoaded", () => {
         error.message || "Unable to send verification code.",
         "error",
       );
+
+      if (error.message && error.message.toLowerCase().includes("password")) {
+        currentPassword?.focus();
+      }
 
       sendProfileEmailCodeBtn.disabled = false;
       sendProfileEmailCodeBtn.textContent = originalText;

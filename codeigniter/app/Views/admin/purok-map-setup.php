@@ -169,6 +169,24 @@
 
         </div>
 
+        <?php if ($successMessage = session()->getFlashdata('success')): ?>
+
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <?= esc($successMessage) ?>
+            </div>
+
+        <?php endif; ?>
+
+        <?php if ($errorMessage = session()->getFlashdata('error')): ?>
+
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <?= esc($errorMessage) ?>
+            </div>
+
+        <?php endif; ?>
+
 
         <!-- PROGRESS -->
 
@@ -223,6 +241,49 @@
             <!-- LEFT SIDE -->
             <div class="col-lg-4">
 
+                <!-- ADD PUROK -->
+                <div class="mb-4">
+
+                    <label
+                        for="newPurokName"
+                        class="form-label fw-semibold">
+
+                        Add New Purok
+
+                    </label>
+
+                    <form
+                        action="<?= site_url('admin/purok-map-setup/create') ?>"
+                        method="POST">
+
+                        <?= csrf_field() ?>
+
+                        <div class="input-group">
+
+                            <input
+                                type="text"
+                                id="newPurokName"
+                                name="purok_name"
+                                class="form-control"
+                                placeholder="e.g. Purok New Hope"
+                                maxlength="100"
+                                required>
+
+                            <button
+                                type="submit"
+                                class="btn btn-success">
+
+                                <i class="bi bi-plus-lg"></i>
+                                Add
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
                 <div class="setup-card p-3">
 
                     <div class="mb-3">
@@ -258,44 +319,104 @@
                                 ($purok['longitude'] ?? '') !== '';
                             ?>
 
-                            <button
-                                type="button"
-                                class="purok-item"
-                                data-purok-id="<?= esc($purok['purok_id']) ?>"
-                                data-purok-name="<?= esc($purok['purok_name']) ?>"
-                                data-latitude="<?= esc($purok['latitude'] ?? '') ?>"
-                                data-longitude="<?= esc($purok['longitude'] ?? '') ?>"
-                                data-mapped="<?= $isMapped ? '1' : '0' ?>">
+                            <div class="d-flex align-items-center gap-2 mb-2">
 
-                                <div class="d-flex justify-content-between align-items-center gap-2">
+                                <!-- SELECT PUROK -->
+                                <button
+                                    type="button"
+                                    class="purok-item flex-grow-1 mb-0"
+                                    data-purok-id="<?= esc($purok['purok_id']) ?>"
+                                    data-purok-no="<?= esc($purok['purok_no'] ?? '') ?>"
+                                    data-purok-name="<?= esc($purok['purok_name']) ?>"
+                                    data-latitude="<?= esc($purok['latitude'] ?? '') ?>"
+                                    data-longitude="<?= esc($purok['longitude'] ?? '') ?>"
+                                    data-mapped="<?= $isMapped ? '1' : '0' ?>">
 
-                                    <span class="purok-name">
-                                        <?= esc($purok['purok_name']) ?>
-                                    </span>
+                                    <div class="d-flex justify-content-between align-items-center gap-2">
 
-                                    <?php if ($isMapped): ?>
-
-                                        <span class="purok-status status-mapped">
-                                            <i class="bi bi-check-circle-fill"></i>
-                                            Mapped
+                                        <span class="purok-name">
+                                            <?= esc($purok['purok_name']) ?>
                                         </span>
 
-                                    <?php else: ?>
+                                        <?php if ($isMapped): ?>
 
-                                        <span class="purok-status status-unmapped">
-                                            <i class="bi bi-exclamation-circle"></i>
-                                            Needs Location
-                                        </span>
+                                            <span class="purok-status status-mapped">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                                Mapped
+                                            </span>
 
-                                    <?php endif; ?>
+                                        <?php else: ?>
 
-                                </div>
+                                            <span class="purok-status status-unmapped">
+                                                <i class="bi bi-exclamation-circle"></i>
+                                                Needs Location
+                                            </span>
 
-                            </button>
+                                        <?php endif; ?>
+
+                                    </div>
+
+                                </button>
+
+
+                                <!-- EDIT -->
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-primary edit-purok-btn"
+                                    data-purok-id="<?= (int) $purok['purok_id'] ?>"
+                                    data-purok-name="<?= esc($purok['purok_name']) ?>"
+                                    title="Edit Purok">
+
+                                    <i class="bi bi-pencil"></i>
+
+                                </button>
+
+
+                                <!-- DELETE -->
+                                <form
+                                    method="POST"
+                                    action="<?= site_url(
+                                                'admin/purok-map-setup/delete/' .
+                                                    (int) $purok['purok_id']
+                                            ) ?>"
+                                    class="m-0 delete-purok-form">
+
+                                    <?= csrf_field() ?>
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm btn-outline-danger"
+                                        title="Delete Purok">
+
+                                        <i class="bi bi-trash"></i>
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+
 
                         <?php endforeach; ?>
 
                     </div>
+
+                    <form
+                        id="editPurokForm"
+                        method="POST"
+                        class="d-none">
+
+                        <?= csrf_field() ?>
+
+                        <input
+                            type="hidden"
+                            name="purok_name"
+                            id="editPurokName">
+
+                    </form>
+
+
 
                 </div>
 
@@ -407,9 +528,27 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
-            const map = L.map("purokSetupMap").setView(
-                [6.9780, 125.0810],
-                15
+            const SAGUING_BOUNDS = {
+                minLat: 6.965,
+                maxLat: 6.995,
+                minLng: 125.065,
+                maxLng: 125.095
+            };
+
+            const saguingLeafletBounds = L.latLngBounds(
+                [SAGUING_BOUNDS.minLat, SAGUING_BOUNDS.minLng],
+                [SAGUING_BOUNDS.maxLat, SAGUING_BOUNDS.maxLng]
+            );
+
+            const map = L.map("purokSetupMap", {
+                maxBounds: saguingLeafletBounds,
+                maxBoundsViscosity: 1.0
+            });
+
+            map.fitBounds(
+                saguingLeafletBounds, {
+                    padding: [20, 20]
+                }
             );
 
             L.tileLayer(
@@ -448,6 +587,17 @@
 
             const searchInput =
                 document.getElementById("purokSearch");
+
+            function isInsideSaguing(lat, lng) {
+
+                return (
+                    lat >= SAGUING_BOUNDS.minLat &&
+                    lat <= SAGUING_BOUNDS.maxLat &&
+                    lng >= SAGUING_BOUNDS.minLng &&
+                    lng <= SAGUING_BOUNDS.maxLng
+                );
+
+            }
 
 
             function placeMarker(lat, lng, purokName) {
@@ -556,11 +706,30 @@
                     return;
                 }
 
+                const clickedLat = event.latlng.lat;
+                const clickedLng = event.latlng.lng;
+
+                if (!isInsideSaguing(clickedLat, clickedLng)) {
+
+                    alert(
+                        "Please select a location within Barangay Saguing only."
+                    );
+
+                    map.flyToBounds(
+                        saguingLeafletBounds, {
+                            padding: [20, 20],
+                            duration: 1.2
+                        }
+                    );
+
+                    return;
+                }
+
                 const latitude =
-                    event.latlng.lat.toFixed(8);
+                    clickedLat.toFixed(8);
 
                 const longitude =
-                    event.latlng.lng.toFixed(8);
+                    clickedLng.toFixed(8);
 
 
                 selectedLatitude.value =
@@ -608,14 +777,18 @@
                         function(button) {
 
                             const name =
-                                button.dataset.purokName
+                                (button.dataset.purokName || "")
+                                .toLowerCase();
+
+                            const purokNo =
+                                (button.dataset.purokNo || "")
                                 .toLowerCase();
 
                             button.style.display =
-                                name.includes(query) ?
+                                name.includes(query) ||
+                                purokNo.includes(query) ?
                                 "" :
                                 "none";
-
                         }
                     );
 
@@ -849,6 +1022,83 @@
 
 
             selectNextUnmapped();
+
+            // =====================================
+            // EDIT PUROK
+            // =====================================
+
+            document
+                .querySelectorAll(".edit-purok-btn")
+                .forEach(function(button) {
+
+                    button.addEventListener("click", function() {
+
+                        const purokId =
+                            this.dataset.purokId;
+
+                        const currentName =
+                            this.dataset.purokName;
+
+                        const newName = prompt(
+                            "Edit Purok name:",
+                            currentName
+                        );
+
+                        if (newName === null) {
+                            return;
+                        }
+
+                        const cleanedName = newName.trim();
+
+                        if (!cleanedName) {
+                            alert("Purok name cannot be empty.");
+                            return;
+                        }
+
+                        if (cleanedName === currentName) {
+                            return;
+                        }
+
+                        const form =
+                            document.getElementById("editPurokForm");
+
+                        const nameInput =
+                            document.getElementById("editPurokName");
+
+                        nameInput.value = cleanedName;
+
+                        form.action =
+                            "<?= site_url('admin/purok-map-setup/update') ?>/" +
+                            purokId;
+
+                        form.submit();
+                    });
+
+                });
+
+
+            // =====================================
+            // DELETE PUROK
+            // =====================================
+
+            document
+                .querySelectorAll(".delete-purok-form")
+                .forEach(function(form) {
+
+                    form.addEventListener("submit", function(event) {
+
+                        const confirmed = confirm(
+                            "Delete this Purok?\n\n" +
+                            "This is only allowed if no resident is assigned to it."
+                        );
+
+                        if (!confirmed) {
+                            event.preventDefault();
+                        }
+
+                    });
+
+                });
 
         });
     </script>

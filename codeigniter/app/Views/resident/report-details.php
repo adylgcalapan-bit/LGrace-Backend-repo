@@ -130,12 +130,11 @@ if (!isset($report)) {
                     </h4>
 
                     <p class="mb-0 mt-2 text-white-50">
-                        Report ID:
-                        <span id="report-id">
-                            #<?= esc($report['report_id']) ?>
+                        Report No.:
+                        <span id="report-no">
+                            <?= esc((string) ($report['report_no'] ?? '')) ?>
                         </span>
                     </p>
-
                 </div>
 
 

@@ -11,6 +11,7 @@ class UserModel extends Model
     protected $returnType = 'array';
 
     protected $allowedFields = [
+        'resident_no',
         'full_name',
         'email',
         'mobile_number',

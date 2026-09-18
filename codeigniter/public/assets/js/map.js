@@ -198,13 +198,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
           <br>
 
-          <strong>Status:</strong>
-          ${escapeHtml(status || "Unknown")}
+        <strong>Status:</strong>
+${escapeHtml(status || "Unknown")}
 
-          <br>
+<br>
 
-          <strong>Report ID:</strong>
-          ${escapeHtml(report.report_id)}
+<strong>Address:</strong>
+${escapeHtml(report.address || "No address available")}
+
+<br>
+
+<strong>Report ID:</strong>
+${escapeHtml(report.report_id)}
         </div>
       `);
 
@@ -254,30 +259,9 @@ document.addEventListener("DOMContentLoaded", function () {
       const statusMatches =
         selectedStatus === "all" || reportStatus === selectedStatus;
 
-      // Hide resolved reports older than 7 days from the default map.
-      // If "Resolved" is explicitly selected, show all resolved reports.
-      let resolvedVisibilityMatches = true;
-
-      if (
-        selectedStatus === "all" &&
-        reportStatus === "Resolved" &&
-        report.resolved_at
-      ) {
-        const resolvedAt = new Date(
-          String(report.resolved_at).replace(" ", "T"),
-        );
-
-        if (!Number.isNaN(resolvedAt.getTime())) {
-          const now = new Date();
-
-          const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
-
-          resolvedVisibilityMatches =
-            now.getTime() - resolvedAt.getTime() <= sevenDaysInMs;
-        }
-      }
-
-      return categoryMatches && statusMatches && resolvedVisibilityMatches;
+      // Old resolved reports are already removed
+      // server-side by DashboardController::map().
+      return categoryMatches && statusMatches;
     });
 
     console.log("Selected category:", selectedCategory);
@@ -299,7 +283,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Fall back to API when not available.
   // =====================================
 
-  if (Array.isArray(window.reportData) && window.reportData.length > 0) {
+  if (Array.isArray(window.reportData)) {
     console.log("Using reports provided by Map View:", window.reportData);
 
     allReports = window.reportData;

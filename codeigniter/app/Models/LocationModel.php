@@ -11,10 +11,12 @@ class LocationModel extends Model
     protected $returnType = 'array';
 
     protected $allowedFields = [
+        'report_no',
         'user_id',
         'is_anonymous',
         'title',
         'description',
+        'incident_date',
         'category_id',
         'latitude',
         'longtitude',

@@ -202,7 +202,10 @@
                             </label>
 
                             <?php
-                            $currentCategoryId = (int) ($filters['category'] ?? 0);
+                            $categoryFilter = $filters['category'] ?? 0;
+                            $currentCategoryId = is_scalar($categoryFilter)
+                                ? (int) $categoryFilter
+                                : 0;
 
                             $currentCategoryLabel = 'All Categories';
 
@@ -230,7 +233,7 @@
                                 type="hidden"
                                 id="reportCategory"
                                 name="category"
-                                value="<?= esc($currentCategoryId) ?>">
+                                value="<?= esc((string) $currentCategoryId) ?>">
 
                             <div class="dropdown report-filter-dropdown">
 
@@ -527,7 +530,7 @@
 
                         <thead class="table-success">
                             <tr>
-                                <th>ID</th>
+                                <th>No.</th>
                                 <th>Resident</th>
                                 <th>Category</th>
                                 <th>Location</th>
@@ -539,7 +542,6 @@
                         </thead>
 
                         <tbody>
-
                             <?php if (!empty($reports)): ?>
 
                                 <?php foreach ($reports as $report): ?>
@@ -547,11 +549,13 @@
                                     <?php
                                     $status = $report['status'] ?? 'Pending';
 
-                                    $isAnonymous = (int) ($report['is_anonymous'] ?? 0) === 1;
+                                    $isAnonymous =
+                                        (int) ($report['is_anonymous'] ?? 0) === 1;
 
                                     $realResidentName = trim(
                                         (string) ($report['full_name'] ?? 'Unknown Resident')
                                     );
+
                                     $displayResidentName = $realResidentName;
 
                                     $userId = (int) ($report['user_id'] ?? 0);
@@ -560,26 +564,40 @@
                                         $displayResidentId = 'R-***';
                                     } else {
                                         $displayResidentId = $userId > 0
-                                            ? 'R-' . str_pad((string) $userId, 3, '0', STR_PAD_LEFT)
+                                            ? 'R-' . str_pad(
+                                                (string) $userId,
+                                                3,
+                                                '0',
+                                                STR_PAD_LEFT
+                                            )
                                             : 'Unknown';
                                     }
 
-                                    if ($isAnonymous && $realResidentName !== 'Unknown Resident') {
+                                    if (
+                                        $isAnonymous &&
+                                        $realResidentName !== 'Unknown Resident'
+                                    ) {
+                                        $nameParts = preg_split(
+                                            '/\s+/',
+                                            $realResidentName
+                                        );
 
-                                        $nameParts = preg_split('/\s+/', $realResidentName);
+                                        $maskedParts = array_map(
+                                            function ($part) {
 
-                                        $maskedParts = array_map(function ($part) {
+                                                if ($part === '') {
+                                                    return '';
+                                                }
 
-                                            if ($part === '') {
-                                                return '';
-                                            }
+                                                return mb_strtoupper(
+                                                    mb_substr($part, 0, 1)
+                                                ) . '***';
+                                            },
+                                            $nameParts
+                                        );
 
-                                            return mb_strtoupper(
-                                                mb_substr($part, 0, 1)
-                                            ) . '***';
-                                        }, $nameParts);
-
-                                        $displayResidentName = implode(' ', $maskedParts);
+                                        $displayResidentName =
+                                            implode(' ', $maskedParts);
                                     }
 
                                     $badgeClass = match ($status) {
@@ -590,7 +608,10 @@
                                         default       => 'bg-secondary',
                                     };
 
-                                    $location = $report['latitude'] . ', ' . $report['longtitude'];
+                                    $location =
+                                        $report['latitude'] .
+                                        ', ' .
+                                        $report['longtitude'];
 
                                     $address = !empty($report['address'])
                                         ? $report['address']
@@ -600,6 +621,7 @@
                                     <tr
                                         class="report-row"
                                         data-id="#<?= esc($report['report_id']) ?>"
+                                        data-report-no="<?= esc((string) ($report['report_no'] ?? '')) ?>"
                                         data-resident="<?= esc($displayResidentName) ?>"
                                         data-resident-id="<?= esc($displayResidentId) ?>"
                                         data-title="<?= esc($report['title'] ?? '') ?>"
@@ -612,11 +634,13 @@
                                         data-status="<?= esc($status) ?>"
                                         data-priority="<?= esc($report['priority'] ?? '') ?>"
                                         data-description="<?= esc($report['description'] ?? '') ?>"
-                                        data-photo="<?= !empty($report['image_path']) ? base_url($report['image_path']) : '' ?>">
+                                        data-photos="<?= esc(json_encode($report['image_urls'] ?? []),  'attr') ?>">
 
-                                        <!-- ID -->
+
+
+                                        <!-- REPORT NO. -->
                                         <td>
-                                            #<?= esc($report['report_id']) ?>
+                                            <?= esc((string) ($report['report_no'] ?? '')) ?>
                                         </td>
 
                                         <!-- Resident -->
@@ -822,8 +846,8 @@
                                 <div class="col-md-6">
 
                                     <p>
-                                        <strong>Report ID:</strong>
-                                        <span id="reportId"></span>
+                                        <strong>Report No.:</strong>
+                                        <span id="reportNo"></span>
                                     </p>
 
                                     <p>
@@ -875,201 +899,64 @@
 
                                     <div class="mb-3">
 
-                                        <strong>Photo:</strong>
+                                        <div class="mb-3">
 
-                                        <br>
+                                            <strong>Photos:</strong>
 
-                                        <img
-                                            id="reportPhoto"
-                                            src=""
-                                            alt="Report Photo"
-                                            class="img-fluid rounded mt-2"
-                                            style="
-                                    width: 100%;
-                                    max-width: 300px;
-                                    height: 180px;
-                                    object-fit: cover;
-                                    display: none;
-                                ">
+                                            <div
+                                                id="reportPhotos"
+                                                class="d-flex flex-wrap gap-2 mt-2">
+                                            </div>
 
-                                        <span
-                                            id="reportNoPhoto"
-                                            class="text-muted"
-                                            style="display: none;">
-                                            No photo available
-                                        </span>
+                                            <span
+                                                id="reportNoPhoto"
+                                                class="text-muted"
+                                                style="display: none;">
+                                                No photos available
+                                            </span>
+
+                                        </div>
 
                                     </div>
 
                                 </div>
 
-                            </div>
+                                <hr>
 
-                            <hr>
-
-                            <h6>
-                                Description
-                            </h6>
-
-                            <p id="reportDescription"></p>
-
-
-                            <hr class="my-4">
-
-                            <!-- REPORTED LOCATION MAP -->
-                            <div class="mt-3">
-
-                                <h6 class="mb-3">
-                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>
-                                    Reported Location
+                                <h6>
+                                    Description
                                 </h6>
 
-                                <div
-                                    id="reportMap"
-                                    style="
+                                <p id="reportDescription"></p>
+
+
+                                <hr class="my-4">
+
+                                <!-- REPORTED LOCATION MAP -->
+                                <div class="mt-3">
+
+                                    <h6 class="mb-3">
+                                        <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                                        Reported Location
+                                    </h6>
+
+                                    <div
+                                        id="reportMap"
+                                        style="
             width: 100%;
             height: 340px;
             border-radius: 12px;
             overflow: hidden;
             border: 1px solid #dee2e6;
         ">
+                                    </div>
+
+                                    <small
+                                        id="reportMapMessage"
+                                        class="text-muted d-none">
+                                        No valid map location is available for this report.
+                                    </small>
                                 </div>
-
-                                <small
-                                    id="reportMapMessage"
-                                    class="text-muted d-none">
-                                    No valid map location is available for this report.
-                                </small>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-
-                            <button
-                                type="button"
-                                class="btn btn-secondary"
-                                data-bs-dismiss="modal">
-                                Close
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ========================================= -->
-            <!-- UPDATE REPORT STATUS MODAL -->
-            <!-- ========================================= -->
-
-            <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
-
-                <div class="modal-dialog modal-dialog-centered">
-
-                    <div class="modal-content">
-
-                        <form
-                            action="<?= site_url('admin/reports/update-status') ?>"
-                            method="POST">
-
-                            <?= csrf_field() ?>
-
-                            <div class="modal-header">
-
-                                <h5 class="modal-title">
-                                    Update Report
-                                </h5>
-
-                                <button
-                                    type="button"
-                                    class="btn-close"
-                                    data-bs-dismiss="modal"
-                                    aria-label="Close">
-                                </button>
-
-                            </div>
-
-                            <div class="modal-body">
-
-                                <!-- HIDDEN REPORT ID -->
-                                <input
-                                    type="hidden"
-                                    id="statusReportId"
-                                    name="report_id">
-
-                                <!-- STATUS -->
-                                <div class="mb-3">
-
-                                    <label
-                                        for="statusSelect"
-                                        class="form-label">
-                                        Status
-                                    </label>
-
-                                    <select
-                                        class="form-select"
-                                        id="statusSelect"
-                                        name="status"
-                                        required>
-
-                                        <option value="Pending">
-                                            Pending
-                                        </option>
-
-                                        <option value="In Progress">
-                                            In Progress
-                                        </option>
-
-                                        <option value="Resolved">
-                                            Resolved
-                                        </option>
-
-                                        <option value="Rejected">
-                                            Rejected
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-                                <!-- PRIORITY -->
-                                <div class="mb-3">
-
-                                    <label
-                                        for="prioritySelect"
-                                        class="form-label">
-                                        Priority
-                                    </label>
-
-                                    <select
-                                        class="form-select"
-                                        id="prioritySelect"
-                                        name="priority"
-                                        required>
-
-                                        <option value="">
-                                            Select Priority
-                                        </option>
-
-                                        <option value="Low">
-                                            Low
-                                        </option>
-
-                                        <option value="Medium">
-                                            Medium
-                                        </option>
-
-                                        <option value="High">
-                                            High
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
                             </div>
 
                             <div class="modal-footer">
@@ -1078,24 +965,153 @@
                                     type="button"
                                     class="btn btn-secondary"
                                     data-bs-dismiss="modal">
-                                    Cancel
-                                </button>
-
-                                <button
-                                    type="submit"
-                                    class="btn btn-success">
-                                    Save Changes
+                                    Close
                                 </button>
 
                             </div>
 
-                        </form>
+                        </div>
 
                     </div>
 
                 </div>
 
-            </div>
+
+                <!-- ========================================= -->
+                <!-- UPDATE REPORT STATUS MODAL -->
+                <!-- ========================================= -->
+
+                <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+
+                    <div class="modal-dialog modal-dialog-centered">
+
+                        <div class="modal-content">
+
+                            <form
+                                action="<?= site_url('admin/reports/update-status') ?>"
+                                method="POST">
+
+                                <?= csrf_field() ?>
+
+                                <div class="modal-header">
+
+                                    <h5 class="modal-title">
+                                        Update Report
+                                    </h5>
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close">
+                                    </button>
+
+                                </div>
+
+                                <div class="modal-body">
+
+                                    <!-- HIDDEN REPORT ID -->
+                                    <input
+                                        type="hidden"
+                                        id="statusReportId"
+                                        name="report_id">
+
+                                    <!-- STATUS -->
+                                    <div class="mb-3">
+
+                                        <label
+                                            for="statusSelect"
+                                            class="form-label">
+                                            Status
+                                        </label>
+
+                                        <select
+                                            class="form-select"
+                                            id="statusSelect"
+                                            name="status"
+                                            required>
+
+                                            <option value="Pending">
+                                                Pending
+                                            </option>
+
+                                            <option value="In Progress">
+                                                In Progress
+                                            </option>
+
+                                            <option value="Resolved">
+                                                Resolved
+                                            </option>
+
+                                            <option value="Rejected">
+                                                Rejected
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
+                                    <!-- PRIORITY -->
+                                    <div class="mb-3">
+
+                                        <label
+                                            for="prioritySelect"
+                                            class="form-label">
+                                            Priority
+                                        </label>
+
+                                        <select
+                                            class="form-select"
+                                            id="prioritySelect"
+                                            name="priority"
+                                            required>
+
+                                            <option value="">
+                                                Select Priority
+                                            </option>
+
+                                            <option value="Low">
+                                                Low
+                                            </option>
+
+                                            <option value="Medium">
+                                                Medium
+                                            </option>
+
+                                            <option value="High">
+                                                High
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="modal-footer">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal">
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-success">
+                                        Save Changes
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
 
         </main>
 

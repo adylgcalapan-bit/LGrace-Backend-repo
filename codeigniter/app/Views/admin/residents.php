@@ -431,7 +431,7 @@
 
                         <thead class="table-success">
                             <tr>
-                                <th>ID</th>
+                                <th>Resident No.</th>
                                 <th>Photo</th>
                                 <th>Full Name</th>
                                 <th>Email</th>
@@ -454,12 +454,8 @@
                                         ? base_url(ltrim($resident['profile_image'], '/\\'))
                                         : base_url('assets/images/resident picture.png');
 
-                                    $residentId = 'R-' . str_pad(
-                                        (string) $resident['user_id'],
-                                        3,
-                                        '0',
-                                        STR_PAD_LEFT
-                                    );
+                                    $residentNo =
+                                        $resident['resident_no'] ?? 'N/A';
 
                                     $isActive = (int) ($resident['is_active'] ?? 1) === 1;
                                     $isEmailVerified = !empty($resident['email_verified_at']);
@@ -468,7 +464,7 @@
 
                                     <tr class="resident-row"
                                         data-user-id="<?= (int) $resident['user_id'] ?>"
-                                        data-id="<?= esc($residentId) ?>"
+                                        data-id="<?= esc($residentNo) ?>"
                                         data-name="<?= esc($resident['full_name'] ?? '') ?>"
                                         data-email="<?= esc($resident['email'] ?? '') ?>"
                                         data-contact="<?= esc($resident['mobile_number'] ?? '') ?>"
@@ -478,12 +474,7 @@
                                         data-image="<?= esc($residentImage) ?>">
 
                                         <td>
-                                            R-<?= str_pad(
-                                                    (string) $resident['user_id'],
-                                                    3,
-                                                    '0',
-                                                    STR_PAD_LEFT
-                                                ) ?>
+                                            <?= esc($residentNo) ?>
                                         </td>
 
                                         <td>
@@ -684,7 +675,7 @@
                                     <div class="row g-3">
 
                                         <div class="col-md-6">
-                                            <small class="text-muted">Resident ID</small>
+                                            <small class="text-muted">Resident No.</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalId">
                                                 â€”
