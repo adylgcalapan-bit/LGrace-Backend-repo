@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const latitudeInput = document.getElementById("latitude");
   const longitudeInput = document.getElementById("longitude");
   const addressInput = document.getElementById("address");
+  const reportPurokSelect = document.getElementById("reportPurok");
 
   const mapContainer = document.getElementById("map");
   const locationStatus = document.getElementById("locationStatus");
@@ -33,10 +34,10 @@ document.addEventListener("DOMContentLoaded", function () {
   let marker = null;
 
   const SAGUING_BOUNDS = {
-    minLat: 6.965,
-    maxLat: 6.995,
-    minLng: 125.065,
-    maxLng: 125.095,
+    minLat: 6.955,
+    maxLat: 7.005,
+    minLng: 125.055,
+    maxLng: 125.105,
   };
 
   function isInsideSaguingBounds(lat, lng) {
@@ -133,11 +134,48 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const data = await response.json();
 
-        addressInput.value = data.display_name || "Address not available";
+        const baseAddress = data.display_name || "Address not available";
+
+        addressInput.dataset.baseAddress = baseAddress;
+        addressInput.value = baseAddress;
       } catch (error) {
         console.error("Reverse geocoding error:", error);
 
         addressInput.value = "Address not available";
+      }
+    }
+    function selectNearestPurok(lat, lng) {
+      if (!reportPurokSelect) {
+        return;
+      }
+
+      let nearestOption = null;
+      let nearestDistance = Infinity;
+
+      Array.from(reportPurokSelect.options).forEach(function (option) {
+        if (!option.value) {
+          return;
+        }
+
+        const purokLat = parseFloat(option.dataset.latitude);
+        const purokLng = parseFloat(option.dataset.longitude);
+
+        if (!Number.isFinite(purokLat) || !Number.isFinite(purokLng)) {
+          return;
+        }
+
+        const distance = L.latLng(lat, lng).distanceTo(
+          L.latLng(purokLat, purokLng),
+        );
+
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestOption = option;
+        }
+      });
+
+      if (nearestOption) {
+        reportPurokSelect.value = nearestOption.value;
       }
     }
 
@@ -163,6 +201,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (addressInput) {
           addressInput.value = "";
+        }
+
+        if (reportPurokSelect) {
+          reportPurokSelect.value = "";
         }
 
         // Automatically return the map to Barangay Saguing
@@ -191,6 +233,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       getAddressFromCoordinates(lat, lng);
+      selectNearestPurok(lat, lng);
 
       if (locationStatus) {
         locationStatus.textContent = `Location selected: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;

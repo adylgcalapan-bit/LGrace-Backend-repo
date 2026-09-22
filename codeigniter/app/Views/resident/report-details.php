@@ -314,6 +314,21 @@ if (!isset($report)) {
                                         ) ?>"
                                 readonly>
 
+                            <label class="form-label">
+                                Purok of Report Location
+                            </label>
+
+                            <input
+                                type="text"
+                                id="report-purok"
+                                class="form-control mb-3"
+                                value="<?= esc(
+                                            !empty($report['report_purok_name'])
+                                                ? $report['report_purok_name']
+                                                : 'Not specified'
+                                        ) ?>"
+                                readonly>
+
 
                             <div
                                 id="report-map"

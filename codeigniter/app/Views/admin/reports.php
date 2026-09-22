@@ -630,6 +630,11 @@
                                         data-latitude="<?= esc($report['latitude'] ?? '') ?>"
                                         data-longitude="<?= esc($report['longtitude'] ?? '') ?>"
                                         data-address="<?= esc($address) ?>"
+                                        data-purok="<?= esc(
+                                                        !empty($report['report_purok_name'])
+                                                            ? $report['report_purok_name']
+                                                            : 'Not specified'
+                                                    ) ?>"
                                         data-date="<?= esc(format_system_date($report['date_reported'] ?? null)) ?>"
                                         data-status="<?= esc($status) ?>"
                                         data-priority="<?= esc($report['priority'] ?? '') ?>"
@@ -890,6 +895,12 @@
                                         <span id="reportAddress"></span>
                                     </p>
 
+                                    <p>
+                                        <strong>Purok of Report Location:</strong>
+                                        <span id="reportPurok"></span>
+                                    </p>
+
+
 
 
                                     <p>
@@ -976,142 +987,144 @@
 
                 </div>
 
+            </div>
 
-                <!-- ========================================= -->
-                <!-- UPDATE REPORT STATUS MODAL -->
-                <!-- ========================================= -->
 
-                <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+            <!-- ========================================= -->
+            <!-- UPDATE REPORT STATUS MODAL -->
+            <!-- ========================================= -->
 
-                    <div class="modal-dialog modal-dialog-centered">
+            <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
 
-                        <div class="modal-content">
+                <div class="modal-dialog modal-dialog-centered">
 
-                            <form
-                                action="<?= site_url('admin/reports/update-status') ?>"
-                                method="POST">
+                    <div class="modal-content">
 
-                                <?= csrf_field() ?>
+                        <form
+                            action="<?= site_url('admin/reports/update-status') ?>"
+                            method="POST">
 
-                                <div class="modal-header">
+                            <?= csrf_field() ?>
 
-                                    <h5 class="modal-title">
-                                        Update Report
-                                    </h5>
+                            <div class="modal-header">
 
-                                    <button
-                                        type="button"
-                                        class="btn-close"
-                                        data-bs-dismiss="modal"
-                                        aria-label="Close">
-                                    </button>
+                                <h5 class="modal-title">
+                                    Update Report
+                                </h5>
 
-                                </div>
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close">
+                                </button>
 
-                                <div class="modal-body">
+                            </div>
 
-                                    <!-- HIDDEN REPORT ID -->
-                                    <input
-                                        type="hidden"
-                                        id="statusReportId"
-                                        name="report_id">
+                            <div class="modal-body">
 
-                                    <!-- STATUS -->
-                                    <div class="mb-3">
+                                <!-- HIDDEN REPORT ID -->
+                                <input
+                                    type="hidden"
+                                    id="statusReportId"
+                                    name="report_id">
 
-                                        <label
-                                            for="statusSelect"
-                                            class="form-label">
-                                            Status
-                                        </label>
+                                <!-- STATUS -->
+                                <div class="mb-3">
 
-                                        <select
-                                            class="form-select"
-                                            id="statusSelect"
-                                            name="status"
-                                            required>
+                                    <label
+                                        for="statusSelect"
+                                        class="form-label">
+                                        Status
+                                    </label>
 
-                                            <option value="Pending">
-                                                Pending
-                                            </option>
+                                    <select
+                                        class="form-select"
+                                        id="statusSelect"
+                                        name="status"
+                                        required>
 
-                                            <option value="In Progress">
-                                                In Progress
-                                            </option>
+                                        <option value="Pending">
+                                            Pending
+                                        </option>
 
-                                            <option value="Resolved">
-                                                Resolved
-                                            </option>
+                                        <option value="In Progress">
+                                            In Progress
+                                        </option>
 
-                                            <option value="Rejected">
-                                                Rejected
-                                            </option>
+                                        <option value="Resolved">
+                                            Resolved
+                                        </option>
 
-                                        </select>
+                                        <option value="Rejected">
+                                            Rejected
+                                        </option>
 
-                                    </div>
-
-                                    <!-- PRIORITY -->
-                                    <div class="mb-3">
-
-                                        <label
-                                            for="prioritySelect"
-                                            class="form-label">
-                                            Priority
-                                        </label>
-
-                                        <select
-                                            class="form-select"
-                                            id="prioritySelect"
-                                            name="priority"
-                                            required>
-
-                                            <option value="">
-                                                Select Priority
-                                            </option>
-
-                                            <option value="Low">
-                                                Low
-                                            </option>
-
-                                            <option value="Medium">
-                                                Medium
-                                            </option>
-
-                                            <option value="High">
-                                                High
-                                            </option>
-
-                                        </select>
-
-                                    </div>
+                                    </select>
 
                                 </div>
 
-                                <div class="modal-footer">
+                                <!-- PRIORITY -->
+                                <div class="mb-3">
 
-                                    <button
-                                        type="button"
-                                        class="btn btn-secondary"
-                                        data-bs-dismiss="modal">
-                                        Cancel
-                                    </button>
+                                    <label
+                                        for="prioritySelect"
+                                        class="form-label">
+                                        Priority
+                                    </label>
 
-                                    <button
-                                        type="submit"
-                                        class="btn btn-success">
-                                        Save Changes
-                                    </button>
+                                    <select
+                                        class="form-select"
+                                        id="prioritySelect"
+                                        name="priority"
+                                        required>
+
+                                        <option value="">
+                                            Select Priority
+                                        </option>
+
+                                        <option value="Low">
+                                            Low
+                                        </option>
+
+                                        <option value="Medium">
+                                            Medium
+                                        </option>
+
+                                        <option value="High">
+                                            High
+                                        </option>
+
+                                    </select>
 
                                 </div>
 
-                            </form>
+                            </div>
 
-                        </div>
+                            <div class="modal-footer">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-success">
+                                    Save Changes
+                                </button>
+
+                            </div>
+
+                        </form>
 
                     </div>
 
                 </div>
+
+            </div>
 
         </main>
 

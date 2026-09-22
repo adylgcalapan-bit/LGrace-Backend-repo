@@ -529,10 +529,10 @@
         document.addEventListener("DOMContentLoaded", function() {
 
             const SAGUING_BOUNDS = {
-                minLat: 6.965,
-                maxLat: 6.995,
-                minLng: 125.065,
-                maxLng: 125.095
+                minLat: 6.955,
+                maxLat: 7.005,
+                minLng: 125.055,
+                maxLng: 125.105
             };
 
             const saguingLeafletBounds = L.latLngBounds(

@@ -124,6 +124,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const category = row.getAttribute("data-category") || "";
       const location = row.getAttribute("data-location") || "";
       const address = row.getAttribute("data-address") || "";
+      const purok = row.getAttribute("data-purok") || "Not specified";
       const latitude = parseFloat(row.getAttribute("data-latitude"));
 
       const longitude = parseFloat(row.getAttribute("data-longitude"));
@@ -153,6 +154,7 @@ document.addEventListener("DOMContentLoaded", function () {
       reportModal.querySelector("#reportStatus").textContent = status;
       reportModal.querySelector("#reportLocation").textContent = location;
       reportModal.querySelector("#reportAddress").textContent = address;
+      reportModal.querySelector("#reportPurok").textContent = purok;
       reportModal.querySelector("#reportDate").textContent = date;
       reportModal.querySelector("#reportDescription").textContent =
         description || "No description provided.";
@@ -294,12 +296,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (statusSelect) {
         statusSelect.value = currentStatus;
-      }
-
-      if (statusModal) {
-        const modal = bootstrap.Modal.getOrCreateInstance(statusModal);
-
-        modal.show();
       }
     });
   });

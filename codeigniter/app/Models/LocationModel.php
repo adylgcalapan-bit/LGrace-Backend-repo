@@ -18,6 +18,7 @@ class LocationModel extends Model
         'description',
         'incident_date',
         'category_id',
+        'purok_id',
         'latitude',
         'longtitude',
         'address',
