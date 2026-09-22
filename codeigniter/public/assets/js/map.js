@@ -208,8 +208,13 @@ ${escapeHtml(report.address || "No address available")}
 
 <br>
 
-<strong>Report ID:</strong>
-${escapeHtml(report.report_id)}
+<strong>Purok:</strong>
+${escapeHtml(report.report_purok_name || "Not specified")}
+
+<br>
+
+<strong>Report No.:</strong>
+${escapeHtml(report.report_no || "N/A")}
         </div>
       `);
 

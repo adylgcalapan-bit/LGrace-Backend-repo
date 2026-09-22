@@ -246,7 +246,7 @@
 
                             <tr>
 
-                                <th>ID</th>
+                                <th>Report No.</th>
                                 <th>Resident</th>
                                 <th>Category</th>
                                 <th>Location</th>
@@ -278,7 +278,7 @@
                                     <tr>
 
                                         <td>
-                                            #<?= esc($report['report_id']) ?>
+                                            #<?= esc($report['report_no'] ?? 'N/A') ?>
                                         </td>
 
                                         <td>
@@ -357,7 +357,7 @@
 
                             <li>
                                 âœ” Report
-                                <strong>#<?= esc($report['report_id']) ?></strong>
+                                <strong>#<?= esc($report['report_no'] ?? 'N/A') ?></strong>
                                 by
                                 <strong><?= esc($report['display_resident_name'] ?? 'Unknown Resident') ?></strong>
                                 is currently
@@ -472,7 +472,7 @@
 
                 const title = document.createElement("strong");
                 title.textContent =
-                    "#" + report.report_id + " - " +
+                    "#" + (report.report_no ?? "N/A") + " - " +
                     (report.title || "Untitled Report");
 
                 const category = document.createElement("p");

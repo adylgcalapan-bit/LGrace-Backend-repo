@@ -581,6 +581,64 @@
                                 </div>
 
 
+                                <!-- PUROK OF REPORT LOCATION -->
+                                <div class="mt-3">
+
+                                    <label
+                                        for="reportPurok"
+                                        class="form-label">
+
+                                        Purok of Report Location
+
+                                    </label>
+
+                                    <?php
+                                    $selectedReportPurokId = (string) old(
+                                        'purok_id',
+                                        $report['purok_id'] ?? ''
+                                    );
+                                    ?>
+
+                                    <select
+                                        class="form-select"
+                                        id="reportPurok"
+                                        name="purok_id"
+                                        required>
+
+                                        <option
+                                            value=""
+                                            disabled
+                                            <?= $selectedReportPurokId === '' ? 'selected' : '' ?>>
+
+                                            Pin a location to identify the Purok
+
+                                        </option>
+
+                                        <?php foreach (($puroks ?? []) as $purok): ?>
+
+                                            <option
+                                                value="<?= (int) $purok['purok_id'] ?>"
+                                                data-latitude="<?= esc($purok['latitude']) ?>"
+                                                data-longitude="<?= esc($purok['longitude']) ?>"
+                                                <?= $selectedReportPurokId === (string) $purok['purok_id']
+                                                    ? 'selected'
+                                                    : '' ?>>
+
+                                                <?= esc($purok['purok_name']) ?>
+
+                                            </option>
+
+                                        <?php endforeach; ?>
+
+                                    </select>
+
+                                    <small class="text-muted">
+                                        This is the Purok where the reported problem is located, not the resident's home Purok.
+                                    </small>
+
+                                </div>
+
+
                                 <!-- FORM BUTTONS -->
                                 <div class="col-12 text-end mt-3">
 

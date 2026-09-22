@@ -65,9 +65,14 @@ class DashboardController extends BaseController
             ->getResultArray();
 
 
-
+        $reportNumberMap = $this->getReportNumberMap($db);
 
         foreach ($recentReports as &$report) {
+
+            $reportId = (int) ($report['report_id'] ?? 0);
+
+            $report['report_no'] =
+                $reportNumberMap[$reportId] ?? null;
 
             $isAnonymous =
                 (int) ($report['is_anonymous'] ?? 0) === 1;
@@ -116,8 +121,9 @@ class DashboardController extends BaseController
 
         $mapReports = $db->table('reports r')
             ->select('
-        r.report_id,
-        r.title,
+       r.report_id,
+
+r.title,
         r.latitude,
         r.longtitude,
         r.address,
@@ -134,7 +140,15 @@ class DashboardController extends BaseController
             ->get()
             ->getResultArray();
 
+        foreach ($mapReports as &$mapReport) {
 
+            $reportId = (int) ($mapReport['report_id'] ?? 0);
+
+            $mapReport['report_no'] =
+                $reportNumberMap[$reportId] ?? null;
+        }
+
+        unset($mapReport);
 
         return view('admin/dashboard', [
             'settings' => $settings,
@@ -233,8 +247,8 @@ class DashboardController extends BaseController
 
         $recentReports = $db->table('reports r')
             ->select('
-            r.report_id,
-            r.title,
+          r.report_id,
+r.title,
             r.status,
             r.date_reported,
             c.category_name
@@ -1387,11 +1401,23 @@ class DashboardController extends BaseController
             ->get()
             ->getResultArray();
 
+        // Puroks with configured map locations.
+        // These are used to identify the Purok of the REPORT LOCATION,
+        // not the resident's home Purok.
+        $puroks = $db->table('puroks')
+            ->select('purok_id, purok_name, latitude, longitude')
+            ->where('is_active', 1)
+            ->where('latitude IS NOT NULL', null, false)
+            ->where('longitude IS NOT NULL', null, false)
+            ->orderBy('purok_name', 'ASC')
+            ->get()
+            ->getResultArray();
+
         return view('resident/report', [
-            'categories' => $categories
+            'categories' => $categories,
+            'puroks'     => $puroks,
         ]);
     }
-
     // =========================
     // RESIDENT - MY REPORTS
     // =========================
@@ -2488,12 +2514,19 @@ class DashboardController extends BaseController
         // Get resident's report
         $report = $db->table('reports')
             ->select('
-            reports.*,
-            categories.category_name
-        ')
+    reports.*,
+    categories.category_name,
+    puroks.purok_name AS report_purok_name
+')
             ->join(
                 'categories',
                 'categories.category_id = reports.category_id',
+                'left'
+            )
+
+            ->join(
+                'puroks',
+                'puroks.purok_id = reports.purok_id',
                 'left'
             )
             ->where('reports.report_id', $reportId)
@@ -2656,8 +2689,9 @@ class DashboardController extends BaseController
         // =========================
         $builder = $db->table('reports')
             ->select('
-    reports.*,
-    category.category_name,
+   reports.*,
+category.category_name,
+puroks.purok_name AS report_purok_name,
     (
         SELECT images.image_path
         FROM images
@@ -2670,6 +2704,12 @@ class DashboardController extends BaseController
             ->join(
                 'categories category',
                 'category.category_id = reports.category_id',
+                'left'
+            )
+
+            ->join(
+                'puroks',
+                'puroks.purok_id = reports.purok_id',
                 'left'
             )
 
@@ -4425,8 +4465,9 @@ class DashboardController extends BaseController
         reports.category_id,
         reports.latitude,
         reports.longtitude AS longitude,
-        reports.address,
-        reports.status,
+       reports.address,
+puroks.purok_name AS report_purok_name,
+reports.status,
         reports.resolved_at,
         category.category_name,
         image.image_path
@@ -4434,6 +4475,12 @@ class DashboardController extends BaseController
             ->join(
                 'categories category',
                 'category.category_id = reports.category_id',
+                'left'
+            )
+
+            ->join(
+                'puroks',
+                'puroks.purok_id = reports.purok_id',
                 'left'
             )
             ->join(

@@ -359,9 +359,43 @@
                                     readonly>
                             </div>
 
-                            <div class="col-12 text-end">
+                            <div class="mt-3">
+                                <label for="reportPurok" class="form-label">
+                                    Purok of Report Location
+                                </label>
 
-                                <div id="formSuccess" class="form-feedback success-feedback" role="status"></div>
+                                <select
+                                    class="form-select"
+                                    id="reportPurok"
+                                    name="purok_id"
+                                    required>
+
+                                    <option value="" selected disabled>
+                                        Pin a location to identify the Purok
+                                    </option>
+
+                                    <?php foreach (($puroks ?? []) as $purok): ?>
+                                        <option
+                                            value="<?= (int) $purok['purok_id'] ?>"
+                                            data-latitude="<?= esc($purok['latitude']) ?>"
+                                            data-longitude="<?= esc($purok['longitude']) ?>">
+                                            <?= esc($purok['purok_name']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+
+                                </select>
+
+                                <small class="text-muted">
+                                    This is the Purok where the reported problem is located, not the resident's home Purok.
+                                </small>
+                            </div>
+
+                            <div class="col-12 text-end mt-4">
+
+                                <div id="formSuccess"
+                                    class="form-feedback success-feedback"
+                                    role="status">
+                                </div>
 
                                 <button type="reset"
                                     class="btn btn-secondary">
@@ -386,7 +420,6 @@
                         </div>
 
                     </form>
-
                 </div>
 
             </div>

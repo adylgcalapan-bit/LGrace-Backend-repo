@@ -29,6 +29,7 @@ class ReportController extends BaseController
 
         $title = trim((string) $this->request->getPost('title'));
         $categoryId = (int) $this->request->getPost('category_id');
+        $purokId = (int) $this->request->getPost('purok_id');
         $description = trim((string) $this->request->getPost('description'));
         $incidentDate = trim(
             (string) $this->request->getPost('incident_date')
@@ -45,6 +46,7 @@ class ReportController extends BaseController
         if (
             $title === '' ||
             $categoryId <= 0 ||
+            $purokId <= 0 ||
             $description === '' ||
             $latitude === '' ||
             $longitude === '' ||
@@ -100,10 +102,10 @@ class ReportController extends BaseController
         $longitudeValue = (float) $longitude;
 
         $isInsideSaguing =
-            $latitudeValue >= 6.965 &&
-            $latitudeValue <= 6.995 &&
-            $longitudeValue >= 125.065 &&
-            $longitudeValue <= 125.095;
+            $latitudeValue >= 6.955 &&
+            $latitudeValue <= 7.005 &&
+            $longitudeValue >= 125.055 &&
+            $longitudeValue <= 125.105;
 
         if (!$isInsideSaguing) {
             return redirect()->back()
@@ -133,6 +135,28 @@ class ReportController extends BaseController
                 ->with(
                     'error',
                     'Invalid category selected.'
+                );
+        }
+
+        // =====================================
+        // Validate Purok of report location
+        // =====================================
+
+        $purok = $db->table('puroks')
+            ->select('purok_id')
+            ->where('purok_id', $purokId)
+            ->where('is_active', 1)
+            ->where('latitude IS NOT NULL', null, false)
+            ->where('longitude IS NOT NULL', null, false)
+            ->get()
+            ->getRowArray();
+
+        if (!$purok) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Please select a valid Purok for the report location.'
                 );
         }
 
@@ -249,6 +273,7 @@ class ReportController extends BaseController
                     'user_id'      => $userId,
                     'title'        => $title,
                     'category_id'  => $categoryId,
+                    'purok_id'     => $purokId,
                     'description'  => $description,
                     'incident_date' => $incidentDate,
                     'latitude'     => number_format(
@@ -314,6 +339,7 @@ class ReportController extends BaseController
             'description' => $description,
             'incident_date' => $incidentDate,
             'category_id' => $categoryId,
+            'purok_id' => $purokId,
             'latitude' => $latitude,
             'longtitude' => $longitude,
             'address' => $address !== '' ? $address : null,
@@ -850,6 +876,17 @@ class ReportController extends BaseController
             ->get()
             ->getResultArray();
 
+        // Get Puroks with configured map locations.
+        // This is for the REPORT location, not the resident's home Purok.
+        $puroks = $db->table('puroks')
+            ->select('purok_id, purok_name, latitude, longitude')
+            ->where('is_active', 1)
+            ->where('latitude IS NOT NULL', null, false)
+            ->where('longitude IS NOT NULL', null, false)
+            ->orderBy('purok_name', 'ASC')
+            ->get()
+            ->getResultArray();
+
         // Get all current photos
         $images = $db->table('images')
             ->select('image_id, image_path')
@@ -861,6 +898,7 @@ class ReportController extends BaseController
         return view('resident/edit-report', [
             'report'     => $report,
             'categories' => $categories,
+            'puroks'     => $puroks,
             'images'     => $images,
         ]);
     }
@@ -908,6 +946,9 @@ class ReportController extends BaseController
         $categoryId =
             (int) $this->request->getPost('category_id');
 
+        $purokId =
+            (int) $this->request->getPost('purok_id');
+
         $incidentDate = trim(
             (string) $this->request->getPost('incident_date')
         );
@@ -935,6 +976,7 @@ class ReportController extends BaseController
             $title === '' ||
             $description === '' ||
             $categoryId <= 0 ||
+            $purokId <= 0 ||
             !is_numeric($latitude) ||
             !is_numeric($longitude)
         ) {
@@ -991,10 +1033,10 @@ class ReportController extends BaseController
         $longitudeValue = (float) $longitude;
 
         $isInsideSaguing =
-            $latitudeValue >= 6.965 &&
-            $latitudeValue <= 6.995 &&
-            $longitudeValue >= 125.065 &&
-            $longitudeValue <= 125.095;
+            $latitudeValue >= 6.955 &&
+            $latitudeValue <= 7.005 &&
+            $longitudeValue >= 125.055 &&
+            $longitudeValue <= 125.105;
 
         if (!$isInsideSaguing) {
             return redirect()->back()
@@ -1015,6 +1057,28 @@ class ReportController extends BaseController
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Invalid category selected.');
+        }
+
+        // =====================================
+        // Validate Purok of report location
+        // =====================================
+
+        $purok = $db->table('puroks')
+            ->select('purok_id')
+            ->where('purok_id', $purokId)
+            ->where('is_active', 1)
+            ->where('latitude IS NOT NULL', null, false)
+            ->where('longitude IS NOT NULL', null, false)
+            ->get()
+            ->getRowArray();
+
+        if (!$purok) {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Please select a valid Purok for the report location.'
+                );
         }
 
         // Optional replacement photo
@@ -1118,6 +1182,8 @@ class ReportController extends BaseController
                 'incident_date' => $incidentDate,
 
                 'category_id' => $categoryId,
+
+                'purok_id' => $purokId,
 
                 'latitude' => $latitude,
 
@@ -1362,6 +1428,8 @@ class ReportController extends BaseController
                 'incident_date' => $incidentDate,
 
                 'category_id' => $categoryId,
+
+                'purok_id' => $purokId,
 
                 'latitude' => $latitude,
 
