@@ -268,6 +268,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const statusModal = document.getElementById("statusModal");
 
+  if (statusModal && statusModal.parentElement !== document.body) {
+    document.body.appendChild(statusModal);
+  }
+
   const statusReportId = document.getElementById("statusReportId");
 
   const statusSelect = document.getElementById("statusSelect");

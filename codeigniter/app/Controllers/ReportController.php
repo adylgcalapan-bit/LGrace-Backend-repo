@@ -1486,30 +1486,11 @@ class ReportController extends BaseController
 
     private function getNextAvailableReportNo($db): int
     {
-        $rows = $db->table('reports')
-            ->select('report_no')
-            ->where('report_no IS NOT NULL', null, false)
-            ->orderBy('report_no', 'ASC')
+        $row = $db->table('reports')
+            ->selectMax('report_no', 'max_report_no')
             ->get()
-            ->getResultArray();
+            ->getRowArray();
 
-        $nextNumber = 1;
-
-        foreach ($rows as $row) {
-            $currentNumber =
-                (int) ($row['report_no'] ?? 0);
-
-            if ($currentNumber < $nextNumber) {
-                continue;
-            }
-
-            if ($currentNumber > $nextNumber) {
-                break;
-            }
-
-            $nextNumber++;
-        }
-
-        return $nextNumber;
+        return ((int) ($row['max_report_no'] ?? 0)) + 1;
     }
 }

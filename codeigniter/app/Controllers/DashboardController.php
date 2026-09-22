@@ -2682,7 +2682,7 @@ class DashboardController extends BaseController
         $applyFilters($builder);
 
         $builder->orderBy(
-            'reports.date_reported',
+            'reports.report_no',
             $sort === 'oldest' ? 'ASC' : 'DESC'
         );
 
