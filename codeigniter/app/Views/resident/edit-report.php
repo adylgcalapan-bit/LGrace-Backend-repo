@@ -320,6 +320,9 @@
 
                                 $editYesterday = (clone $editToday)
                                     ->modify('-1 day');
+
+                                $originalIncidentDate =
+                                    $report['incident_date'] ?? '';
                                 ?>
 
                                 <input
@@ -330,12 +333,15 @@
                                     value="<?= esc(
                                                 old(
                                                     'incident_date',
-                                                    $report['incident_date'] ?? ''
+                                                    $originalIncidentDate
                                                 )
                                             ) ?>"
-                                    min="<?= $editYesterday->format('Y-m-d') ?>"
                                     max="<?= $editToday->format('Y-m-d') ?>"
+                                    data-original-date="<?= esc($originalIncidentDate) ?>"
+                                    data-yesterday="<?= $editYesterday->format('Y-m-d') ?>"
+                                    data-today="<?= $editToday->format('Y-m-d') ?>"
                                     required>
+
                             </div>
 
                             <!-- PHOTO -->

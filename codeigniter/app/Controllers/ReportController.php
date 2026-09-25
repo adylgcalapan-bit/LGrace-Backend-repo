@@ -1030,13 +1030,29 @@ class ReportController extends BaseController
             $manilaTimezone
         );
 
-        if ($incidentDateObject > $today) {
+        $yesterday = (clone $today)
+            ->modify('-1 day');
+
+        $originalIncidentDate = trim(
+            (string) ($report['incident_date'] ?? '')
+        );
+
+        $allowedIncidentDates = [
+            $yesterday->format('Y-m-d'),
+            $today->format('Y-m-d'),
+        ];
+
+        if ($originalIncidentDate !== '') {
+            $allowedIncidentDates[] = $originalIncidentDate;
+        }
+
+        if (!in_array($incidentDate, $allowedIncidentDates, true)) {
 
             return redirect()->back()
                 ->withInput()
                 ->with(
                     'error',
-                    'The date of incident cannot be in the future.'
+                    'You may keep the original report date or change it to today or yesterday only.'
                 );
         }
 
