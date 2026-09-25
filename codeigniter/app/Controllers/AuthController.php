@@ -1103,8 +1103,18 @@ class AuthController extends BaseController
     {
         $userModel = new UserModel();
 
-        $fullName = trim((string) $this->request->getPost('fullName'));
+        $firstName = trim((string) $this->request->getPost('first_name'));
+        $middleName = trim((string) $this->request->getPost('middle_name'));
+        $lastName = trim((string) $this->request->getPost('last_name'));
+
+        $fullName = trim(
+            $firstName
+                . ($middleName !== '' ? ' ' . $middleName : '')
+                . ' ' . $lastName
+        );
+
         $email = trim((string) $this->request->getPost('email'));
+
         $mobileNumber = trim((string) $this->request->getPost('mobileNumber'));
         $username = trim((string) $this->request->getPost('registerUsername'));
         $address = trim((string) $this->request->getPost('address'));
@@ -1113,7 +1123,9 @@ class AuthController extends BaseController
         $confirmPassword = (string) $this->request->getPost('confirmPassword');
 
         if (
-            $fullName === '' ||
+            $firstName === '' ||
+            $lastName === '' ||
+            $email === '' ||
             $email === '' ||
             $username === '' ||
             $purokId <= 0 ||
@@ -1292,7 +1304,11 @@ class AuthController extends BaseController
             : date('Y-m-d H:i:s');
 
         $inserted = $userModel->insert([
+            'resident_no'       => $residentNo,
             'full_name'         => $fullName,
+            'first_name'        => $firstName,
+            'middle_name'       => $middleName !== '' ? $middleName : null,
+            'last_name'         => $lastName,
             'email'             => $normalizedEmail,
             'mobile_number'     => $mobileNumber !== ''
                 ? $mobileNumber

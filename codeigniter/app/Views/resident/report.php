@@ -236,12 +236,25 @@
 
                                 </label>
 
-                                <input type="date"
+                                <?php
+                                $manilaToday = new \DateTime(
+                                    'today',
+                                    new \DateTimeZone('Asia/Manila')
+                                );
+
+                                $manilaYesterday = (clone $manilaToday)
+                                    ->modify('-1 day');
+                                ?>
+
+                                <input
+                                    type="date"
                                     class="form-control"
                                     id="incidentDate"
                                     name="incident_date"
-                                    max="<?= date('Y-m-d') ?>"
+                                    min="<?= $manilaYesterday->format('Y-m-d') ?>"
+                                    max="<?= $manilaToday->format('Y-m-d') ?>"
                                     required>
+
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -367,20 +380,23 @@
                                 <select
                                     class="form-select"
                                     id="reportPurok"
-                                    name="purok_id"
-                                    required>
+                                    name="purok_id">
 
-                                    <option value="" selected disabled>
-                                        Pin a location to identify the Purok
+                                    <option value="" selected>
+                                        -
                                     </option>
 
                                     <?php foreach (($puroks ?? []) as $purok): ?>
+
                                         <option
                                             value="<?= (int) $purok['purok_id'] ?>"
                                             data-latitude="<?= esc($purok['latitude']) ?>"
                                             data-longitude="<?= esc($purok['longitude']) ?>">
+
                                             <?= esc($purok['purok_name']) ?>
+
                                         </option>
+
                                     <?php endforeach; ?>
 
                                 </select>

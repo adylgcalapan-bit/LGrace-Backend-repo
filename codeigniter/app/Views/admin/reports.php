@@ -16,10 +16,13 @@
     <!-- Report CSS -->
     <link rel="stylesheet" href="<?= base_url('assets/css/report A.css') ?>">
 
+    <!-- IMPORTANT: same admin layout CSS used by other admin pages -->
+    <link rel="stylesheet" href="<?= base_url('assets/css/dashboard-admin.css') ?>">
+
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-theme.css') ?>">
 
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-theme.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css') ?>">
 </head>
 
@@ -185,7 +188,7 @@
                                     id="reportSearch"
                                     name="search"
                                     value="<?= esc($filters['search'] ?? '') ?>"
-                                    placeholder="Report ID, title, category, or location">
+                                    placeholder="Report No., title, category, or location">
 
                             </div>
 
@@ -389,6 +392,8 @@
 
                             </div>
 
+
+
                         </div>
 
                     </div>
@@ -396,6 +401,8 @@
 
                     <!-- ROW 2 -->
                     <div class="row g-3 align-items-end">
+
+
 
                         <!-- FROM DATE -->
                         <div class="col-lg-3">
@@ -502,7 +509,91 @@
 
                         </div>
 
+                        <!-- PRIORITY -->
+                        <div class="col-lg-3">
 
+                            <label class="form-label fw-medium">
+                                Priority
+                            </label>
+
+                            <?php
+                            $currentPriority =
+                                (string) ($filters['priority'] ?? 'all');
+
+                            $priorityLabels = [
+                                'all' => 'All Priorities',
+                                'Low' => 'Low',
+                                'Medium' => 'Medium',
+                                'High' => 'High',
+                            ];
+
+                            $currentPriorityLabel =
+                                $priorityLabels[$currentPriority] ?? 'All Priorities';
+                            ?>
+
+                            <input
+                                type="hidden"
+                                id="reportPriorityFilter"
+                                name="priority"
+                                value="<?= esc($currentPriority) ?>">
+
+                            <div class="dropdown report-filter-dropdown">
+
+                                <button
+                                    class="btn report-filter-dropdown-btn dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+
+                                    <span id="reportPriorityLabel">
+                                        <?= esc($currentPriorityLabel) ?>
+                                    </span>
+
+                                </button>
+
+                                <ul class="dropdown-menu report-filter-menu">
+
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item report-priority-option"
+                                            data-value="all">
+                                            All Priorities
+                                        </button>
+                                    </li>
+
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item report-priority-option"
+                                            data-value="Low">
+                                            Low
+                                        </button>
+                                    </li>
+
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item report-priority-option"
+                                            data-value="Medium">
+                                            Medium
+                                        </button>
+                                    </li>
+
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item report-priority-option"
+                                            data-value="High">
+                                            High
+                                        </button>
+                                    </li>
+
+                                </ul>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
@@ -552,27 +643,44 @@
                                     $isAnonymous =
                                         (int) ($report['is_anonymous'] ?? 0) === 1;
 
-                                    $realResidentName = trim(
-                                        (string) ($report['full_name'] ?? 'Unknown Resident')
-                                    );
+                                    $activeResidentName =
+                                        trim((string) ($report['full_name'] ?? ''));
+
+                                    $historicalResidentName =
+                                        trim((string) ($report['reporter_name_snapshot'] ?? ''));
+
+                                    $residentNo =
+                                        (int) ($report['resident_no'] ?? 0);
+
+                                    $isDeletedAccount =
+                                        $residentNo <= 0 &&
+                                        $historicalResidentName !== '';
+
+                                    $realResidentName =
+                                        $activeResidentName !== ''
+                                        ? $activeResidentName
+                                        : (
+                                            $historicalResidentName !== ''
+                                            ? $historicalResidentName
+                                            : 'Unknown Resident'
+                                        );
 
                                     $displayResidentName = $realResidentName;
 
-                                    $userId = (int) ($report['user_id'] ?? 0);
-
                                     if ($isAnonymous) {
                                         $displayResidentId = 'R-***';
+                                    } elseif ($isDeletedAccount) {
+                                        $displayResidentId = 'Deleted Account';
                                     } else {
-                                        $displayResidentId = $userId > 0
+                                        $displayResidentId = $residentNo > 0
                                             ? 'R-' . str_pad(
-                                                (string) $userId,
+                                                (string) $residentNo,
                                                 3,
                                                 '0',
                                                 STR_PAD_LEFT
                                             )
-                                            : 'Unknown';
+                                            : 'N/A';
                                     }
-
                                     if (
                                         $isAnonymous &&
                                         $realResidentName !== 'Unknown Resident'
@@ -598,6 +706,11 @@
 
                                         $displayResidentName =
                                             implode(' ', $maskedParts);
+                                    }
+
+                                    if ($isDeletedAccount) {
+                                        $displayResidentName .=
+                                            ' (Deleted Account)';
                                     }
 
                                     $badgeClass = match ($status) {
@@ -635,7 +748,7 @@
                                                             ? $report['report_purok_name']
                                                             : 'Not specified'
                                                     ) ?>"
-                                        data-date="<?= esc(format_system_date($report['date_reported'] ?? null)) ?>"
+                                        data-date="<?= esc(format_system_date($report['incident_date'] ?? null)) ?>"
                                         data-status="<?= esc($status) ?>"
                                         data-priority="<?= esc($report['priority'] ?? '') ?>"
                                         data-description="<?= esc($report['description'] ?? '') ?>"
@@ -665,7 +778,7 @@
 
                                         <!-- Date Reported -->
                                         <td>
-                                            <?= esc(format_system_date($report['date_reported'] ?? null)) ?>
+                                            <?= esc(format_system_date($report['incident_date'] ?? null)) ?>
                                         </td>
 
                                         <!-- Status -->
@@ -861,7 +974,7 @@
                                     </p>
 
                                     <p>
-                                        <strong>Resident ID:</strong>
+                                        <strong>Resident No.:</strong>
                                         <span id="reportResidentId"></span>
                                     </p>
 

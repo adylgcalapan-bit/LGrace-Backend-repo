@@ -216,44 +216,90 @@
 
 
                         <!-- =========================================
-                             FULL NAME + EMAIL
-                        ========================================== -->
+     RESIDENT NAME
+========================================== -->
                         <div class="row">
 
-                            <div class="col-md-6 mb-3">
-
-                                <label
-                                    class="form-label"
-                                    for="fullName">
-
-                                    Full Name
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label" for="firstName">
+                                    First Name
                                     <span class="required">*</span>
-
                                 </label>
 
                                 <div class="field-group">
-
                                     <input
-                                        id="fullName"
-                                        name="fullName"
+                                        id="firstName"
+                                        name="first_name"
                                         type="text"
                                         class="form-control"
-                                        placeholder="Enter full name"
-                                        value="<?= esc(old('fullName')) ?>"
-                                        autocomplete="name"
+                                        placeholder="First name"
+                                        value="<?= esc(old('first_name')) ?>"
+                                        autocomplete="given-name"
                                         required>
 
                                     <div
                                         class="error-text"
-                                        id="fullNameError">
+                                        id="firstNameError">
                                     </div>
-
                                 </div>
-
                             </div>
 
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label" for="middleName">
+                                    Middle Name
+                                </label>
 
-                            <div class="col-md-6 mb-3">
+                                <div class="field-group">
+                                    <input
+                                        id="middleName"
+                                        name="middle_name"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Middle name"
+                                        value="<?= esc(old('middle_name')) ?>"
+                                        autocomplete="additional-name">
+
+                                    <div
+                                        class="error-text"
+                                        id="middleNameError">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label" for="lastName">
+                                    Last Name
+                                    <span class="required">*</span>
+                                </label>
+
+                                <div class="field-group">
+                                    <input
+                                        id="lastName"
+                                        name="last_name"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Last name"
+                                        value="<?= esc(old('last_name')) ?>"
+                                        autocomplete="family-name"
+                                        required>
+
+                                    <div
+                                        class="error-text"
+                                        id="lastNameError">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <!-- =========================================
+     EMAIL + EMAIL VERIFICATION
+========================================== -->
+                        <div class="row g-3">
+
+                            <!-- EMAIL -->
+                            <div class="col-12 col-lg-6 mb-3">
 
                                 <label
                                     class="form-label"
@@ -285,8 +331,77 @@
 
                             </div>
 
-                        </div>
 
+                            <!-- SEND VERIFICATION CODE -->
+                            <div class="col-12 col-lg-6 mb-3">
+
+                                <!-- Keeps Send Code aligned with the Email input on desktop -->
+                                <label
+                                    class="form-label invisible d-none d-lg-block"
+                                    aria-hidden="true">
+                                    Email Verification
+                                </label>
+
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+
+                                    <button
+                                        type="button"
+                                        id="sendVerificationCodeBtn"
+                                        class="btn btn-outline-success">
+                                        Send Code
+                                    </button>
+
+                                    <span
+                                        id="emailVerificationStatus"
+                                        class="align-self-center small text-muted">
+                                        Email not verified
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- VERIFICATION CODE -->
+                            <div
+                                id="verificationCodeSection"
+                                class="col-12 mb-3"
+                                style="display: none;">
+
+                                <label
+                                    for="verificationCode"
+                                    class="form-label">
+                                    Verification Code
+                                </label>
+
+                                <div class="d-flex gap-2">
+
+                                    <input
+                                        type="text"
+                                        id="verificationCode"
+                                        class="form-control"
+                                        maxlength="6"
+                                        inputmode="numeric"
+                                        autocomplete="one-time-code"
+                                        placeholder="Enter 6-digit code">
+
+                                    <button
+                                        type="button"
+                                        id="verifyEmailCodeBtn"
+                                        class="btn btn-success">
+                                        Verify
+                                    </button>
+
+                                </div>
+
+                                <div
+                                    id="verificationCodeMessage"
+                                    class="small mt-2">
+                                </div>
+
+                            </div>
+
+                        </div>
 
                         <!-- =========================================
                              MOBILE + USERNAME
@@ -431,57 +546,7 @@
 
                             </div>
 
-                            <div class="mt-2">
-                                <div class="d-flex gap-2">
-                                    <button
-                                        type="button"
-                                        id="sendVerificationCodeBtn"
-                                        class="btn btn-outline-success">
-                                        Send Code
-                                    </button>
 
-                                    <span
-                                        id="emailVerificationStatus"
-                                        class="align-self-center small text-muted">
-                                        Email not verified
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div
-                                id="verificationCodeSection"
-                                class="mt-3"
-                                style="display: none;">
-
-                                <label
-                                    for="verificationCode"
-                                    class="form-label">
-                                    Verification Code
-                                </label>
-
-                                <div class="d-flex gap-2">
-                                    <input
-                                        type="text"
-                                        id="verificationCode"
-                                        class="form-control"
-                                        maxlength="6"
-                                        inputmode="numeric"
-                                        autocomplete="one-time-code"
-                                        placeholder="Enter 6-digit code">
-
-                                    <button
-                                        type="button"
-                                        id="verifyEmailCodeBtn"
-                                        class="btn btn-success">
-                                        Verify
-                                    </button>
-                                </div>
-
-                                <div
-                                    id="verificationCodeMessage"
-                                    class="small mt-2">
-                                </div>
-                            </div>
 
                         </div>
 

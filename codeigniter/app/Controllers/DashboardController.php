@@ -50,6 +50,8 @@ class DashboardController extends BaseController
         $recentReports = $db->table('reports r')
             ->select('
         r.report_id,
+        r.user_id,
+        r.reporter_name_snapshot,
         r.is_anonymous,
         r.address,
         r.status,
@@ -77,11 +79,34 @@ class DashboardController extends BaseController
             $isAnonymous =
                 (int) ($report['is_anonymous'] ?? 0) === 1;
 
-            $realResidentName = trim(
-                (string) ($report['full_name'] ?? 'Unknown Resident')
-            );
+            $activeResidentName =
+                trim((string) ($report['full_name'] ?? ''));
 
-            $displayResidentName = $realResidentName;
+            $historicalResidentName =
+                trim(
+                    (string) (
+                        $report['reporter_name_snapshot'] ?? ''
+                    )
+                );
+
+            $userId =
+                (int) ($report['user_id'] ?? 0);
+
+            $isDeletedAccount =
+                $userId <= 0 &&
+                $historicalResidentName !== '';
+
+            $realResidentName =
+                $activeResidentName !== ''
+                ? $activeResidentName
+                : (
+                    $historicalResidentName !== ''
+                    ? $historicalResidentName
+                    : 'Unknown Resident'
+                );
+
+            $displayResidentName =
+                $realResidentName;
 
             if (
                 $isAnonymous &&
@@ -107,10 +132,13 @@ class DashboardController extends BaseController
                     $nameParts
                 );
 
-                $displayResidentName = implode(
-                    ' ',
-                    $maskedParts
-                );
+                $displayResidentName =
+                    implode(' ', $maskedParts);
+            }
+
+            if ($isDeletedAccount) {
+                $displayResidentName .=
+                    ' (Deleted Account)';
             }
 
             $report['display_resident_name'] =
@@ -193,17 +221,21 @@ r.title,
 
         $resident = $db->table('users')
             ->select('
-    user_id,
-    full_name,
-    email,
-    mobile_number,
-    username,
-    address,
-    profile_image,
-    is_active,
-    email_verified_at,
-    created_at
-')
+        user_id,
+        resident_no,
+        full_name,
+        first_name,
+        middle_name,
+        last_name,
+        email,
+        mobile_number,
+        username,
+        address,
+        profile_image,
+        is_active,
+        email_verified_at,
+        created_at
+    ')
             ->where('user_id', $userId)
             ->where('role', 'resident')
             ->get()
@@ -309,7 +341,10 @@ r.title,
                 'resident_no' => $residentNo,
                 'full_name' => $resident['full_name'],
 
-                'full_name' => $resident['full_name'],
+                'first_name' => $resident['first_name'] ?? null,
+                'middle_name' => $resident['middle_name'] ?? null,
+                'last_name' => $resident['last_name'] ?? null,
+
                 'username' => $resident['username'],
                 'email' => $resident['email'],
                 'mobile_number' => $resident['mobile_number'],
@@ -444,8 +479,22 @@ r.title,
         $db = \Config\Database::connect();
         $userModel = new \App\Models\UserModel();
 
+        $firstName = trim(
+            (string) $this->request->getPost('first_name')
+        );
+
+        $middleName = trim(
+            (string) $this->request->getPost('middle_name')
+        );
+
+        $lastName = trim(
+            (string) $this->request->getPost('last_name')
+        );
+
         $fullName = trim(
-            (string) $this->request->getPost('full_name')
+            $firstName
+                . ($middleName !== '' ? ' ' . $middleName : '')
+                . ' ' . $lastName
         );
 
         $email = trim(
@@ -473,7 +522,8 @@ r.title,
         // REQUIRED FIELDS
         // =========================
         if (
-            $fullName === '' ||
+            $firstName === '' ||
+            $lastName === '' ||
             $email === '' ||
 
             $purokId <= 0 ||
@@ -653,6 +703,9 @@ r.title,
         $residentId = $userModel->insert([
             'resident_no'       => $residentNo,
             'full_name'         => $fullName,
+            'first_name'        => $firstName,
+            'middle_name'       => $middleName !== '' ? $middleName : null,
+            'last_name'         => $lastName,
             'email'             => $normalizedEmail,
             'mobile_number'     => $mobileNumber !== ''
                 ? $mobileNumber
@@ -2151,7 +2204,16 @@ r.title,
                 ->with('error', 'Resident account not found.');
         }
 
-        $fullName = trim((string) $this->request->getPost('full_name'));
+        $firstName = trim((string) $this->request->getPost('first_name'));
+        $middleName = trim((string) $this->request->getPost('middle_name'));
+        $lastName = trim((string) $this->request->getPost('last_name'));
+
+        $fullName = trim(
+            $firstName
+                . ($middleName !== '' ? ' ' . $middleName : '')
+                . ' ' . $lastName
+        );
+
         $username = trim((string) $this->request->getPost('username'));
         $email = trim((string) $this->request->getPost('email'));
         $mobileNumber = trim((string) $this->request->getPost('mobile_number'));
@@ -2162,10 +2224,13 @@ r.title,
         $newPassword = (string) $this->request->getPost('new_password');
         $confirmPassword = (string) $this->request->getPost('confirm_password');
 
-        if ($fullName === '' || $email === '') {
+        if ($firstName === '' || $lastName === '' || $email === '') {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Full name and email are required.');
+                ->with(
+                    'error',
+                    'First name, last name, and email are required.'
+                );
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -2281,6 +2346,9 @@ r.title,
 
         $updateData = [
             'full_name'     => $fullName,
+            'first_name'    => $firstName,
+            'middle_name'   => $middleName !== '' ? $middleName : null,
+            'last_name'     => $lastName,
             'username'      => $username,
             'email'         => $email,
             'mobile_number' => $mobileNumber !== '' ? $mobileNumber : null,
@@ -2574,6 +2642,7 @@ r.title,
         $search = trim((string) $this->request->getGet('search'));
         $categoryId = (int) $this->request->getGet('category');
         $status = trim((string) $this->request->getGet('status'));
+        $priority = trim((string) $this->request->getGet('priority'));
         $fromDate = trim((string) $this->request->getGet('from_date'));
         $toDate = trim((string) $this->request->getGet('to_date'));
         $sort = strtolower(trim((string) $this->request->getGet('sort')));
@@ -2597,31 +2666,42 @@ r.title,
             $search,
             $categoryId,
             $status,
+            $priority,
             $fromDate,
             $toDate
         ) {
             if ($search !== '') {
-                $builder->groupStart()
-                    ->like('reports.title', $search)
-                    ->orLike('reports.description', $search)
-                    ->orLike('reports.address', $search)
-                    ->orLike('category.category_name', $search)
 
-                    // Resident name is searchable ONLY for non-anonymous reports
-                    ->orGroupStart()
-                    ->where('reports.is_anonymous', 0)
-                    ->like('users.full_name', $search)
-                    ->groupEnd();
-
-                // Allow searching exact report ID
-                if (preg_match('/^(?:RPT-)?0*(\d+)$/i', $search, $matches)) {
-                    $builder->orWhere(
-                        'reports.report_id',
+                // Numeric search = visible Report No. only
+                if (
+                    preg_match(
+                        '/^(?:RPT-)?0*(\d+)$/i',
+                        $search,
+                        $matches
+                    )
+                ) {
+                    $builder->where(
+                        'reports.report_no',
                         (int) $matches[1]
                     );
-                }
+                } else {
 
-                $builder->groupEnd();
+                    // Text search
+                    $builder->groupStart()
+                        ->like('reports.title', $search)
+                        ->orLike('reports.description', $search)
+                        ->orLike('reports.address', $search)
+                        ->orLike('category.category_name', $search)
+
+                        // Resident name searchable only for non-anonymous reports
+                        ->orGroupStart()
+                        ->where('reports.is_anonymous', 0)
+                        ->groupStart()
+                        ->like('users.full_name', $search)
+                        ->orLike('reports.reporter_name_snapshot', $search)
+                        ->groupEnd()
+                        ->groupEnd();
+                }
             }
 
             if ($categoryId > 0) {
@@ -2635,6 +2715,13 @@ r.title,
                 $builder->where(
                     'reports.status',
                     $status
+                );
+            }
+
+            if ($priority !== '' && $priority !== 'all') {
+                $builder->where(
+                    'reports.priority',
+                    $priority
                 );
             }
 
@@ -2699,7 +2786,8 @@ puroks.purok_name AS report_purok_name,
         ORDER BY images.image_id ASC
         LIMIT 1
     ) AS image_path,
-    users.full_name
+  users.full_name,
+users.resident_no
 ')
             ->join(
                 'categories category',
@@ -2789,6 +2877,7 @@ puroks.purok_name AS report_purok_name,
                 'search' => $search,
                 'category' => $categoryId,
                 'status' => $status,
+                'priority' => $priority,
                 'from_date' => $fromDate,
                 'to_date' => $toDate,
                 'sort' => $sort,
@@ -2944,16 +3033,19 @@ puroks.purok_name AS report_purok_name,
             ->select('
                 u.user_id,
                 u.full_name,
+                u.first_name,
+                u.middle_name,
+                u.last_name,
                 u.email,
                 u.mobile_number,
                 u.username,
                 u.address,
                 u.purok_id,
-             u.profile_image,
-            u.is_active,
-            u.email_verified_at,
-            u.created_at,
-            p.purok_name
+                u.profile_image,
+                u.is_active,
+                u.email_verified_at,
+                u.created_at,
+                p.purok_name
             ')
             ->join(
                 'puroks p',
@@ -3132,15 +3224,32 @@ puroks.purok_name AS report_purok_name,
                 ->with('error', 'Category name must not exceed 50 characters.');
         }
 
-        $existingCategory = $db->table('categories')
-            ->where('category_name', $categoryName)
-            ->get()
-            ->getRowArray();
+        $normalizedCategoryName = preg_replace(
+            '/[^\p{L}\p{N}]+/u',
+            '',
+            mb_strtolower(trim($categoryName))
+        );
 
-        if ($existingCategory) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Category already exists.');
+        $existingCategories = $db->table('categories')
+            ->select('category_id, category_name')
+            ->get()
+            ->getResultArray();
+
+        foreach ($existingCategories as $existingCategory) {
+
+            $existingName = preg_replace(
+                '/[^\p{L}\p{N}]+/u',
+                '',
+                mb_strtolower(
+                    trim((string) ($existingCategory['category_name'] ?? ''))
+                )
+            );
+
+            if ($existingName === $normalizedCategoryName) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Category already exists.');
+            }
         }
 
         $categoryNo =
@@ -3208,16 +3317,31 @@ puroks.purok_name AS report_purok_name,
                 ->with('error', 'Category name must not exceed 50 characters.');
         }
 
-        $duplicate = $db->table('categories')
-            ->where('category_name', $categoryName)
+        $normalizedCategoryName = mb_strtolower(
+            preg_replace('/\s+/', ' ', trim($categoryName))
+        );
+
+        $existingCategories = $db->table('categories')
+            ->select('category_id, category_name')
             ->where('category_id !=', $categoryId)
             ->get()
-            ->getRowArray();
+            ->getResultArray();
 
-        if ($duplicate) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Category name already exists.');
+        foreach ($existingCategories as $existingCategory) {
+
+            $existingName = preg_replace(
+                '/[^\p{L}\p{N}]+/u',
+                '',
+                mb_strtolower(
+                    trim((string) ($existingCategory['category_name'] ?? ''))
+                )
+            );
+
+            if ($existingName === $normalizedCategoryName) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Category already exists.');
+            }
         }
 
         $db->table('categories')
@@ -5074,118 +5198,71 @@ reports.status,
         }
 
         // =========================================
-        // GET ALL REPORTS OF THIS RESIDENT
+        // PRESERVE REPORT HISTORY
         // =========================================
 
-        $residentReports = $db->table('reports')
-            ->select('report_id')
-            ->where('user_id', $userId)
-            ->get()
-            ->getResultArray();
+        $firstName =
+            trim((string) ($resident['first_name'] ?? ''));
 
-        $reportIds = [];
+        $middleName =
+            trim((string) ($resident['middle_name'] ?? ''));
 
-        foreach ($residentReports as $report) {
-            $reportId =
-                (int) ($report['report_id'] ?? 0);
+        $lastName =
+            trim((string) ($resident['last_name'] ?? ''));
 
-            if ($reportId > 0) {
-                $reportIds[] = $reportId;
-            }
+        $middleInitial = '';
+
+        if ($middleName !== '') {
+            $middleInitial =
+                mb_strtoupper(
+                    mb_substr($middleName, 0, 1)
+                ) . '.';
         }
 
-        // Keep image paths so physical files can
-        // also be removed after DB deletion succeeds.
-        $imagePaths = [];
+        $reporterNameSnapshot =
+            trim(
+                implode(
+                    ' ',
+                    array_filter([
+                        $firstName,
+                        $middleInitial,
+                        $lastName
+                    ])
+                )
+            );
 
-        if (!empty($reportIds)) {
-
-            $images = $db->table('images')
-                ->select('image_path')
-                ->whereIn('report_id', $reportIds)
-                ->get()
-                ->getResultArray();
-
-            foreach ($images as $image) {
-
-                $imagePath =
-                    trim(
-                        (string) (
-                            $image['image_path'] ?? ''
-                        )
-                    );
-
-                if ($imagePath !== '') {
-                    $imagePaths[] = $imagePath;
-                }
-            }
+        // Fallback for older resident records
+        // that may not have separated name fields.
+        if ($reporterNameSnapshot === '') {
+            $reporterNameSnapshot =
+                trim(
+                    (string) (
+                        $resident['full_name'] ??
+                        'Former Resident'
+                    )
+                );
         }
 
         // =========================================
-        // DELETE ACCOUNT + ALL RELATED DB RECORDS
+        // DELETE ACCOUNT WHILE KEEPING REPORTS
         // =========================================
 
         $db->transStart();
 
-        /*
-     * Records connected to reports must be
-     * deleted BEFORE deleting the reports.
-     */
-
-        if (!empty($reportIds)) {
-
-            // Notifications connected to reports
-            if (
-                $db->tableExists('notifications') &&
-                $db->fieldExists(
-                    'report_id',
-                    'notifications'
-                )
-            ) {
-                $db->table('notifications')
-                    ->whereIn(
-                        'report_id',
-                        $reportIds
-                    )
-                    ->delete();
-            }
-
-            // Actions connected to reports
-            if (
-                $db->tableExists('action') &&
-                $db->fieldExists(
-                    'report_id',
-                    'action'
-                )
-            ) {
-                $db->table('action')
-                    ->whereIn(
-                        'report_id',
-                        $reportIds
-                    )
-                    ->delete();
-            }
-
-            // Images connected to reports
-            if ($db->tableExists('images')) {
-                $db->table('images')
-                    ->whereIn(
-                        'report_id',
-                        $reportIds
-                    )
-                    ->delete();
-            }
-
-            // Delete resident reports
-            $db->table('reports')
-                ->where('user_id', $userId)
-                ->delete();
-        }
+        // Keep all reports and report photos.
+        // Save the resident's name for historical records,
+        // then detach the reports from the deleted account.
+        $db->table('reports')
+            ->where('user_id', $userId)
+            ->update([
+                'reporter_name_snapshot' => $reporterNameSnapshot,
+                'user_id' => null,
+            ]);
 
         /*
-     * Delete records directly connected
-     * to the resident account.
-     */
+         * Delete records directly connected
+         * to the resident account.
+         */
 
         if ($db->tableExists('notifications')) {
 
@@ -5272,23 +5349,7 @@ reports.status,
                 );
         }
 
-        // =========================================
-        // DELETE PHYSICAL REPORT IMAGES
-        // =========================================
 
-        foreach ($imagePaths as $imagePath) {
-
-            $physicalPath =
-                FCPATH .
-                ltrim(
-                    $imagePath,
-                    '/\\'
-                );
-
-            if (is_file($physicalPath)) {
-                @unlink($physicalPath);
-            }
-        }
 
         // =========================================
         // DELETE PROFILE IMAGE
@@ -5317,11 +5378,10 @@ reports.status,
 
         // Account is gone. End session.
         session()->destroy();
-
         return redirect()->to('/login')
             ->with(
                 'success',
-                'Your account and all related records have been permanently deleted.'
+                'Your account has been permanently deleted. Your submitted reports remain as historical records.'
             );
     }
 

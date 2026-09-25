@@ -57,6 +57,98 @@
                 </div>
             </header>
 
+            <?php
+            $categorySuccess = session()->getFlashdata('success');
+            $categoryError   = session()->getFlashdata('error');
+            ?>
+
+            <?php if ($categorySuccess || $categoryError): ?>
+
+                <div
+                    class="modal fade"
+                    id="categoryMessageModal"
+                    tabindex="-1"
+                    aria-hidden="true">
+
+                    <div class="modal-dialog modal-dialog-centered">
+
+                        <div class="modal-content border-0 shadow text-center"
+                            style="border-radius: 18px;">
+
+                            <div class="modal-body p-5">
+
+                                <?php if ($categorySuccess): ?>
+
+                                    <div
+                                        class="d-flex align-items-center justify-content-center mx-auto mb-3"
+                                        style="
+                                width: 70px;
+                                height: 70px;
+                                border-radius: 50%;
+                                border: 3px solid #198754;
+                                color: #198754;
+                                font-size: 34px;
+                            ">
+                                        <i class="bi bi-check-lg"></i>
+                                    </div>
+
+                                    <h3 class="fw-bold text-success mb-3">
+                                        Success!
+                                    </h3>
+
+                                    <p class="text-muted mb-4">
+                                        <?= esc($categorySuccess) ?>
+                                    </p>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-success px-5"
+                                        data-bs-dismiss="modal">
+                                        Continue
+                                    </button>
+
+                                <?php else: ?>
+
+                                    <div
+                                        class="d-flex align-items-center justify-content-center mx-auto mb-3"
+                                        style="
+                                width: 70px;
+                                height: 70px;
+                                border-radius: 50%;
+                                border: 3px solid #dc3545;
+                                color: #dc3545;
+                                font-size: 34px;
+                            ">
+                                        <i class="bi bi-x-lg"></i>
+                                    </div>
+
+                                    <h3 class="fw-bold text-danger mb-3">
+                                        Oops!
+                                    </h3>
+
+                                    <p class="text-muted mb-4">
+                                        <?= esc($categoryError) ?>
+                                    </p>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-danger px-5"
+                                        data-bs-dismiss="modal">
+                                        Close
+                                    </button>
+
+                                <?php endif; ?>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            <?php endif; ?>
+
             <section class="card page-card p-4 mb-4">
                 <div class="row g-3 align-items-end">
                     <div class="col-lg-6">
@@ -515,6 +607,21 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?= base_url('assets/js/categories.js') ?>"></script>
     <script src="<?= base_url('assets/js/admin-responsive.js') ?>"></script>
+
+    <?php if ($categorySuccess || $categoryError): ?>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const messageModal = document.getElementById("categoryMessageModal");
+
+                if (messageModal) {
+                    bootstrap.Modal
+                        .getOrCreateInstance(messageModal)
+                        .show();
+                }
+            });
+        </script>
+    <?php endif; ?>
+
 </body>
 
 </html>

@@ -183,15 +183,14 @@ if (!isset($report)) {
                             <label class="form-label">
                                 Date Submitted
                             </label>
-
                             <input
                                 type="text"
                                 id="report-date"
                                 class="form-control"
-                                value="<?= !empty($report['date_reported'])
+                                value="<?= !empty($report['incident_date'])
                                             ? date(
                                                 'F d, Y',
-                                                strtotime($report['date_reported'])
+                                                strtotime($report['incident_date'])
                                             )
                                             : '' ?>"
                                 readonly>

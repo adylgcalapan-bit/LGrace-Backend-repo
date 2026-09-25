@@ -213,6 +213,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const modalName = document.getElementById("residentModalName");
 
+    const modalFirstName = document.getElementById("residentModalFirstName");
+
+    const modalMiddleName = document.getElementById("residentModalMiddleName");
+
+    const modalLastName = document.getElementById("residentModalLastName");
+
     const modalUsername = document.getElementById("residentModalUsername");
 
     const modalEmail = document.getElementById("residentModalEmail");
@@ -233,8 +239,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const statResolved = document.getElementById("residentStatResolved");
 
+    // Initial loading state only.
+    // DO NOT use resident.* here because data is not loaded yet.
+
     if (modalName) {
       modalName.textContent = "Loading...";
+    }
+
+    if (modalFirstName) {
+      modalFirstName.textContent = "—";
+    }
+
+    if (modalMiddleName) {
+      modalMiddleName.textContent = "—";
+    }
+
+    if (modalLastName) {
+      modalLastName.textContent = "—";
     }
 
     if (modalUsername) {
@@ -276,7 +297,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (statResolved) {
       statResolved.textContent = "0";
     }
-
     const recentReportsBody = document.getElementById("residentRecentReports");
 
     if (recentReportsBody) {
@@ -301,6 +321,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const resident = result.resident || {};
       const stats = result.statistics || {};
+
+      // ==========================
+      // RESIDENT NAME
+      // ==========================
+
+      const fullName = String(resident.full_name || "").trim();
+      const nameParts = fullName.split(/\s+/).filter(Boolean);
+
+      const firstName =
+        String(resident.first_name || "").trim() ||
+        (nameParts.length >= 1 ? nameParts[0] : "—");
+
+      const middleName =
+        String(resident.middle_name || "").trim() ||
+        (nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : "—");
+
+      const lastName =
+        String(resident.last_name || "").trim() ||
+        (nameParts.length >= 2 ? nameParts[nameParts.length - 1] : "—");
+
+      document.getElementById("residentModalName").textContent =
+        fullName || "Resident";
+
+      document.getElementById("residentModalFirstName").textContent = firstName;
+
+      document.getElementById("residentModalMiddleName").textContent =
+        middleName;
+
+      document.getElementById("residentModalLastName").textContent = lastName;
 
       // ==========================================
       // ACCOUNT STATUS
@@ -426,6 +475,18 @@ document.addEventListener("DOMContentLoaded", () => {
         modalName.textContent = resident.full_name || "N/A";
       }
 
+      if (modalFirstName) {
+        modalFirstName.textContent = resident.first_name || "N/A";
+      }
+
+      if (modalMiddleName) {
+        modalMiddleName.textContent = resident.middle_name || "—";
+      }
+
+      if (modalLastName) {
+        modalLastName.textContent = resident.last_name || "N/A";
+      }
+
       if (modalUsername) {
         modalUsername.textContent = resident.username || "N/A";
       }
@@ -461,6 +522,40 @@ document.addEventListener("DOMContentLoaded", () => {
       if (statResolved) {
         statResolved.textContent = stats.resolved ?? 0;
       }
+
+      // ==========================================
+      // FINAL RESIDENT NAME DISPLAY
+      // Handles both new and older resident records
+      // ==========================================
+
+      const finalFullName = String(resident.full_name || "").trim();
+
+      const finalNameParts = finalFullName.split(/\s+/).filter(Boolean);
+
+      const finalFirstName =
+        String(resident.first_name || "").trim() ||
+        (finalNameParts.length >= 1 ? finalNameParts[0] : "—");
+
+      const finalMiddleName =
+        String(resident.middle_name || "").trim() ||
+        (finalNameParts.length > 2
+          ? finalNameParts.slice(1, -1).join(" ")
+          : "—");
+
+      const finalLastName =
+        String(resident.last_name || "").trim() ||
+        (finalNameParts.length >= 2
+          ? finalNameParts[finalNameParts.length - 1]
+          : "—");
+
+      document.getElementById("residentModalFirstName").textContent =
+        finalFirstName;
+
+      document.getElementById("residentModalMiddleName").textContent =
+        finalMiddleName;
+
+      document.getElementById("residentModalLastName").textContent =
+        finalLastName;
 
       renderRecentReports(result.recent_reports || []);
     } catch (error) {

@@ -312,6 +312,16 @@
                                     Date of Incident
                                 </label>
 
+                                <?php
+                                $editToday = new \DateTime(
+                                    'today',
+                                    new \DateTimeZone('Asia/Manila')
+                                );
+
+                                $editYesterday = (clone $editToday)
+                                    ->modify('-1 day');
+                                ?>
+
                                 <input
                                     type="date"
                                     class="form-control"
@@ -323,9 +333,9 @@
                                                     $report['incident_date'] ?? ''
                                                 )
                                             ) ?>"
-                                    max="<?= date('Y-m-d') ?>"
+                                    min="<?= $editYesterday->format('Y-m-d') ?>"
+                                    max="<?= $editToday->format('Y-m-d') ?>"
                                     required>
-
                             </div>
 
                             <!-- PHOTO -->
@@ -602,15 +612,13 @@
                                     <select
                                         class="form-select"
                                         id="reportPurok"
-                                        name="purok_id"
-                                        required>
+                                        name="purok_id">
 
                                         <option
                                             value=""
-                                            disabled
                                             <?= $selectedReportPurokId === '' ? 'selected' : '' ?>>
 
-                                            Pin a location to identify the Purok
+                                            —
 
                                         </option>
 

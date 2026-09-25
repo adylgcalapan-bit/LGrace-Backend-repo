@@ -13,6 +13,9 @@ class UserModel extends Model
     protected $allowedFields = [
         'resident_no',
         'full_name',
+        'first_name',
+        'middle_name',
+        'last_name',
         'email',
         'mobile_number',
         'username',

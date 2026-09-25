@@ -428,18 +428,16 @@
                 <div class="table-responsive">
 
                     <table class="table table-hover align-middle mb-0">
-
                         <thead class="table-success">
                             <tr>
                                 <th>Resident No.</th>
                                 <th>Photo</th>
-                                <th>Full Name</th>
+                                    <th>First Name</th>
+                                    <th>Middle Name</th>
+                                    <th>Last Name</th>
                                 <th>Email</th>
-                                <th>Contact</th>
                                 <th>Purok</th>
-                                <th>Username</th>
                                 <th>Status</th>
-                                <th>Registered</th>
                             </tr>
                         </thead>
 
@@ -488,24 +486,25 @@
                                         </td>
 
                                         <td>
-                                            <?= esc($resident['full_name'] ?? 'N/A') ?>
+                                                <?= esc($resident['first_name'] ?? 'N/A') ?>
                                         </td>
 
                                         <td>
-                                            <?= esc($resident['email'] ?? 'N/A') ?>
+                                                <?= !empty($resident['middle_name'])
+                                                    ? esc($resident['middle_name'])
+                                                    : '—' ?>
                                         </td>
 
                                         <td>
-                                            <?= esc($resident['mobile_number'] ?? 'N/A') ?>
-                                        </td>
-
-
-                                        <td>
-                                            <?= esc($resident['purok_name'] ?? 'Unassigned') ?>
+                                                <?= esc($resident['last_name'] ?? 'N/A') ?>
                                         </td>
 
                                         <td>
-                                            <?= esc($resident['username'] ?? 'N/A') ?>
+                                                <?= esc($resident['email'] ?? 'N/A') ?>
+                                        </td>
+
+                                        <td>
+                                                <?= esc($resident['purok_name'] ?? 'Unassigned') ?>
                                         </td>
 
                                         <td>
@@ -533,12 +532,6 @@
                                             <?php endif; ?>
                                         </td>
 
-                                        <td>
-                                            <?= !empty($resident['created_at'])
-                                                ? esc(format_system_date($resident['created_at']))
-                                                : 'N/A' ?>
-                                        </td>
-
                                     </tr>
 
                                 <?php endforeach; ?>
@@ -546,7 +539,7 @@
                             <?php else: ?>
 
                                 <tr>
-                                    <td colspan="9" class="text-center text-muted py-4">
+                                        <td colspan="8" class="text-center text-muted py-4">
                                         No registered residents found.
                                     </td>
                                 </tr>
@@ -674,54 +667,92 @@
 
                                     <div class="row g-3">
 
+                                            <!-- NAME -->
+                                            <div class="col-12">
+                                                <div class="row g-3">
+
+                                                    <div class="col-md-4">
+                                                        <small class="text-muted">First Name</small>
+                                                        <p class="fw-semibold mb-0"
+                                                            id="residentModalFirstName">
+                                                            —
+                                                        </p>
+                                                    </div>
+
+                                                    <div class="col-md-4">
+                                                        <small class="text-muted">Middle Name</small>
+                                                        <p class="fw-semibold mb-0"
+                                                            id="residentModalMiddleName">
+                                                            —
+                                                        </p>
+                                                    </div>
+
+                                                    <div class="col-md-4">
+                                                        <small class="text-muted">Last Name</small>
+                                                        <p class="fw-semibold mb-0"
+                                                            id="residentModalLastName">
+                                                            —
+                                                        </p>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+                                            <!-- RESIDENT NO. -->
                                         <div class="col-md-6">
                                             <small class="text-muted">Resident No.</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalId">
-                                                â€”
+                                                    —
                                             </p>
                                         </div>
 
+                                            <!-- USERNAME -->
                                         <div class="col-md-6">
                                             <small class="text-muted">Username</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalUsername">
-                                                â€”
+                                                    —
                                             </p>
                                         </div>
 
+                                            <!-- EMAIL -->
                                         <div class="col-md-6">
                                             <small class="text-muted">Email Address</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalEmail">
-                                                â€”
+                                                    —
                                             </p>
                                         </div>
 
+                                            <!-- CONTACT -->
                                         <div class="col-md-6">
                                             <small class="text-muted">Contact Number</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalContact">
-                                                â€”
+                                                    —
                                             </p>
                                         </div>
 
-                                        <div class="col-md-6">
+                                            <!-- ADDRESS -->
+                                            <div class="col-12">
                                             <small class="text-muted">Address</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalAddress">
-                                                â€”
+                                                    —
                                             </p>
                                         </div>
 
+                                            <!-- DATE REGISTERED -->
                                         <div class="col-md-6">
                                             <small class="text-muted">Date Registered</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalRegistered">
-                                                â€”
+                                                    —
                                             </p>
                                         </div>
 
+                                            <!-- ACCOUNT STATUS -->
                                         <div class="col-md-6">
                                             <small class="text-muted">Account Status</small>
 
@@ -735,7 +766,6 @@
                                         </div>
 
                                     </div>
-
                                 </div>
 
                             </div>
@@ -1203,18 +1233,54 @@
                                         </div>
                                     </div>
 
+                                        <div class="row g-2">
+
+                                            <div class="col-12">
+                                                <label class="form-label">
+                                                    First Name
+                                                    <span class="text-danger">*</span>
+                                                </label>
+
+                                                <input
+                                                    type="text"
+                                                    class="form-control"
+                                                    name="first_name"
+                                                    placeholder="Enter first name"
+                                                    value="<?= esc(old('first_name') ?? '') ?>"
+                                                    required>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <label class="form-label">
+                                                    Middle Name
+                                                </label>
+
+                                                <input
+                                                    type="text"
+                                                    class="form-control"
+                                                    name="middle_name"
+                                                    placeholder="Enter middle name"
+                                                    value="<?= esc(old('middle_name') ?? '') ?>">
+
+
+                                            </div>
+
+                                            <div class="col-12">
                                     <label class="form-label">
-                                        Full Name
+                                                    Last Name
                                         <span class="text-danger">*</span>
                                     </label>
 
                                     <input
                                         type="text"
                                         class="form-control"
-                                        name="full_name"
-                                        placeholder="e.g. Portgas D. Ace"
-                                        value="<?= esc(old('full_name') ?? '') ?>"
+                                                    name="last_name"
+                                                    placeholder="Enter last name"
+                                                    value="<?= esc(old('last_name') ?? '') ?>"
                                         required>
+                                            </div>
+
+                                        </div>
 
                                 </div>
 
