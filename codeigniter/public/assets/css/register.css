@@ -1084,3 +1084,58 @@ a:hover {
     height: 56px;
   }
 }
+.email-verification-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+  width: 100%;
+}
+
+.email-verification-layout .email-group {
+  margin-bottom: 0;
+}
+
+.verification-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 2px;
+}
+
+.verification-status {
+  font-size: 16px;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+.send-code-btn {
+  white-space: nowrap;
+}
+
+/* Tablet and mobile */
+@media (max-width: 991.98px) {
+  .email-verification-layout {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .verification-group {
+    justify-content: flex-start;
+    padding-bottom: 0;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 575.98px) {
+  .verification-group {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .verification-status {
+    white-space: normal;
+  }
+}

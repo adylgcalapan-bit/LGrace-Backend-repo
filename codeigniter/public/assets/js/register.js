@@ -31,9 +31,17 @@ document.addEventListener("DOMContentLoaded", function () {
   let resendTimer = null;
 
   const fieldMap = {
-    fullName: {
-      input: document.getElementById("fullName"),
-      error: document.getElementById("fullNameError"),
+    firstName: {
+      input: document.getElementById("firstName"),
+      error: document.getElementById("firstNameError"),
+    },
+    middleName: {
+      input: document.getElementById("middleName"),
+      error: document.getElementById("middleNameError"),
+    },
+    lastName: {
+      input: document.getElementById("lastName"),
+      error: document.getElementById("lastNameError"),
     },
     email: {
       input: document.getElementById("email"),
@@ -112,7 +120,9 @@ document.addEventListener("DOMContentLoaded", function () {
   function validateRegisterForm() {
     let isValid = true;
 
-    const fullName = fieldMap.fullName.input.value.trim();
+    const firstName = fieldMap.firstName.input.value.trim();
+    const middleName = fieldMap.middleName.input.value.trim();
+    const lastName = fieldMap.lastName.input.value.trim();
     const email = fieldMap.email.input.value.trim();
     const mobileNumber = fieldMap.mobileNumber.input.value.trim();
     const username = fieldMap.username.input.value.trim();
@@ -120,11 +130,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const confirmPassword = fieldMap.confirmPassword.input.value.trim();
     const address = fieldMap.address.input.value.trim();
 
-    if (!fullName) {
-      setFieldState(fieldMap.fullName, "Please enter your full name.");
+    if (!firstName) {
+      setFieldState(fieldMap.firstName, "Please enter your first name.");
       isValid = false;
     } else {
-      setFieldState(fieldMap.fullName, "");
+      setFieldState(fieldMap.firstName, "");
+    }
+
+    setFieldState(fieldMap.middleName, "");
+
+    if (!lastName) {
+      setFieldState(fieldMap.lastName, "Please enter your last name.");
+      isValid = false;
+    } else {
+      setFieldState(fieldMap.lastName, "");
     }
 
     if (!email) {

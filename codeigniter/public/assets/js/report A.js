@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.getElementById("reportSearch");
   const categoryFilter = document.getElementById("reportCategory");
   const statusFilter = document.getElementById("reportStatusFilter");
+  const priorityFilter = document.getElementById("reportPriorityFilter");
   const fromDate = document.getElementById("reportFromDate");
   const toDate = document.getElementById("reportToDate");
   const sortFilter = document.getElementById("reportSort");
@@ -37,6 +38,10 @@ document.addEventListener("DOMContentLoaded", function () {
     },
   );
 
+  // =====================================
+  // STATUS CUSTOM DROPDOWN
+  // =====================================
+
   document.querySelectorAll(".report-status-option").forEach((option) => {
     option.addEventListener("click", function () {
       if (!statusFilter || !filtersForm) {
@@ -57,6 +62,35 @@ document.addEventListener("DOMContentLoaded", function () {
       filtersForm.requestSubmit();
     });
   });
+
+  // =====================================
+  // PRIORITY CUSTOM DROPDOWN
+  // =====================================
+
+  document.querySelectorAll(".report-priority-option").forEach((option) => {
+    option.addEventListener("click", function () {
+      if (!priorityFilter || !filtersForm) {
+        return;
+      }
+
+      const value = this.dataset.value || "all";
+      const label = this.textContent.trim();
+
+      priorityFilter.value = value;
+
+      const priorityLabel = document.getElementById("reportPriorityLabel");
+
+      if (priorityLabel) {
+        priorityLabel.textContent = label;
+      }
+
+      filtersForm.requestSubmit();
+    });
+  });
+
+  // =====================================
+  // CATEGORY CUSTOM DROPDOWN
+  // =====================================
 
   document.querySelectorAll(".report-category-option").forEach((option) => {
     option.addEventListener("click", function () {
@@ -104,60 +138,144 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  // =====================================
+  // VIEW REPORT MODAL
+  // =====================================
+
   const viewButtons = document.querySelectorAll(".view-btn");
   const reportModal = document.getElementById("reportModal");
+
   let reportMapInstance = null;
   let reportMapMarker = null;
 
   viewButtons.forEach((button) => {
-    button.addEventListener("click", function () {
+    button.addEventListener("click", function (event) {
+      event.stopPropagation();
+
       const row = this.closest(".report-row");
 
       if (!row || !reportModal) {
         return;
       }
 
+      // =====================================
+      // GET REPORT DATA
+      // =====================================
+
       const reportNo = row.getAttribute("data-report-no") || "";
-      const resident = row.getAttribute("data-resident") || "";
-      const residentId = row.getAttribute("data-resident-id") || "";
-      const title = row.getAttribute("data-title") || "";
-      const category = row.getAttribute("data-category") || "";
+
+      const resident = row.getAttribute("data-resident") || "Unknown Resident";
+
+      const residentId = row.getAttribute("data-resident-id") || "N/A";
+
+      const title = row.getAttribute("data-title") || "Untitled Report";
+
+      const category = row.getAttribute("data-category") || "No Category";
+
       const location = row.getAttribute("data-location") || "";
-      const address = row.getAttribute("data-address") || "";
+
+      const address =
+        row.getAttribute("data-address") || "No address available";
+
       const purok = row.getAttribute("data-purok") || "Not specified";
+
       const latitude = parseFloat(row.getAttribute("data-latitude"));
 
       const longitude = parseFloat(row.getAttribute("data-longitude"));
+
       const date = row.getAttribute("data-date") || "";
+
       const status = row.getAttribute("data-status") || "";
+
       const description = row.getAttribute("data-description") || "";
-      const photosJson = row.getAttribute("data-photos") || "[]";
+
+      // =====================================
+      // REPORT PHOTOS
+      // Supports multiple photos and old
+      // single-photo data for compatibility.
+      // =====================================
 
       let photos = [];
 
-      try {
-        const parsedPhotos = JSON.parse(photosJson);
+      const photosRaw = row.getAttribute("data-photos") || "";
 
-        if (Array.isArray(parsedPhotos)) {
-          photos = parsedPhotos;
+      if (photosRaw !== "") {
+        try {
+          const parsedPhotos = JSON.parse(photosRaw);
+
+          if (Array.isArray(parsedPhotos)) {
+            photos = parsedPhotos.filter(Boolean);
+          }
+        } catch (error) {
+          console.error("Unable to read report photos:", error);
         }
-      } catch (error) {
-        photos = [];
       }
 
-      reportModal.querySelector(".modal-title").textContent = "Report Details";
-      reportModal.querySelector("#reportNo").textContent = reportNo || "N/A";
-      reportModal.querySelector("#reportResident").textContent = resident;
-      reportModal.querySelector("#reportResidentId").textContent = residentId;
-      reportModal.querySelector("#reportTitle").textContent = title;
-      reportModal.querySelector("#reportCategory").textContent = category;
-      reportModal.querySelector("#reportStatus").textContent = status;
-      reportModal.querySelector("#reportLocation").textContent = location;
-      reportModal.querySelector("#reportAddress").textContent = address;
-      reportModal.querySelector("#reportPurok").textContent = purok;
-      reportModal.querySelector("#reportDate").textContent = date;
-      reportModal.querySelector("#reportDescription").textContent =
-        description || "No description provided.";
+      // Backward compatibility
+      if (photos.length === 0) {
+        const singlePhoto = row.getAttribute("data-photo") || "";
+
+        if (singlePhoto) {
+          photos.push(singlePhoto);
+        }
+      }
+
+      // =====================================
+      // FILL REPORT DETAILS
+      // =====================================
+
+      const setModalText = (selector, value, fallback = "N/A") => {
+        const element = reportModal.querySelector(selector);
+
+        if (element) {
+          element.textContent =
+            value !== null && value !== undefined && String(value).trim() !== ""
+              ? value
+              : fallback;
+        }
+      };
+
+      const modalTitle = reportModal.querySelector(".modal-title");
+
+      if (modalTitle) {
+        modalTitle.textContent = "Report Details";
+      }
+
+      setModalText("#reportNo", reportNo);
+      setModalText("#reportResident", resident);
+      setModalText("#reportResidentId", residentId);
+
+      // Hide Resident No. when the resident account
+      // connected to the historical report was deleted.
+      const residentNoElement = reportModal.querySelector("#reportResidentId");
+
+      const residentNoRow = residentNoElement
+        ? residentNoElement.closest("p")
+        : null;
+
+      const isDeletedAccount = resident.includes("(Deleted Account)");
+
+      if (residentNoRow) {
+        residentNoRow.style.display = isDeletedAccount ? "none" : "";
+      }
+
+      setModalText("#reportTitle", title);
+      setModalText("#reportCategory", category);
+      setModalText("#reportStatus", status);
+      setModalText("#reportLocation", location);
+      setModalText("#reportAddress", address);
+      setModalText("#reportPurok", purok);
+      setModalText("#reportDate", date);
+
+      setModalText(
+        "#reportDescription",
+        description,
+        "No description provided.",
+      );
+
+      // =====================================
+      // DISPLAY PHOTOS
+      // =====================================
 
       const photoContainer = reportModal.querySelector("#reportPhotos");
 
@@ -179,6 +297,38 @@ document.addEventListener("DOMContentLoaded", function () {
           image.style.width = "140px";
           image.style.height = "120px";
           image.style.objectFit = "cover";
+          image.style.cursor = "zoom-in";
+
+          image.addEventListener("click", function () {
+            const overlay = document.createElement("div");
+
+            overlay.style.position = "fixed";
+            overlay.style.inset = "0";
+            overlay.style.background = "rgba(0, 0, 0, 0.85)";
+            overlay.style.zIndex = "2000";
+            overlay.style.display = "flex";
+            overlay.style.alignItems = "center";
+            overlay.style.justifyContent = "center";
+            overlay.style.padding = "30px";
+            overlay.style.cursor = "zoom-out";
+
+            const enlargedImage = document.createElement("img");
+
+            enlargedImage.src = photoUrl;
+            enlargedImage.alt = `Report Photo ${index + 1}`;
+
+            enlargedImage.style.maxWidth = "95%";
+            enlargedImage.style.maxHeight = "95%";
+            enlargedImage.style.objectFit = "contain";
+            enlargedImage.style.borderRadius = "10px";
+
+            overlay.appendChild(enlargedImage);
+            document.body.appendChild(overlay);
+
+            overlay.addEventListener("click", function () {
+              overlay.remove();
+            });
+          });
 
           if (photoContainer) {
             photoContainer.appendChild(image);
@@ -194,8 +344,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
 
-      const modal = new bootstrap.Modal(reportModal);
+      // =====================================
+      // OPEN MODAL
+      // =====================================
+
+      const modal = bootstrap.Modal.getOrCreateInstance(reportModal);
+
       modal.show();
+
+      // =====================================
+      // REPORT LOCATION MAP
+      // =====================================
 
       reportModal.addEventListener(
         "shown.bs.modal",
@@ -213,7 +372,6 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
           }
 
-          // No valid coordinates
           if (!hasValidCoordinates) {
             mapElement.style.display = "none";
 
@@ -230,7 +388,10 @@ document.addEventListener("DOMContentLoaded", function () {
             mapMessage.classList.add("d-none");
           }
 
-          // Create map once
+          if (typeof L === "undefined") {
+            return;
+          }
+
           if (!reportMapInstance) {
             reportMapInstance = L.map("reportMap");
 
@@ -240,23 +401,21 @@ document.addEventListener("DOMContentLoaded", function () {
             }).addTo(reportMapInstance);
           }
 
-          // Move map to selected report
           reportMapInstance.setView([latitude, longitude], 17);
 
-          // Remove previous report marker
           if (reportMapMarker) {
             reportMapInstance.removeLayer(reportMapMarker);
           }
 
-          // Add marker for current report
           reportMapMarker = L.marker([latitude, longitude])
             .addTo(reportMapInstance)
             .bindPopup(
-              `<strong>${title || "Reported Location"}</strong><br>${address || "No address available"}`,
+              `<strong>${title || "Reported Location"}</strong><br>${
+                address || "No address available"
+              }`,
             )
             .openPopup();
 
-          // Important because map is inside Bootstrap modal
           setTimeout(() => {
             reportMapInstance.invalidateSize();
           }, 150);
@@ -265,41 +424,40 @@ document.addEventListener("DOMContentLoaded", function () {
       );
     });
   });
+});
 
-  const updateStatusButtons = document.querySelectorAll(".update-status-btn");
+const updateStatusButtons = document.querySelectorAll(".update-status-btn");
 
-  const statusModal = document.getElementById("statusModal");
+const statusModal = document.getElementById("statusModal");
 
-  const statusReportId = document.getElementById("statusReportId");
+const statusReportId = document.getElementById("statusReportId");
 
-  const statusSelect = document.getElementById("statusSelect");
-  const prioritySelect = document.getElementById("prioritySelect");
+const statusSelect = document.getElementById("statusSelect");
+const prioritySelect = document.getElementById("prioritySelect");
 
-  updateStatusButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      const reportId = this.getAttribute("data-report-id");
+updateStatusButtons.forEach((button) => {
+  button.addEventListener("click", function () {
+    const reportId = this.getAttribute("data-report-id");
 
-      const currentStatus = this.getAttribute("data-current-status");
-      const currentPriority =
-        button.getAttribute("data-current-priority") || "";
+    const currentStatus = this.getAttribute("data-current-status");
+    const currentPriority = button.getAttribute("data-current-priority") || "";
 
-      if (statusReportId) {
-        statusReportId.value = reportId;
-      }
-      if (prioritySelect) {
-        prioritySelect.value = currentPriority;
-      }
+    if (statusReportId) {
+      statusReportId.value = reportId;
+    }
+    if (prioritySelect) {
+      prioritySelect.value = currentPriority;
+    }
 
-      if (statusSelect) {
-        statusSelect.value = currentStatus;
-      }
-    });
+    if (statusSelect) {
+      statusSelect.value = currentStatus;
+    }
   });
+});
 
-  tableRows.forEach((row) => {
-    row.addEventListener("mouseenter", function () {
-      this.style.cursor = "pointer";
-    });
+tableRows.forEach((row) => {
+  row.addEventListener("mouseenter", function () {
+    this.style.cursor = "pointer";
   });
 });
 

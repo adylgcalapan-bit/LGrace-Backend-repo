@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const SAGUING_BOUNDS = {
     minLat: 6.955,
-    maxLat: 7.005,
+    maxLat: 6.995,
     minLng: 125.055,
     maxLng: 125.105,
   };
@@ -149,6 +149,8 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
+      const MAX_PUROK_DISTANCE_METERS = 1000;
+
       let nearestOption = null;
       let nearestDistance = Infinity;
 
@@ -174,8 +176,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-      if (nearestOption) {
+      if (nearestOption && nearestDistance <= MAX_PUROK_DISTANCE_METERS) {
         reportPurokSelect.value = nearestOption.value;
+      } else {
+        reportPurokSelect.value = "";
       }
     }
 

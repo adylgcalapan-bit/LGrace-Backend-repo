@@ -346,13 +346,13 @@
 
                                 <div class="row g-4">
 
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
 
                                         <label
-                                            for="full_name"
+                                            for="first_name"
                                             class="form-label">
 
-                                            Full Name
+                                            First Name
                                             <span class="required">*</span>
                                         </label>
 
@@ -363,14 +363,14 @@
                                             <input
                                                 type="text"
                                                 class="form-control"
-                                                id="full_name"
-                                                name="full_name"
+                                                id="first_name"
+                                                name="first_name"
                                                 maxlength="100"
                                                 required
                                                 value="<?= esc(
                                                             old(
-                                                                'full_name',
-                                                                $resident['full_name'] ?? ''
+                                                                'first_name',
+                                                                $resident['first_name'] ?? ''
                                                             )
                                                         ) ?>">
 
@@ -378,6 +378,67 @@
 
                                     </div>
 
+                                    <div class="col-md-4">
+
+                                        <label
+                                            for="middle_name"
+                                            class="form-label">
+
+                                            Middle Name
+                                        </label>
+
+                                        <div class="input-with-icon">
+
+                                            <i class="bi bi-person"></i>
+
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="middle_name"
+                                                name="middle_name"
+                                                maxlength="100"
+                                                value="<?= esc(
+                                                            old(
+                                                                'middle_name',
+                                                                $resident['middle_name'] ?? ''
+                                                            )
+                                                        ) ?>">
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-4">
+
+                                        <label
+                                            for="last_name"
+                                            class="form-label">
+
+                                            Last Name
+                                            <span class="required">*</span>
+                                        </label>
+
+                                        <div class="input-with-icon">
+
+                                            <i class="bi bi-person"></i>
+
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="last_name"
+                                                name="last_name"
+                                                maxlength="100"
+                                                required
+                                                value="<?= esc(
+                                                            old(
+                                                                'last_name',
+                                                                $resident['last_name'] ?? ''
+                                                            )
+                                                        ) ?>">
+
+                                        </div>
+
+                                    </div>
 
                                     <div class="col-md-6">
 

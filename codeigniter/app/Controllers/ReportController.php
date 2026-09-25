@@ -46,7 +46,6 @@ class ReportController extends BaseController
         if (
             $title === '' ||
             $categoryId <= 0 ||
-            $purokId <= 0 ||
             $description === '' ||
             $latitude === '' ||
             $longitude === '' ||
@@ -88,12 +87,18 @@ class ReportController extends BaseController
             $manilaTimezone
         );
 
-        if ($incidentDateObject > $today) {
+        $yesterday = (clone $today)
+            ->modify('-1 day');
+
+        if (
+            $incidentDateObject < $yesterday ||
+            $incidentDateObject > $today
+        ) {
             return redirect()->back()
                 ->withInput()
                 ->with(
                     'error',
-                    'The date of incident cannot be in the future.'
+                    'Please select either today or yesterday as the report date.'
                 );
         }
 
@@ -103,7 +108,7 @@ class ReportController extends BaseController
 
         $isInsideSaguing =
             $latitudeValue >= 6.955 &&
-            $latitudeValue <= 7.005 &&
+            $latitudeValue <= 6.995 &&
             $longitudeValue >= 125.055 &&
             $longitudeValue <= 125.105;
 
@@ -141,23 +146,29 @@ class ReportController extends BaseController
         // =====================================
         // Validate Purok of report location
         // =====================================
+        if ($purokId > 0) {
 
-        $purok = $db->table('puroks')
-            ->select('purok_id')
-            ->where('purok_id', $purokId)
-            ->where('is_active', 1)
-            ->where('latitude IS NOT NULL', null, false)
-            ->where('longitude IS NOT NULL', null, false)
-            ->get()
-            ->getRowArray();
+            $purok = $db->table('puroks')
+                ->select('purok_id')
+                ->where('purok_id', $purokId)
+                ->where('is_active', 1)
+                ->where('latitude IS NOT NULL', null, false)
+                ->where('longitude IS NOT NULL', null, false)
+                ->get()
+                ->getRowArray();
 
-        if (!$purok) {
-            return redirect()->back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Please select a valid Purok for the report location.'
-                );
+            if (!$purok) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Please select a valid Purok for the report location.'
+                    );
+            }
+        } else {
+
+            // No nearby configured Purok was identified.
+            $purokId = null;
         }
 
         // =====================================
@@ -976,7 +987,7 @@ class ReportController extends BaseController
             $title === '' ||
             $description === '' ||
             $categoryId <= 0 ||
-            $purokId <= 0 ||
+
             !is_numeric($latitude) ||
             !is_numeric($longitude)
         ) {
@@ -1034,7 +1045,7 @@ class ReportController extends BaseController
 
         $isInsideSaguing =
             $latitudeValue >= 6.955 &&
-            $latitudeValue <= 7.005 &&
+            $latitudeValue <= 6.995 &&
             $longitudeValue >= 125.055 &&
             $longitudeValue <= 125.105;
 
@@ -1063,22 +1074,28 @@ class ReportController extends BaseController
         // Validate Purok of report location
         // =====================================
 
-        $purok = $db->table('puroks')
-            ->select('purok_id')
-            ->where('purok_id', $purokId)
-            ->where('is_active', 1)
-            ->where('latitude IS NOT NULL', null, false)
-            ->where('longitude IS NOT NULL', null, false)
-            ->get()
-            ->getRowArray();
+        if ($purokId > 0) {
 
-        if (!$purok) {
-            return redirect()->back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Please select a valid Purok for the report location.'
-                );
+            $purok = $db->table('puroks')
+                ->select('purok_id')
+                ->where('purok_id', $purokId)
+                ->where('is_active', 1)
+                ->where('latitude IS NOT NULL', null, false)
+                ->where('longitude IS NOT NULL', null, false)
+                ->get()
+                ->getRowArray();
+
+            if (!$purok) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Please select a valid Purok for the report location.'
+                    );
+            }
+        } else {
+
+            $purokId = null;
         }
 
         // Optional replacement photo
