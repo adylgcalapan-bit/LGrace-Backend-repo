@@ -416,7 +416,7 @@ class AuthController extends BaseController
                 'value'    => $rawToken,
                 'expire'   => $expirySeconds,
                 'path'     => '/',
-                'secure'   => false, // localhost uses HTTP
+                'secure' => ENVIRONMENT === 'production',
                 'httponly' => true,
                 'samesite' => 'Lax',
             ]);
