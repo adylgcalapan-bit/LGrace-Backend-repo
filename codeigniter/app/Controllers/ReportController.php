@@ -1174,11 +1174,27 @@ class ReportController extends BaseController
                     ->with('error', 'Photo must not exceed 5 MB.');
             }
 
+            $uploadPath = FCPATH . 'uploads/reports';
+
+            if (!is_dir($uploadPath)) {
+                if (
+                    !mkdir($uploadPath, 0775, true) &&
+                    !is_dir($uploadPath)
+                ) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->with(
+                            'error',
+                            'Unable to prepare the photo upload folder.'
+                        );
+                }
+            }
+
             $newName = $photo->getRandomName();
 
             try {
                 $photo->move(
-                    FCPATH . 'uploads/reports',
+                    $uploadPath,
                     $newName
                 );
             } catch (\Throwable $e) {
