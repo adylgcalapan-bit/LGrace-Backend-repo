@@ -168,7 +168,7 @@
                     <div class="row g-3 mb-3">
 
                         <!-- SEARCH -->
-                        <div class="col-lg-6">
+                        <div class="col-lg-5">
 
                             <label
                                 for="reportSearch"
@@ -196,7 +196,7 @@
 
 
                         <!-- CATEGORY -->
-                        <div class="col-lg-3">
+                        <div class="col-lg-4">
 
                             <label
                                 for="reportCategory"

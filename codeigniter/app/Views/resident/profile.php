@@ -42,7 +42,7 @@
                 <h4>
                     <?= esc(
                         $settings['system_name']
-                            ?? 'Community Visibility System'
+                            ?? 'CPVS'
                     ) ?>
                 </h4>
             </div>

@@ -50,7 +50,7 @@
                 <i class="bi bi-geo-alt-fill"></i>
 
                 <h4>
-                    Community Visibility System
+                    CPVS
                 </h4>
 
             </div>
