@@ -356,7 +356,7 @@
                         <?php foreach ($recentReports as $report): ?>
 
                             <li>
-                                âœ” Report
+                                &#10004; Report
                                 <strong>#<?= esc($report['report_no'] ?? 'N/A') ?></strong>
                                 by
                                 <strong><?= esc($report['display_resident_name'] ?? 'Unknown Resident') ?></strong>
