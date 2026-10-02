@@ -3,7 +3,7 @@
 use CodeIgniter\Router\RouteCollection;
 
 /** @var RouteCollection $routes */
-$routes->get('/', 'Home::index');
+$routes->get('/', 'AuthController::showLogin');
 
 $routes->get('login', 'AuthController::showLogin');
 $routes->post('login', 'AuthController::login');
