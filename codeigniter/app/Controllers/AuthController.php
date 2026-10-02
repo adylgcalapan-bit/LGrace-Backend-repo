@@ -853,8 +853,6 @@ class AuthController extends BaseController
                 'Verify Your Email - Community Visibility System'
             );
 
-            $verificationUrl = site_url('register');
-
             $message = '
             <div style="font-family: Arial, sans-serif; line-height: 1.6;">
                 <h2>Email Verification</h2>
@@ -877,26 +875,6 @@ class AuthController extends BaseController
                     This code will expire in
                     <strong>10 minutes</strong>.
                 </p>
-
-                <p>
-    Click the link below to return to the registration page
-    and enter your verification code:
-</p>
-
-<p>
-    <a href="' . esc($verificationUrl, 'attr') . '"
-       style="
-           display: inline-block;
-           padding: 10px 18px;
-           background: #198754;
-           color: #ffffff;
-           text-decoration: none;
-           border-radius: 5px;
-           font-weight: bold;
-       ">
-        Verify Your Email
-    </a>
-</p>
 
               <p>
     If you did not request this code,
@@ -1841,7 +1819,7 @@ class AuthController extends BaseController
             $emailService->setSubject(
                 'New Resident Verification Code - Community Visibility System'
             );
-            $verificationUrl = site_url('resident/verify-account');
+
             $message = '
             <div style="
                 font-family: Arial, sans-serif;
@@ -1867,24 +1845,7 @@ class AuthController extends BaseController
                     This code will expire in
                     <strong>10 minutes</strong>.
                 </p>
-<p>
-    Click the button below to open the verification page:
-</p>
 
-<p>
-    <a href="' . esc($verificationUrl, 'attr') . '"
-       style="
-           display: inline-block;
-           padding: 10px 18px;
-           background: #198754;
-           color: #ffffff;
-           text-decoration: none;
-           border-radius: 5px;
-           font-weight: bold;
-       ">
-        Open Verification Page
-    </a>
-</p>
              <p>
     Enter this code on the resident
     verification page to activate
