@@ -832,7 +832,7 @@ r.title,
             $emailService->setSubject(
                 'Verify Your Resident Account - Community Visibility System'
             );
-
+            $verificationUrl = site_url('login');
             $message = '
         <div style="
             font-family: Arial, sans-serif;
@@ -864,6 +864,25 @@ r.title,
                 This verification code will expire in
                 <strong>10 minutes</strong>.
             </p>
+
+            <p>
+    Click the button below to open the Community Visibility System:
+</p>
+
+<p>
+    <a href="' . esc($verificationUrl, 'attr') . '"
+       style="
+           display: inline-block;
+           padding: 10px 18px;
+           background: #198754;
+           color: #ffffff;
+           text-decoration: none;
+           border-radius: 5px;
+           font-weight: bold;
+       ">
+        Open CPVS Login
+    </a>
+</p>
 
             <p>
                 To activate your account, open the
@@ -1122,6 +1141,8 @@ r.title,
                 'New Resident Verification Code - Community Visibility System'
             );
 
+            $verificationUrl = site_url('login');
+
             $message = '
             <div style="
                 font-family: Arial, sans-serif;
@@ -1156,7 +1177,24 @@ r.title,
                     This code will expire in
                     <strong>10 minutes</strong>.
                 </p>
+<p>
+    Click the button below to open the Community Visibility System:
+</p>
 
+<p>
+    <a href="' . esc($verificationUrl, 'attr') . '"
+       style="
+           display: inline-block;
+           padding: 10px 18px;
+           background: #198754;
+           color: #ffffff;
+           text-decoration: none;
+           border-radius: 5px;
+           font-weight: bold;
+       ">
+        Open CPVS Login
+    </a>
+</p>
                 <p>
                     Log in using your resident credentials
                     and enter this code on the verification
@@ -1900,7 +1938,7 @@ r.title,
             $emailService->setSubject(
                 'Verify Your New Email - Community Visibility System'
             );
-
+            $verificationUrl = site_url('resident/profile');
             $message = '
             <div style="font-family: Arial, sans-serif; line-height: 1.6;">
                 <h2>Email Change Verification</h2>
@@ -1925,7 +1963,25 @@ r.title,
                     This code will expire in
                     <strong>10 minutes</strong>.
                 </p>
+<p>
+    Click the button below to return to your profile
+    and enter the verification code:
+</p>
 
+<p>
+    <a href="' . esc($verificationUrl, 'attr') . '"
+       style="
+           display: inline-block;
+           padding: 10px 18px;
+           background: #198754;
+           color: #ffffff;
+           text-decoration: none;
+           border-radius: 5px;
+           font-weight: bold;
+       ">
+        Open Resident Profile
+    </a>
+</p>
               <p>
     If you did not request this change,
     you can safely ignore this email.
@@ -3750,7 +3806,7 @@ users.resident_no
             $emailService->setSubject(
                 'Verify Administrator Email - Community Visibility System'
             );
-
+            $verificationUrl = site_url('admin/account');
             $message = '
         <div style="font-family: Arial, sans-serif; line-height: 1.6;">
             <h2>Administrator Email Verification</h2>
@@ -3775,7 +3831,25 @@ users.resident_no
                 This code will expire in
                 <strong>10 minutes</strong>.
             </p>
+<p>
+    Click the button below to return to the administrator account page
+    and enter the verification code:
+</p>
 
+<p>
+    <a href="' . esc($verificationUrl, 'attr') . '"
+       style="
+           display: inline-block;
+           padding: 10px 18px;
+           background: #198754;
+           color: #ffffff;
+           text-decoration: none;
+           border-radius: 5px;
+           font-weight: bold;
+       ">
+        Open Admin Account
+    </a>
+</p>
             <p>
                 If you did not request this change,
                 you can safely ignore this email.
