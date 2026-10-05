@@ -342,6 +342,8 @@
                                     data-today="<?= $editToday->format('Y-m-d') ?>"
                                     required>
 
+                                <div class="invalid-feedback" id="incidentDateError"></div>
+
                             </div>
 
                             <!-- PHOTO -->

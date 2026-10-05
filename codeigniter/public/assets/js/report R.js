@@ -8,6 +8,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const descriptionInput = document.getElementById("description");
   const descriptionError = document.getElementById("descriptionError");
+
+  const incidentDateInput = document.getElementById("incidentDate");
+  const incidentDateError = document.getElementById("incidentDateError");
+
   const photosInput = document.getElementById("photos");
   const photosError = document.getElementById("photosError");
   const photoCount = document.getElementById("photoCount");
@@ -29,6 +33,56 @@ document.addEventListener("DOMContentLoaded", function () {
     : null;
 
   let isSubmitting = false;
+
+  function validateIncidentDate() {
+    if (!incidentDateInput) {
+      return true;
+    }
+
+    const value = incidentDateInput.value;
+    const minDate = incidentDateInput.min;
+    const maxDate = incidentDateInput.max;
+
+    const originalDate = incidentDateInput.dataset.originalDate || "";
+    const yesterday = incidentDateInput.dataset.yesterday || "";
+    const today = incidentDateInput.dataset.today || "";
+
+    let message = "";
+
+    if (!value) {
+      message = "Please select the incident date.";
+    } else if (originalDate || yesterday || today) {
+      // Edit Report:
+      // original date OR yesterday OR today only.
+      const allowedDates = [originalDate, yesterday, today].filter(Boolean);
+
+      if (!allowedDates.includes(value)) {
+        if (today && value > today) {
+          message = "Incident date cannot be in the future.";
+        } else {
+          message =
+            "You may keep the original report date or change it to today or yesterday only.";
+        }
+      }
+    } else if (maxDate && value > maxDate) {
+      // Add Report
+      message = "Incident date cannot be in the future.";
+    } else if (minDate && value < minDate) {
+      // Add Report
+      message = "Incident date can only be yesterday or today.";
+    }
+
+    const isValid = message === "";
+
+    incidentDateInput.classList.toggle("is-invalid", !isValid);
+    incidentDateInput.classList.toggle("is-valid", isValid);
+
+    if (incidentDateError) {
+      incidentDateError.textContent = message;
+    }
+
+    return isValid;
+  }
 
   let map = null;
   let marker = null;
@@ -473,6 +527,17 @@ document.addEventListener("DOMContentLoaded", function () {
   if (descriptionInput) {
     descriptionInput.addEventListener("input", validateDescription);
   }
+
+  if (incidentDateInput) {
+    incidentDateInput.addEventListener("input", validateIncidentDate);
+    incidentDateInput.addEventListener("change", validateIncidentDate);
+
+    incidentDateInput.addEventListener("invalid", function (event) {
+      event.preventDefault();
+      validateIncidentDate();
+    });
+  }
+
   if (photosInput) {
     photosInput.addEventListener("change", validatePhotos);
   }
@@ -492,6 +557,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const titleValid = validateTitle();
       const categoryValid = validateCategory();
       const descriptionValid = validateDescription();
+      const incidentDateValid = validateIncidentDate();
       const locationValid = validateLocation();
       const photosValid = validatePhotos();
 
@@ -499,6 +565,7 @@ document.addEventListener("DOMContentLoaded", function () {
         !titleValid ||
         !categoryValid ||
         !descriptionValid ||
+        !incidentDateValid ||
         !locationValid ||
         !photosValid
       ) {

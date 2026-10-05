@@ -255,6 +255,8 @@
                                     max="<?= $manilaToday->format('Y-m-d') ?>"
                                     required>
 
+                                <div class="invalid-feedback" id="incidentDateError"></div>
+
                             </div>
 
                             <div class="col-md-6 mb-3">
