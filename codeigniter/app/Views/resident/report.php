@@ -471,7 +471,7 @@
 
     <!-- Custom JS -->
 
-    <script defer src="<?= base_url('assets/js/report R.js') ?>"></script>
+    <script defer src="<?= base_url('assets/js/report R.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/report R.js') ?>"></script>
 
 </body>
 
