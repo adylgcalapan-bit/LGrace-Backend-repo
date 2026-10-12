@@ -586,7 +586,7 @@ document.addEventListener("DOMContentLoaded", () => {
     deleteAccountButton.disabled = true;
 
     deleteConfirmation.addEventListener("input", () => {
-      const confirmed = deleteConfirmation.value === "DELETE";
+      const confirmed = deleteConfirmation.value === "DEACTIVATE";
 
       deleteAccountButton.disabled = !confirmed;
     });

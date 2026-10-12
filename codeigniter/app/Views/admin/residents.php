@@ -258,6 +258,7 @@
                             'all'      => 'All Status',
                             'active'   => 'Active',
                             'inactive' => 'Inactive',
+                            'rejected' => 'Rejected',
                         ];
 
                         $currentResidentStatusLabel =
@@ -311,6 +312,15 @@
                                         class="dropdown-item resident-status-option"
                                         data-value="Inactive">
                                         Inactive
+                                    </button>
+                                </li>
+
+                                <li>
+                                    <button
+                                        type="button"
+                                        class="dropdown-item resident-status-option"
+                                        data-value="Rejected">
+                                        Rejected
                                     </button>
                                 </li>
 
@@ -432,9 +442,9 @@
                             <tr>
                                 <th>Resident No.</th>
                                 <th>Photo</th>
-                                    <th>First Name</th>
-                                    <th>Middle Name</th>
-                                    <th>Last Name</th>
+                                <th>First Name</th>
+                                <th>Middle Name</th>
+                                <th>Last Name</th>
                                 <th>Email</th>
                                 <th>Purok</th>
                                 <th>Status</th>
@@ -456,8 +466,21 @@
                                         $resident['resident_no'] ?? 'N/A';
 
                                     $isActive = (int) ($resident['is_active'] ?? 1) === 1;
+
                                     $isEmailVerified = !empty($resident['email_verified_at']);
-                                    $isPendingVerification = !$isActive && !$isEmailVerified;
+
+                                    $approvalStatus = strtolower(
+                                        trim((string) ($resident['approval_status'] ?? 'approved'))
+                                    );
+
+                                    $isPendingVerification =
+                                        !$isActive &&
+                                        !$isEmailVerified &&
+                                        $approvalStatus === 'approved';
+
+                                    $isPendingApproval = $approvalStatus === 'pending';
+
+                                    $isRejected = $approvalStatus === 'rejected';
                                     ?>
 
                                     <tr class="resident-row"
@@ -468,7 +491,7 @@
                                         data-contact="<?= esc($resident['mobile_number'] ?? '') ?>"
                                         data-address="<?= esc($resident['address'] ?? '') ?>"
                                         data-purok-id="<?= !empty($resident['purok_id']) ? (int) $resident['purok_id'] : 'unassigned' ?>"
-                                        data-status="<?= $isPendingVerification ? 'pending' : ($isActive ? 'active' : 'inactive') ?>"
+                                        data-status="<?= $isPendingApproval ? 'pending-approval' : ($isRejected ? 'rejected' : ($isPendingVerification ? 'pending' : ($isActive ? 'active' : 'inactive'))) ?>"
                                         data-image="<?= esc($residentImage) ?>">
 
                                         <td>
@@ -486,29 +509,43 @@
                                         </td>
 
                                         <td>
-                                                <?= esc($resident['first_name'] ?? 'N/A') ?>
+                                            <?= esc($resident['first_name'] ?? 'N/A') ?>
                                         </td>
 
                                         <td>
-                                                <?= !empty($resident['middle_name'])
-                                                    ? esc($resident['middle_name'])
-                                                    : '—' ?>
+                                            <?= !empty($resident['middle_name'])
+                                                ? esc($resident['middle_name'])
+                                                : '—' ?>
                                         </td>
 
                                         <td>
-                                                <?= esc($resident['last_name'] ?? 'N/A') ?>
+                                            <?= esc($resident['last_name'] ?? 'N/A') ?>
                                         </td>
 
                                         <td>
-                                                <?= esc($resident['email'] ?? 'N/A') ?>
+                                            <?= esc($resident['email'] ?? 'N/A') ?>
                                         </td>
 
                                         <td>
-                                                <?= esc($resident['purok_name'] ?? 'Unassigned') ?>
+                                            <?= esc($resident['purok_name'] ?? 'Unassigned') ?>
                                         </td>
 
                                         <td>
-                                            <?php if ($isPendingVerification): ?>
+                                            <?php if ($isPendingApproval): ?>
+
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-hourglass-split me-1"></i>
+                                                    Pending Approval
+                                                </span>
+
+                                            <?php elseif ($isRejected): ?>
+
+                                                <span class="badge bg-danger">
+                                                    <i class="bi bi-x-circle me-1"></i>
+                                                    Rejected
+                                                </span>
+
+                                            <?php elseif ($isPendingVerification): ?>
 
                                                 <span class="badge bg-warning text-dark">
                                                     <i class="bi bi-envelope-exclamation me-1"></i>
@@ -539,7 +576,7 @@
                             <?php else: ?>
 
                                 <tr>
-                                        <td colspan="8" class="text-center text-muted py-4">
+                                    <td colspan="8" class="text-center text-muted py-4">
                                         No registered residents found.
                                     </td>
                                 </tr>
@@ -667,92 +704,92 @@
 
                                     <div class="row g-3">
 
-                                            <!-- NAME -->
-                                            <div class="col-12">
-                                                <div class="row g-3">
+                                        <!-- NAME -->
+                                        <div class="col-12">
+                                            <div class="row g-3">
 
-                                                    <div class="col-md-4">
-                                                        <small class="text-muted">First Name</small>
-                                                        <p class="fw-semibold mb-0"
-                                                            id="residentModalFirstName">
-                                                            —
-                                                        </p>
-                                                    </div>
-
-                                                    <div class="col-md-4">
-                                                        <small class="text-muted">Middle Name</small>
-                                                        <p class="fw-semibold mb-0"
-                                                            id="residentModalMiddleName">
-                                                            —
-                                                        </p>
-                                                    </div>
-
-                                                    <div class="col-md-4">
-                                                        <small class="text-muted">Last Name</small>
-                                                        <p class="fw-semibold mb-0"
-                                                            id="residentModalLastName">
-                                                            —
-                                                        </p>
-                                                    </div>
-
+                                                <div class="col-md-4">
+                                                    <small class="text-muted">First Name</small>
+                                                    <p class="fw-semibold mb-0"
+                                                        id="residentModalFirstName">
+                                                        —
+                                                    </p>
                                                 </div>
-                                            </div>
 
-                                            <!-- RESIDENT NO. -->
+                                                <div class="col-md-4">
+                                                    <small class="text-muted">Middle Name</small>
+                                                    <p class="fw-semibold mb-0"
+                                                        id="residentModalMiddleName">
+                                                        —
+                                                    </p>
+                                                </div>
+
+                                                <div class="col-md-4">
+                                                    <small class="text-muted">Last Name</small>
+                                                    <p class="fw-semibold mb-0"
+                                                        id="residentModalLastName">
+                                                        —
+                                                    </p>
+                                                </div>
+
+                                            </div>
+                                        </div>
+
+                                        <!-- RESIDENT NO. -->
                                         <div class="col-md-6">
                                             <small class="text-muted">Resident No.</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalId">
-                                                    —
+                                                —
                                             </p>
                                         </div>
 
-                                            <!-- USERNAME -->
+                                        <!-- USERNAME -->
                                         <div class="col-md-6">
                                             <small class="text-muted">Username</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalUsername">
-                                                    —
+                                                —
                                             </p>
                                         </div>
 
-                                            <!-- EMAIL -->
+                                        <!-- EMAIL -->
                                         <div class="col-md-6">
                                             <small class="text-muted">Email Address</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalEmail">
-                                                    —
+                                                —
                                             </p>
                                         </div>
 
-                                            <!-- CONTACT -->
+                                        <!-- CONTACT -->
                                         <div class="col-md-6">
                                             <small class="text-muted">Contact Number</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalContact">
-                                                    —
+                                                —
                                             </p>
                                         </div>
 
-                                            <!-- ADDRESS -->
-                                            <div class="col-12">
+                                        <!-- ADDRESS -->
+                                        <div class="col-12">
                                             <small class="text-muted">Address</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalAddress">
-                                                    —
+                                                —
                                             </p>
                                         </div>
 
-                                            <!-- DATE REGISTERED -->
+                                        <!-- DATE REGISTERED -->
                                         <div class="col-md-6">
                                             <small class="text-muted">Date Registered</small>
                                             <p class="fw-semibold mb-0"
                                                 id="residentModalRegistered">
-                                                    —
+                                                —
                                             </p>
                                         </div>
 
-                                            <!-- ACCOUNT STATUS -->
+                                        <!-- ACCOUNT STATUS -->
                                         <div class="col-md-6">
                                             <small class="text-muted">Account Status</small>
 
@@ -904,6 +941,39 @@
                                         Loading...
                                     </span>
 
+                                </button>
+
+                            </form>
+
+                            <!-- =========================================
+     ADMIN REGISTRATION APPROVAL
+     Self-registered residents ONLY
+========================================== -->
+                            <form
+                                id="residentApprovalForm"
+                                method="post"
+                                class="d-none me-2">
+
+                                <?= csrf_field() ?>
+
+                                <button
+                                    type="submit"
+                                    name="decision"
+                                    value="approve"
+                                    class="btn btn-success me-2">
+
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Approve
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    name="decision"
+                                    value="reject"
+                                    class="btn btn-danger">
+
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    Reject
                                 </button>
 
                             </form>
@@ -1233,54 +1303,54 @@
                                         </div>
                                     </div>
 
-                                        <div class="row g-2">
+                                    <div class="row g-2">
 
-                                            <div class="col-12">
-                                                <label class="form-label">
-                                                    First Name
-                                                    <span class="text-danger">*</span>
-                                                </label>
+                                        <div class="col-12">
+                                            <label class="form-label">
+                                                First Name
+                                                <span class="text-danger">*</span>
+                                            </label>
 
-                                                <input
-                                                    type="text"
-                                                    class="form-control"
-                                                    name="first_name"
-                                                    placeholder="Enter first name"
-                                                    value="<?= esc(old('first_name') ?? '') ?>"
-                                                    required>
-                                            </div>
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                name="first_name"
+                                                placeholder="Enter first name"
+                                                value="<?= esc(old('first_name') ?? '') ?>"
+                                                required>
+                                        </div>
 
-                                            <div class="col-12">
-                                                <label class="form-label">
-                                                    Middle Name
-                                                </label>
+                                        <div class="col-12">
+                                            <label class="form-label">
+                                                Middle Name
+                                            </label>
 
-                                                <input
-                                                    type="text"
-                                                    class="form-control"
-                                                    name="middle_name"
-                                                    placeholder="Enter middle name"
-                                                    value="<?= esc(old('middle_name') ?? '') ?>">
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                name="middle_name"
+                                                placeholder="Enter middle name"
+                                                value="<?= esc(old('middle_name') ?? '') ?>">
 
-
-                                            </div>
-
-                                            <div class="col-12">
-                                    <label class="form-label">
-                                                    Last Name
-                                        <span class="text-danger">*</span>
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                                    name="last_name"
-                                                    placeholder="Enter last name"
-                                                    value="<?= esc(old('last_name') ?? '') ?>"
-                                        required>
-                                            </div>
 
                                         </div>
+
+                                        <div class="col-12">
+                                            <label class="form-label">
+                                                Last Name
+                                                <span class="text-danger">*</span>
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                name="last_name"
+                                                placeholder="Enter last name"
+                                                value="<?= esc(old('last_name') ?? '') ?>"
+                                                required>
+                                        </div>
+
+                                    </div>
 
                                 </div>
 

@@ -674,8 +674,184 @@
 
                         </div>
 
+                        <!-- =========================================
+     TERMS AND CONDITIONS / PRIVACY POLICY
+========================================== -->
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+                                Terms and Conditions & Privacy Policy
+                            </label>
+
+                            <!-- TERMS AND CONDITIONS -->
+                            <details class="border rounded p-3 mb-2">
+
+                                <summary class="fw-semibold"
+                                    style="cursor: pointer;">
+                                    Read Terms and Conditions
+                                </summary>
+
+                                <div class="mt-3 small">
+
+                                    <p>
+                                        By using the Community Problems Visibility
+                                        System (CPVS), residents agree to use the
+                                        system responsibly and provide accurate
+                                        information.
+                                    </p>
+
+                                    <p><strong>1. Accurate Information</strong></p>
+                                    <p>
+                                        Residents must provide truthful registration
+                                        information and report community concerns
+                                        honestly and accurately.
+                                    </p>
+
+                                    <p><strong>2. Responsible Reporting</strong></p>
+                                    <p>
+                                        Reports must concern genuine community
+                                        issues. Knowingly submitting false,
+                                        misleading, fabricated, or malicious
+                                        reports is prohibited.
+                                    </p>
+
+                                    <p><strong>3. Prohibited Activities</strong></p>
+                                    <p>
+                                        Users must not harass others, impersonate
+                                        another person, submit offensive content,
+                                        or intentionally misuse the system.
+                                    </p>
+
+                                    <p><strong>4. Consequences of Misuse</strong></p>
+                                    <p>
+                                        Violations may result in report rejection
+                                        or account deactivation following an
+                                        appropriate review. Serious misconduct
+                                        may be referred to the proper authorities
+                                        when warranted under applicable
+                                        Philippine laws.
+
+                                    </p>
+
+                                    <p>
+                                        Reports submitted in good faith are not
+                                        automatically considered violations
+                                        merely because information later
+                                        turns out to be incorrect.
+                                    </p>
+
+                                    <p><strong>5. Report Review</strong></p>
+                                    <p>
+                                        Barangay administrators may review
+                                        submitted reports to determine their
+                                        validity and appropriate action.
+                                    </p>
+
+                                </div>
+
+                            </details>
+
+                            <!-- PRIVACY POLICY -->
+                            <details class="border rounded p-3 mb-3">
+
+                                <summary class="fw-semibold"
+                                    style="cursor: pointer;">
+                                    Read Privacy Policy
+                                </summary>
+
+                                <div class="mt-3 small">
+
+                                    <p>
+                                        The Community Problems Visibility System
+                                        recognizes the importance of protecting
+                                        residents' personal information in
+                                        accordance with Republic Act No. 10173,
+                                        or the Data Privacy Act of 2012.
+                                    </p>
+
+                                    <p><strong>1. Information Collected</strong></p>
+                                    <p>
+                                        The system collects registration details
+                                        such as name, email address, contact
+                                        information, address, and Purok.
+                                        Submitted reports may contain descriptions,
+                                        images, dates, and location information.
+                                    </p>
+
+                                    <p><strong>2. Purpose of Collection</strong></p>
+                                    <p>
+                                        Information is used for account management,
+                                        resident verification, community reporting,
+                                        report monitoring, and appropriate
+                                        barangay responses.
+                                    </p>
+
+                                    <p><strong>3. Information Access</strong></p>
+                                    <p>
+                                        Personal account information is intended
+                                        for authorized system personnel.
+                                        Report information may be displayed
+                                        through the system according to its
+                                        existing visibility settings.
+                                    </p>
+
+                                    <p><strong>4. Data Protection</strong></p>
+                                    <p>
+                                        The system uses access controls and
+                                        account verification measures to help
+                                        protect resident information.
+                                    </p>
+
+                                    <p><strong>5. Account Deactivation</strong></p>
+                                    <p>
+                                        Deactivating an account does not
+                                        automatically erase existing account
+                                        information or submitted reports.
+                                        Records may be retained for legitimate
+                                        reporting and recordkeeping purposes,
+                                        subject to applicable privacy requirements.
+                                    </p>
+
+                                    <p><strong>6. Privacy Rights</strong></p>
+                                    <p>
+                                        Residents may contact the Barangay
+                                        Saguing administration regarding
+                                        access, correction, and other applicable
+                                        rights concerning their personal data.
+                                    </p>
+
+                                </div>
+
+                            </details>
+
+                            <!-- REQUIRED AGREEMENT -->
+                            <div class="form-check">
+
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input"
+                                    id="acceptTerms"
+                                    name="accept_terms"
+                                    value="1"
+                                    required>
+
+                                <label
+                                    class="form-check-label"
+                                    for="acceptTerms">
+
+                                    I have read and agree to the
+                                    Terms and Conditions and acknowledge
+                                    the Privacy Policy.
+
+                                </label>
+
+                            </div>
+
+                        </div>
 
                         <!-- JS FORM MESSAGE -->
+
+
                         <div
                             id="formMessage"
                             class="form-message"

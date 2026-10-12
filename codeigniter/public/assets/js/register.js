@@ -259,6 +259,14 @@ document.addEventListener("DOMContentLoaded", function () {
       updateCsrfToken(data.csrfHash);
 
       if (!response.ok || !data.success) {
+        // Show duplicate email error below the Email Address field.
+        if (response.status === 409) {
+          setFieldState(
+            fieldMap.email,
+            "This email address is already registered. Please use a different email address.",
+          );
+        }
+
         throw new Error(data.message || "Unable to send verification code.");
       }
 
@@ -409,6 +417,26 @@ document.addEventListener("DOMContentLoaded", function () {
       formMessage.className = "form-message error";
 
       fieldMap.email.input.focus();
+
+      return;
+    }
+
+    // =====================================
+    // TERMS AND CONDITIONS VALIDATION
+    // =====================================
+    const acceptTerms = document.getElementById("acceptTerms");
+
+    if (!acceptTerms || !acceptTerms.checked) {
+      event.preventDefault();
+
+      formMessage.textContent =
+        "Please agree to the Terms and Conditions and acknowledge the Privacy Policy before registering.";
+
+      formMessage.className = "form-message error";
+
+      if (acceptTerms) {
+        acceptTerms.focus();
+      }
 
       return;
     }

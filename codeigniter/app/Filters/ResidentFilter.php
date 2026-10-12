@@ -103,7 +103,7 @@ class ResidentFilter implements FilterInterface
         $db = \Config\Database::connect();
 
         $resident = $db->table('users')
-            ->select('user_id, is_active')
+            ->select('user_id, is_active, approval_status')
             ->where('user_id', $userId)
             ->where('role', 'resident')
             ->get()
@@ -112,7 +112,8 @@ class ResidentFilter implements FilterInterface
         // Account deleted, missing, or deactivated
         if (
             !$resident ||
-            (int) $resident['is_active'] !== 1
+            (int) ($resident['is_active'] ?? 0) !== 1 ||
+            (string) ($resident['approval_status'] ?? '') !== 'approved'
         ) {
             // Remove Remember Me tokens
             if ($userId > 0) {

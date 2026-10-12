@@ -385,26 +385,59 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const isEmailVerified = Boolean(resident.email_verified_at);
 
-      const isPendingVerification = !isActive && !isEmailVerified;
+      const approvalStatus = String(resident.approval_status ?? "approved")
+        .trim()
+        .toLowerCase();
+
+      // Self-registered resident awaiting Admin decision
+      const isPendingApproval = approvalStatus === "pending";
+
+      // Registration rejected by Admin
+      const isRejected = approvalStatus === "rejected";
+
+      // Preserve existing Admin-created resident OTP verification
+      const isPendingVerification =
+        !isActive && !isEmailVerified && approvalStatus === "approved";
 
       if (statusBadge) {
-        if (isPendingVerification) {
+        if (isPendingApproval) {
+          statusBadge.textContent = "Pending Approval";
+          statusBadge.className = "badge bg-warning text-dark";
+        } else if (isRejected) {
+          statusBadge.textContent = "Rejected";
+          statusBadge.className = "badge bg-danger";
+        } else if (isPendingVerification) {
           statusBadge.textContent = "Pending Verification";
-
           statusBadge.className = "badge bg-warning text-dark";
         } else if (isActive) {
           statusBadge.textContent = "Active";
-
           statusBadge.className = "badge bg-success";
         } else {
           statusBadge.textContent = "Inactive";
-
           statusBadge.className = "badge bg-secondary";
         }
       }
 
+      // ==========================================
+      // ACCOUNT STATUS / REGISTRATION APPROVAL
+      // ==========================================
+
+      // Existing Activate / Deactivate
       if (statusForm) {
         statusForm.action = `/admin/residents/${resident.user_id}/status`;
+
+        // Hide for Pending Approval and Rejected
+        statusForm.classList.toggle("d-none", isPendingApproval || isRejected);
+      }
+
+      // New Approve / Reject buttons
+      const approvalForm = document.getElementById("residentApprovalForm");
+
+      if (approvalForm) {
+        approvalForm.action = `/admin/residents/${resident.user_id}/review-registration`;
+
+        // Show only for Pending Admin Approval
+        approvalForm.classList.toggle("d-none", !isPendingApproval);
       }
 
       if (residentResendOtpForm) {

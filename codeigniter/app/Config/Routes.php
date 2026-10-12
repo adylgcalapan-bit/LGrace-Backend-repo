@@ -33,6 +33,8 @@ $routes->get('admin/reports', 'DashboardController::reports', ['filter' => 'admi
 $routes->get('admin/residents', 'DashboardController::residents', ['filter' => 'admin']);
 $routes->post('admin/residents/create', 'DashboardController::createResident', ['filter' => 'admin']);
 $routes->post('admin/residents/(:num)/status', 'DashboardController::updateResidentStatus/$1', ['filter' => 'admin']);
+// Admin approval or rejection of resident registration
+$routes->post('admin/residents/(:num)/review-registration', 'DashboardController::reviewResidentRegistration/$1', ['filter' => 'admin']);
 $routes->get('admin/residents/details/(:num)', 'DashboardController::residentDetails/$1', ['filter' => 'admin']);
 $routes->post('admin/residents/(:num)/resend-verification', 'DashboardController::resendResidentVerificationCode/$1',  ['filter' => 'admin']);
 
@@ -65,6 +67,9 @@ $routes->post('admin/reports/update-status', 'ReportController::updateStatus', [
 // RESIDENT - protected
 $routes->get('resident/dashboard', 'DashboardController::resident', ['filter' => 'resident']);
 $routes->get('resident/report', 'DashboardController::report', ['filter' => 'resident']);
+
+$routes->post('resident/report/check-duplicate', 'ReportController::checkPossibleDuplicate', ['filter' => 'resident']);
+
 $routes->post('resident/report', 'ReportController::create', ['filter' => 'resident']);
 $routes->post('resident/report/delete/(:num)', 'ReportController::delete/$1', ['filter' => 'resident']);
 $routes->get('resident/my-reports', 'DashboardController::myReports', ['filter' => 'resident']);
@@ -77,7 +82,7 @@ $routes->post('resident/profile/update', 'DashboardController::updateProfile', [
 $routes->post('resident/profile/send-email-code', 'DashboardController::sendProfileEmailCode', ['filter' => 'resident']);
 
 $routes->post('resident/profile/verify-email-code', 'DashboardController::verifyProfileEmailCode', ['filter' => 'resident']);
-$routes->post('resident/account/delete', 'DashboardController::deleteResidentAccount', ['filter' => 'resident']);
+$routes->post('resident/account/deactivate', 'DashboardController::deactivateResidentAccount', ['filter' => 'resident']);
 $routes->get('resident/report-details', 'DashboardController::reportDetails', ['filter' => 'resident']);
 $routes->get('resident/report-details/(:num)', 'DashboardController::reportDetails/$1', ['filter' => 'resident']);
 

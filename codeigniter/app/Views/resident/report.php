@@ -160,6 +160,8 @@
 
                     <form id="reportForm"
                         action="<?= site_url('resident/report') ?>"
+                        data-duplicate-check-url="<?= site_url('resident/report/check-duplicate') ?>"
+                        data-csrf-name="<?= esc(csrf_token(), 'attr') ?>"
                         method="POST"
                         enctype="multipart/form-data">
 
@@ -438,6 +440,80 @@
                         </div>
 
                     </form>
+                </div>
+
+            </div>
+
+            <!-- =========================================
+     POSSIBLE DUPLICATE REPORT WARNING
+========================================== -->
+            <div class="modal fade"
+                id="duplicateReportModal"
+                tabindex="-1"
+                aria-labelledby="duplicateReportModalLabel"
+                aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered">
+
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+
+                            <h5 class="modal-title"
+                                id="duplicateReportModalLabel">
+
+                                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                                Possible Duplicate Report
+
+                            </h5>
+
+                            <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close">
+                            </button>
+
+                        </div>
+
+                        <div class="modal-body">
+
+                            <p>
+                                A similar community concern may have already
+                                been reported near this location.
+                            </p>
+
+                            <p class="text-muted mb-0">
+                                Your report appears similar to a report
+                                already submitted by another resident.
+                                To avoid duplicate submissions, you may
+                                cancel your report. However, you may still
+                                proceed if you believe your report is
+                                necessary or contains additional information.
+                            </p>
+
+                        </div>
+
+                        <div class="modal-footer">
+
+                            <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+
+                            <button type="button"
+                                class="btn btn-success"
+                                id="continueDuplicateSubmit">
+
+                                <i class="bi bi-send-fill me-1"></i>
+                                Continue Submission
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
                 </div>
 
             </div>

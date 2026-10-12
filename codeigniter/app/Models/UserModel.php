@@ -25,6 +25,7 @@ class UserModel extends Model
         'purok_id',
         'role',
         'is_active',
+        'approval_status',
         'email_verified_at'
     ];
 

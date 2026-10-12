@@ -8,6 +8,152 @@ use App\Models\NotificationModel;
 
 class ReportController extends BaseController
 {
+
+    // =====================================
+    // Check Possible Duplicate Reports
+    // Warning only - does not save or block
+    // =====================================
+    public function checkPossibleDuplicate()
+    {
+
+        $this->response->setHeader('X-CSRF-Hash', csrf_hash());
+        if ((int) session()->get('user_id') <= 0) {
+            return $this->response
+                ->setStatusCode(401)
+                ->setJSON(['error' => 'Unauthorized']);
+        }
+
+        $categoryId = (int) $this->request->getPost('category_id');
+        $latitude = $this->request->getPost('latitude');
+        $longitude = $this->request->getPost('longitude');
+        $incidentDate = trim((string) $this->request->getPost('incident_date'));
+
+        $reportText = trim(
+            (string) $this->request->getPost('title') . ' ' .
+                (string) $this->request->getPost('description')
+        );
+
+        $noDuplicate = ['possible_duplicate' => false];
+
+        if (
+            $categoryId <= 0 ||
+            !is_numeric($latitude) ||
+            !is_numeric($longitude) ||
+            $reportText === ''
+        ) {
+            return $this->response->setJSON($noDuplicate);
+        }
+
+        $date = \DateTimeImmutable::createFromFormat(
+            '!Y-m-d',
+            $incidentDate
+        );
+
+        if (!$date || $date->format('Y-m-d') !== $incidentDate) {
+            return $this->response->setJSON($noDuplicate);
+        }
+
+        // Ignore common words when comparing concerns.
+        $getKeywords = static function (string $text): array {
+            $words = preg_split(
+                '/[^\p{L}\p{N}]+/u',
+                strtolower($text),
+                -1,
+                PREG_SPLIT_NO_EMPTY
+            ) ?: [];
+
+            $ignored = [
+                'this',
+                'that',
+                'there',
+                'with',
+                'from',
+                'purok',
+                'barangay',
+                'saguing',
+                'report',
+                'area',
+                'near',
+                'ang',
+                'mga',
+                'nga',
+                'dito',
+                'diri',
+                'kaayo'
+            ];
+
+            return array_values(array_unique(array_filter(
+                $words,
+                static function ($word) use ($ignored) {
+                    return strlen($word) >= 4
+                        && !in_array($word, $ignored, true);
+                }
+            )));
+        };
+
+        $newKeywords = $getKeywords($reportText);
+
+        if (empty($newKeywords)) {
+            return $this->response->setJSON($noDuplicate);
+        }
+
+        $lat = (float) $latitude;
+        $lng = (float) $longitude;
+
+        $db = \Config\Database::connect();
+
+        // Compare reports from the same category and nearby dates.
+        $existingReports = $db->table('reports')
+            ->select('title, description, latitude, longtitude')
+            ->where('category_id', $categoryId)
+            ->where('user_id !=', (int) session()->get('user_id'))
+            ->where('incident_date >=', $date->modify('-1 day')->format('Y-m-d'))
+            ->where('incident_date <=', $date->modify('+1 day')->format('Y-m-d'))
+            ->where('latitude >=', $lat - 0.002)
+            ->where('latitude <=', $lat + 0.002)
+            ->where('longtitude >=', $lng - 0.002)
+            ->where('longtitude <=', $lng + 0.002)
+            ->get()
+            ->getResultArray();
+
+        foreach ($existingReports as $existing) {
+            $existingLat = (float) $existing['latitude'];
+            $existingLng = (float) $existing['longtitude'];
+
+            // Calculate actual distance in meters.
+            $latDifference = deg2rad($existingLat - $lat);
+            $lngDifference = deg2rad($existingLng - $lng);
+
+            $a = sin($latDifference / 2) ** 2
+                + cos(deg2rad($lat))
+                * cos(deg2rad($existingLat))
+                * sin($lngDifference / 2) ** 2;
+
+            $distance = 6371000 * 2 * asin(
+                min(1, sqrt($a))
+            );
+
+            // Only consider reports within 150 meters.
+            if ($distance > 150) {
+                continue;
+            }
+
+            $existingKeywords = $getKeywords(
+                (string) $existing['title'] . ' ' .
+                    (string) $existing['description']
+            );
+
+            // At least one meaningful matching word.
+            if (!empty(array_intersect($newKeywords, $existingKeywords))) {
+                return $this->response->setJSON([
+                    'possible_duplicate' => true
+                ]);
+            }
+        }
+
+        return $this->response->setJSON($noDuplicate);
+    }
+
     public function create()
     {
         $reportModel = new LocationModel();

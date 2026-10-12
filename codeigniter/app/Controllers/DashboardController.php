@@ -233,6 +233,7 @@ r.title,
         address,
         profile_image,
         is_active,
+        approval_status,
         email_verified_at,
         created_at
     ')
@@ -351,6 +352,7 @@ r.title,
                 'address' => $resident['address'],
                 'image_url' => $resident['image_url'],
                 'is_active' => (int) $resident['is_active'],
+                'approval_status' => (string) $resident['approval_status'],
                 'email_verified_at' => $resident['email_verified_at'],
                 'created_at' => $resident['created_at']
             ],
@@ -1331,7 +1333,7 @@ r.title,
         $db = \Config\Database::connect();
 
         $resident = $db->table('users')
-            ->select('user_id, full_name, is_active, email_verified_at')
+            ->select('user_id, full_name, is_active, email_verified_at, approval_status')
             ->where('user_id', $userId)
             ->where('role', 'resident')
             ->get()
@@ -1340,6 +1342,20 @@ r.title,
         if (!$resident) {
             return redirect()->to('/admin/residents')
                 ->with('error', 'Resident account not found.');
+        }
+        // =====================================
+        // PROTECT REGISTRATION APPROVAL STATUS
+        // =====================================
+        $approvalStatus = strtolower(
+            trim((string) ($resident['approval_status'] ?? 'approved'))
+        );
+
+        if ($approvalStatus !== 'approved') {
+            return redirect()->to('/admin/residents')
+                ->with(
+                    'error',
+                    'This registration must be reviewed using the Approve or Reject action.'
+                );
         }
 
         // Prevent activating an unverified resident account
@@ -1388,35 +1404,7 @@ r.title,
             ->where('role', 'resident')
             ->update($updateData);
 
-        $currentStatus =
-            (int) ($resident['is_active'] ?? 0);
 
-        $newStatus =
-            $currentStatus === 1 ? 0 : 1;
-
-        $updateData = [
-            'is_active' => $newStatus,
-        ];
-
-        /*
- * Compatibility fix for older residents:
- * if this account was already ACTIVE before
- * but email_verified_at was never stored,
- * preserve it as a verified account before
- * deactivating it.
- */
-        if (
-            $currentStatus === 1 &&
-            empty($resident['email_verified_at'])
-        ) {
-            $updateData['email_verified_at'] =
-                date('Y-m-d H:i:s');
-        }
-
-        $updated = $db->table('users')
-            ->where('user_id', $userId)
-            ->where('role', 'resident')
-            ->update($updateData);
 
         if (!$updated) {
             return redirect()->to('/admin/residents')
@@ -1450,7 +1438,152 @@ r.title,
         return redirect()->to('/admin/residents')
             ->with('success', $message);
     }
+    // =========================================
+    // ADMIN - APPROVE OR REJECT REGISTRATION
+    // =========================================
+    public function reviewResidentRegistration($userId)
+    {
+        $db = \Config\Database::connect();
 
+        $decision = strtolower(trim(
+            (string) $this->request->getPost('decision')
+        ));
+
+        if (!in_array($decision, ['approve', 'reject'], true)) {
+            return redirect()->to('/admin/residents')
+                ->with('error', 'Invalid registration decision.');
+        }
+
+        $resident = $db->table('users')
+            ->select('user_id, full_name, email, approval_status, email_verified_at')
+            ->where('user_id', (int) $userId)
+            ->where('role', 'resident')
+            ->get()
+            ->getRowArray();
+
+        if (!$resident) {
+            return redirect()->to('/admin/residents')
+                ->with('error', 'Resident account not found.');
+        }
+
+        // Only pending registrations can be reviewed.
+        if (($resident['approval_status'] ?? '') !== 'pending') {
+            return redirect()->to('/admin/residents')
+                ->with('error', 'This registration is no longer pending.');
+        }
+
+        // Never approve an unverified email.
+        if (empty($resident['email_verified_at'])) {
+            return redirect()->to('/admin/residents')
+                ->with('error', 'Resident email verification is required.');
+        }
+
+        $newApprovalStatus = $decision === 'approve'
+            ? 'approved'
+            : 'rejected';
+
+        $newActiveStatus = $decision === 'approve' ? 1 : 0;
+
+        $updated = $db->table('users')
+            ->where('user_id', (int) $userId)
+            ->where('role', 'resident')
+            ->where('approval_status', 'pending')
+            ->update([
+                'approval_status' => $newApprovalStatus,
+                'is_active'       => $newActiveStatus,
+                'updated_at'      => date('Y-m-d H:i:s'),
+            ]);
+
+        if (!$updated || $db->affectedRows() !== 1) {
+            return redirect()->to('/admin/residents')
+                ->with('error', 'Unable to process registration.');
+        }
+
+        $this->logAdminAudit(
+            $decision === 'approve'
+                ? 'APPROVE_REGISTRATION'
+                : 'REJECT_REGISTRATION',
+            'resident',
+            (int) $userId,
+            'Registration ' . $newApprovalStatus . ' for ' .
+                (string) $resident['full_name'] . '.'
+        );
+
+        // =========================================
+        // EMAIL ADMIN APPROVAL / REJECTION RESULT
+        // =========================================
+        try {
+            $emailService = service('email');
+            $emailService->clear(true);
+
+            $emailConfig = config('Email');
+
+            $emailService->setFrom(
+                $emailConfig->fromEmail,
+                $emailConfig->fromName
+            );
+
+            $emailService->setTo($resident['email']);
+            $emailService->setMailType('text');
+
+            if ($decision === 'approve') {
+
+                $emailSubject = 'CPVS - Registration Approved';
+
+                $emailBody =
+                    "Dear Resident,\n\n" .
+                    "Your registration for the Community Problems " .
+                    "Visibility System (CPVS) has been approved " .
+                    "by the Barangay Administrator.\n\n" .
+                    "You may now log in using your registered " .
+                    "email or username and password.\n\n" .
+                    "Login: " . site_url('login') . "\n\n" .
+                    "Thank you for registering with CPVS.\n\n" .
+                    "Barangay Saguing Administration";
+            } else {
+
+                $emailSubject = 'CPVS - Registration Rejected';
+
+                $emailBody =
+                    "Dear Resident,\n\n" .
+                    "Your registration for the Community Problems " .
+                    "Visibility System (CPVS) was not approved " .
+                    "by the Barangay Administrator.\n\n" .
+                    "For clarification or assistance, please " .
+                    "contact the Barangay Saguing Administration.\n\n" .
+                    "Thank you for your understanding.\n\n" .
+                    "Barangay Saguing Administration";
+            }
+
+            $emailService->setSubject($emailSubject);
+            $emailService->setMessage($emailBody);
+
+            if (!$emailService->send()) {
+                log_message(
+                    'error',
+                    'Registration decision email failed for user ID: ' .
+                        (int) $userId
+                );
+            }
+        } catch (\Throwable $e) {
+
+            log_message(
+                'error',
+                'Registration decision email error for user ID {userId}: {message}',
+                [
+                    'userId' => (int) $userId,
+                    'message' => $e->getMessage()
+                ]
+            );
+        }
+
+        $message = $decision === 'approve'
+            ? 'Resident registration approved successfully.'
+            : 'Resident registration rejected successfully.';
+
+        return redirect()->to('/admin/residents')
+            ->with('success', $message);
+    }
 
     // =========================
     // SUBMIT REPORT PAGE
@@ -2939,7 +3072,7 @@ users.resident_no
             (string) $this->request->getGet('purok')
         );
 
-        if (!in_array($status, ['active', 'inactive'], true)) {
+        if (!in_array($status, ['active', 'inactive', 'rejected'], true)) {
             $status = 'all';
         }
 
@@ -2974,7 +3107,10 @@ users.resident_no
             if ($status === 'active') {
                 $builder->where('u.is_active', 1);
             } elseif ($status === 'inactive') {
-                $builder->where('u.is_active', 0);
+                $builder->where('u.is_active', 0)
+                    ->where('u.approval_status', 'approved');
+            } elseif ($status === 'rejected') {
+                $builder->where('u.approval_status', 'rejected');
             }
 
             // PUROK
@@ -3055,6 +3191,7 @@ users.resident_no
                 u.purok_id,
                 u.profile_image,
                 u.is_active,
+                u.approval_status,
                 u.email_verified_at,
                 u.created_at,
                 p.purok_name
@@ -5127,6 +5264,103 @@ reports.status,
 
 
     // ===== Integrated backend functions =====
+
+    // =========================================
+    // RESIDENT - DEACTIVATE ACCOUNT
+    // =========================================
+    public function deactivateResidentAccount()
+    {
+        $db = \Config\Database::connect();
+
+        $userId = (int) session()->get('user_id');
+
+        if ($userId <= 0) {
+            session()->destroy();
+            return redirect()->to('/login');
+        }
+
+        $resident = $db->table('users')
+            ->where('user_id', $userId)
+            ->where('role', 'resident')
+            ->get()
+            ->getRowArray();
+
+        if (!$resident) {
+            session()->destroy();
+            return redirect()->to('/login');
+        }
+
+        // Only approved, active residents can deactivate.
+        if (
+            (int) $resident['is_active'] !== 1 ||
+            ($resident['approval_status'] ?? '') !== 'approved'
+        ) {
+            return redirect()->to('/resident/profile')
+                ->with('error', 'Account deactivation is not available.');
+        }
+
+        $currentPassword = (string)
+        $this->request->getPost('current_password');
+
+        $confirmation = trim((string)
+        $this->request->getPost('deactivate_confirmation'));
+
+        if (!password_verify($currentPassword, $resident['password'])) {
+            return redirect()->to('/resident/profile')
+                ->with('error', 'Incorrect current password.');
+        }
+
+        if ($confirmation !== 'DEACTIVATE') {
+            return redirect()->to('/resident/profile')
+                ->with('error', 'Please type DEACTIVATE to confirm.');
+        }
+
+        $db->transBegin();
+
+        try {
+            $updated = $db->table('users')
+                ->where('user_id', $userId)
+                ->where('role', 'resident')
+                ->where('is_active', 1)
+                ->where('approval_status', 'approved')
+                ->update([
+                    'is_active' => 0,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+            if (!$updated || $db->affectedRows() !== 1) {
+                throw new \RuntimeException('Unable to deactivate account.');
+            }
+
+            // Prevent automatic login through Remember Me.
+            $db->table('remember_tokens')
+                ->where('user_id', $userId)
+                ->delete();
+
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Database transaction failed.');
+            }
+
+            $db->transCommit();
+        } catch (\Throwable $e) {
+            $db->transRollback();
+
+            log_message('error', 'Resident deactivation failed: {message}', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return redirect()->to('/resident/profile')
+                ->with('error', 'Unable to deactivate your account.');
+        }
+
+        session()->destroy();
+
+        return redirect()->to('/login')
+            ->with(
+                'success',
+                'Your account has been deactivated. Contact the Barangay Administrator for reactivation.'
+            );
+    }
 
     public function deleteResidentAccount()
     {

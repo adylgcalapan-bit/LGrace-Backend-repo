@@ -546,14 +546,63 @@ document.addEventListener("DOMContentLoaded", function () {
   // Prevent accidental double submission
   // =====================================
 
+  // =====================================
+  // Submit Report Form
+  // Check possible duplicates before saving
+  // =====================================
+
   if (reportForm) {
-    reportForm.addEventListener("submit", function (event) {
-      // Stop a second submit while the first one is processing.
+    const duplicateModalElement = document.getElementById(
+      "duplicateReportModal",
+    );
+
+    const continueDuplicateButton = document.getElementById(
+      "continueDuplicateSubmit",
+    );
+
+    let duplicateCheckApproved = false;
+    let duplicateCheckInProgress = false;
+
+    const originalSubmitHtml = submitButton ? submitButton.innerHTML : "";
+
+    // Restore button after duplicate checking.
+    function restoreSubmitButton() {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalSubmitHtml;
+      }
+    }
+
+    // Continue Submission from the warning modal.
+    if (continueDuplicateButton) {
+      continueDuplicateButton.addEventListener("click", function () {
+        if (isSubmitting || duplicateCheckInProgress) {
+          return;
+        }
+
+        duplicateCheckApproved = true;
+
+        if (duplicateModalElement && window.bootstrap) {
+          const modal = bootstrap.Modal.getInstance(duplicateModalElement);
+
+          if (modal) {
+            modal.hide();
+          }
+        }
+
+        // Re-run validation and submit normally.
+        reportForm.requestSubmit();
+      });
+    }
+
+    reportForm.addEventListener("submit", async function (event) {
+      // Prevent accidental double submission.
       if (isSubmitting) {
         event.preventDefault();
         return;
       }
 
+      // Existing form validations.
       const titleValid = validateTitle();
       const categoryValid = validateCategory();
       const descriptionValid = validateDescription();
@@ -573,7 +622,131 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      // Form is valid. Lock it immediately.
+      // =====================================
+      // Check possible duplicate reports
+      // =====================================
+
+      if (!duplicateCheckApproved) {
+        event.preventDefault();
+
+        if (duplicateCheckInProgress) {
+          return;
+        }
+
+        duplicateCheckInProgress = true;
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = "Checking similar reports...";
+        }
+
+        try {
+          const checkUrl = reportForm.dataset.duplicateCheckUrl;
+
+          const formData = new FormData();
+
+          // Send report details only, not uploaded photos.
+          const fields = [
+            "title",
+            "category_id",
+            "description",
+            "incident_date",
+            "latitude",
+            "longitude",
+          ];
+
+          fields.forEach(function (field) {
+            const input = reportForm.elements.namedItem(field);
+
+            formData.append(field, input ? input.value : "");
+          });
+
+          // Include the existing CSRF token.
+          const csrfName = reportForm.dataset.csrfName;
+
+          const csrfInput = Array.from(
+            reportForm.querySelectorAll('input[type="hidden"]'),
+          ).find(function (input) {
+            return input.name === csrfName;
+          });
+
+          if (csrfInput) {
+            formData.append(csrfName, csrfInput.value);
+          }
+
+          const response = await fetch(checkUrl, {
+            method: "POST",
+            body: formData,
+            credentials: "same-origin",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          // Update CSRF token for actual submission.
+          const newCsrfHash = response.headers.get("X-CSRF-Hash");
+
+          if (newCsrfHash && csrfInput) {
+            csrfInput.value = newCsrfHash;
+          }
+
+          if (!response.ok) {
+            throw new Error("Duplicate check failed.");
+          }
+
+          const result = await response.json();
+
+          duplicateCheckInProgress = false;
+          restoreSubmitButton();
+
+          if (result.possible_duplicate) {
+            // Show the warning modal.
+            if (duplicateModalElement && window.bootstrap && bootstrap.Modal) {
+              bootstrap.Modal.getOrCreateInstance(duplicateModalElement).show();
+            } else {
+              // Fallback if Bootstrap modal is unavailable.
+              const continueAnyway = window.confirm(
+                "A similar report may already exist. " +
+                  "Do you want to continue submission?",
+              );
+
+              if (continueAnyway) {
+                duplicateCheckApproved = true;
+                reportForm.requestSubmit();
+              }
+            }
+
+            return;
+          }
+
+          // No possible duplicate: submit normally.
+          duplicateCheckApproved = true;
+          reportForm.requestSubmit();
+        } catch (error) {
+          console.error("Duplicate check error:", error);
+
+          duplicateCheckInProgress = false;
+          restoreSubmitButton();
+
+          // Never silently skip a failed duplicate check.
+          const submitAnyway = window.confirm(
+            "Unable to check for similar reports. " +
+              "Do you want to submit your report anyway?",
+          );
+
+          if (submitAnyway) {
+            duplicateCheckApproved = true;
+            reportForm.requestSubmit();
+          }
+        }
+
+        return;
+      }
+
+      // =====================================
+      // Final normal submission
+      // =====================================
+
       isSubmitting = true;
 
       if (submitButton) {

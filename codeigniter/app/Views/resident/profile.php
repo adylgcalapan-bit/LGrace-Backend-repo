@@ -1135,14 +1135,13 @@
 
                     <div>
                         <span class="danger-label">
-                            Danger Zone
+                            ACCOUNT MANAGEMENT
                         </span>
 
-                        <h3>Delete Resident Account</h3>
+                        <h3>Deactivate Resident Account</h3>
 
                         <p>
-                            Permanently remove your account.
-                            This action cannot be undone.
+                            Deactivate your account without deleting your data. Visit the Barangay Hall to request reactivation.
                         </p>
                     </div>
 
@@ -1154,8 +1153,8 @@
                     data-bs-toggle="modal"
                     data-bs-target="#deleteAccountModal">
 
-                    <i class="bi bi-trash3-fill"></i>
-                    Delete Account
+                    <i class="bi bi-person-x-fill"></i>
+                    Deactivate Account
                 </button>
 
             </section>
@@ -1180,14 +1179,14 @@
                             <div>
 
                                 <span class="danger-label">
-                                    Permanent Action
+                                    Account Settings
                                 </span>
 
                                 <h5
                                     class="modal-title"
                                     id="deleteAccountModalLabel">
 
-                                    Delete Resident Account
+                                    Deactivate Resident Accountx
                                 </h5>
 
                             </div>
@@ -1203,7 +1202,7 @@
 
 
                         <form
-                            action="<?= site_url('resident/account/delete') ?>"
+                            action="<?= site_url('resident/account/deactivate') ?>"
                             method="POST">
 
                             <?= csrf_field() ?>
@@ -1217,13 +1216,20 @@
 
                                     <div>
                                         <strong>
-                                            This cannot be undone.
+                                            Account Deactivation
                                         </strong>
 
+
                                         <p>
-                                            Your resident account will be
-                                            permanently deleted.
+                                            Your account will be deactivated, and you will
+                                            be logged out. Your account information,
+                                            submitted reports, and report history will
+                                            be preserved.
+                                            To reactivate your account, please visit the
+                                            Barangay Hall for identity verification
+                                            and Admin assistance.
                                         </p>
+
                                     </div>
 
                                 </div>
@@ -1256,7 +1262,7 @@
                                         class="form-label">
 
                                         Type
-                                        <strong>DELETE</strong>
+                                        <strong>DEACTIVATE</strong>
                                         to confirm
                                     </label>
 
@@ -1264,8 +1270,8 @@
                                         type="text"
                                         class="form-control"
                                         id="deleteConfirmation"
-                                        name="delete_confirmation"
-                                        placeholder="DELETE"
+                                        name="deactivate_confirmation"
+                                        placeholder="DEACTIVATE"
                                         autocomplete="off"
                                         required>
 
@@ -1289,8 +1295,8 @@
                                     class="btn btn-danger"
                                     id="deleteAccountButton">
 
-                                    <i class="bi bi-trash3-fill"></i>
-                                    Permanently Delete
+                                    <i class="bi bi-person-x-fill"></i>
+                                    Deactivate Account
                                 </button>
 
                             </div>

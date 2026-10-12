@@ -51,6 +51,10 @@ class AuthController extends BaseController
                 ->where('rt.token_hash', $tokenHash)
                 ->where('rt.expires_at > NOW()', null, false)
                 ->where('u.is_active', 1)
+                ->groupStart()
+                ->where('u.role !=', 'resident')
+                ->orWhere('u.approval_status', 'approved')
+                ->groupEnd()
                 ->get()
                 ->getRowArray();
 
@@ -323,6 +327,34 @@ class AuthController extends BaseController
         $db->table('login_attempts')
             ->where('attempt_key', $attemptKey)
             ->delete();
+
+        // =====================================
+        // RESIDENT ADMIN APPROVAL CHECK
+        // =====================================
+        if (($user['role'] ?? '') === 'resident') {
+
+            $approvalStatus = strtolower(
+                trim((string) ($user['approval_status'] ?? 'approved'))
+            );
+
+            if ($approvalStatus === 'pending') {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Your registration is pending administrator approval. Please wait for an email notification.'
+                    );
+            }
+
+            if ($approvalStatus === 'rejected') {
+                return redirect()->back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Your registration was declined. Please contact the Barangay Administrator for assistance.'
+                    );
+            }
+        }
 
         // =====================================
         // RESIDENT ACCOUNT VERIFICATION / STATUS
@@ -1120,6 +1152,19 @@ class AuthController extends BaseController
         $address = trim((string) $this->request->getPost('address'));
         $purokId = (int) $this->request->getPost('purok_id');
         $password = (string) $this->request->getPost('password');
+        // =====================================
+        // TERMS AND CONDITIONS VALIDATION
+        // =====================================
+        $acceptTerms = (string) $this->request->getPost('accept_terms');
+
+        if ($acceptTerms !== '1') {
+            return redirect()->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'You must agree to the Terms and Conditions and acknowledge the Privacy Policy before registering.'
+                );
+        }
         $confirmPassword = (string) $this->request->getPost('confirmPassword');
 
         if (
@@ -1324,7 +1369,8 @@ class AuthController extends BaseController
                 PASSWORD_DEFAULT
             ),
             'role'              => 'resident',
-            'is_active'         => 1,
+            'is_active'         => 0,
+            'approval_status'   => 'pending',
             'email_verified_at' => $verifiedAt,
         ]);
 
@@ -1394,7 +1440,10 @@ class AuthController extends BaseController
         session()->remove('verified_registration_email');
 
         return redirect()->to('/login')
-            ->with('success', 'Account created successfully. You can now log in.');
+            ->with(
+                'success',
+                'Registration successful! Your account is pending administrator approval. You will receive an email notification once your registration has been reviewed.'
+            );
     }
 
     public function showResidentVerification()
